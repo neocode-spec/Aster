@@ -1,0 +1,1027 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#131314">
+  <title>Dew — AI Assistant</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #131314;
+      --panel: #1e1f20;
+      --hover: #2b2c2e;
+      --text: #e3e3e3;
+      --muted: #a1a1aa;
+      --accent: #c4b5fd;
+      --border: #38393b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      min-height: 100vh;
+    }
+
+    button, textarea {
+      font: inherit;
+    }
+
+    button {
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* Sidebar */
+
+    .sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      background: #191a1b;
+      padding: 20px 14px;
+      display: flex;
+      flex-direction: column;
+      transition: width .2s ease;
+    }
+
+    .sidebar.collapsed {
+      width: 76px;
+    }
+
+    .sidebar-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 8px 28px;
+    }
+
+    .icon-button {
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .icon-button:hover {
+      background: var(--hover);
+    }
+
+    .sparkle {
+      color: var(--accent);
+      font-size: 29px;
+      line-height: 1;
+      filter: drop-shadow(0 0 9px #a78bfa44);
+    }
+
+    .new-chat {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      border: 0;
+      border-radius: 24px;
+      padding: 13px 16px;
+      background: #28292b;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .new-chat:hover,
+    .side-link:hover {
+      background: #343537;
+    }
+
+    .side-link {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 8px;
+      padding: 12px 14px;
+      border-radius: 24px;
+      border: 0;
+      background: transparent;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .side-symbol {
+      width: 20px;
+      text-align: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .sidebar.collapsed .side-label,
+    .sidebar.collapsed .new-label {
+      display: none;
+    }
+
+    .sidebar.collapsed .new-chat {
+      justify-content: center;
+      padding: 13px 0;
+    }
+
+    .sidebar.collapsed .side-link {
+      justify-content: center;
+      padding: 12px 0;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      padding-top: 20px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    /* Main workspace */
+
+    .main {
+      flex: 1;
+      min-width: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .topbar {
+      height: 72px;
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .workspace-label {
+      font-size: 15px;
+      color: #d5d5d8;
+    }
+
+    .profile {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #35313f;
+      border: 1px solid #5d526e;
+      color: #e5d9ff;
+    }
+
+    /* Greeting */
+
+    .conversation {
+      flex: 1;
+      width: 100%;
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 30px 28px 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .welcome {
+      flex: 1;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px 0 48px;
+    }
+
+    .welcome h1 {
+      margin: 0;
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: 500;
+      letter-spacing: -1.8px;
+      background: linear-gradient(
+        100deg,
+        #d9caff,
+        #e9e7f0,
+        #a8c7fa
+      );
+      color: transparent;
+      background-clip: text;
+      -webkit-background-clip: text;
+    }
+
+    /* Chat messages */
+
+    .messages {
+      display: none;
+      flex-direction: column;
+      gap: 24px;
+      padding: 20px 0 30px;
+    }
+
+    .messages.active {
+      display: flex;
+    }
+
+    .message {
+      max-width: 85%;
+      line-height: 1.7;
+      font-size: 15px;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: #303134;
+      padding: 14px 18px;
+      border-radius: 22px 22px 5px 22px;
+    }
+
+    .message.assistant {
+      align-self: flex-start;
+      width: 100%;
+      padding: 8px 0;
+    }
+
+    .message-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    /* Suggested prompts */
+
+    .suggestions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin: 0 auto 26px;
+      width: 100%;
+      max-width: 680px;
+    }
+
+    .suggestion {
+      min-height: 88px;
+      padding: 16px;
+      border-radius: 17px;
+      background: #1e1f20;
+      border: 1px solid transparent;
+      text-align: left;
+      color: #dedee2;
+      transition: background .15s, border-color .15s;
+    }
+
+    .suggestion:hover {
+      background: #28292b;
+      border-color: #444549;
+    }
+
+    .suggestion small {
+      display: block;
+      color: var(--muted);
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    /* Composer */
+
+    .composer-area {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      padding-bottom: 8px;
+    }
+
+    .composer {
+      background: #1e1f20;
+      border: 1px solid #3a3b3d;
+      border-radius: 28px;
+      padding: 17px 17px 12px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .composer:focus-within {
+      border-color: #686477;
+      box-shadow: 0 0 0 1px #c4b5fd10;
+    }
+
+    .composer textarea {
+      display: block;
+      width: 100%;
+      min-height: 45px;
+      max-height: 180px;
+      resize: none;
+      outline: none;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 2px 3px 10px;
+    }
+
+    .composer textarea::placeholder {
+      color: #a3a3aa;
+    }
+
+    .composer-controls {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      flex-wrap: wrap;
+    }
+
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-trigger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 38px;
+      border: 1px solid transparent;
+      border-radius: 22px;
+      background: transparent;
+      padding: 8px 12px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .dropdown-trigger:hover,
+    .dropdown-trigger[aria-expanded="true"] {
+      background: #303134;
+      border-color: #414247;
+    }
+
+    .dew-mark {
+      color: var(--accent);
+      font-size: 17px;
+    }
+
+    .chevron {
+      color: #aaaab2;
+      font-size: 12px;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      bottom: calc(100% + 10px);
+      left: 0;
+      min-width: 205px;
+      padding: 6px;
+      background: #292a2d;
+      border: 1px solid #44454a;
+      border-radius: 16px;
+      box-shadow: 0 12px 40px #0007;
+      display: none;
+      z-index: 20;
+    }
+
+    .dropdown-menu.open {
+      display: block;
+      animation: appear .12s ease-out;
+    }
+
+    .menu-heading {
+      padding: 10px 11px 7px;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .menu-option {
+      width: 100%;
+      border: 0;
+      border-radius: 10px;
+      padding: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: transparent;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    .menu-option:hover,
+    .menu-option.selected {
+      background: #3a3b3f;
+    }
+
+    .check {
+      color: var(--accent);
+    }
+
+    .reasoning-menu {
+      min-width: 170px;
+    }
+
+    .spacer {
+      flex: 1;
+    }
+
+    .send-button {
+      height: 39px;
+      width: 39px;
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: 50%;
+      background: #e5e1f5;
+      color: #24212e;
+      font-size: 22px;
+      font-weight: 600;
+      transition: opacity .2s, transform .2s;
+    }
+
+    .send-button:hover {
+      transform: scale(1.04);
+    }
+
+    .send-button:disabled {
+      opacity: .35;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .disclaimer {
+      padding: 13px 8px 0;
+      color: #888990;
+      text-align: center;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    @keyframes appear {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 720px) {
+      .sidebar {
+        position: fixed;
+        z-index: 50;
+        inset: 0 auto 0 0;
+        width: 260px;
+        box-shadow: 12px 0 40px #0005;
+      }
+
+      .sidebar.collapsed {
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+        border: 0;
+      }
+
+      .topbar {
+        height: 62px;
+        padding: 0 14px;
+      }
+
+      .conversation {
+        padding: 10px 15px 14px;
+      }
+
+      .welcome {
+        min-height: 230px;
+      }
+
+      .suggestions {
+        gap: 8px;
+      }
+
+      .suggestion {
+        min-height: 80px;
+        padding: 12px;
+        font-size: 13px;
+      }
+
+      .composer {
+        padding: 14px 12px 10px;
+      }
+
+      .composer-controls {
+        gap: 4px;
+      }
+
+      .dropdown-trigger {
+        gap: 6px;
+        padding: 8px 9px;
+        font-size: 12px;
+      }
+
+      .message {
+        max-width: 94%;
+      }
+    }
+
+    @media (max-width: 390px) {
+      .suggestions {
+        grid-template-columns: 1fr;
+      }
+
+      .suggestion {
+        min-height: 65px;
+      }
+
+      .dropdown-trigger {
+        padding: 7px;
+      }
+
+      .composer-controls {
+        gap: 2px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <button class="icon-button" id="closeSidebar"
+                aria-label="Close sidebar" title="Close sidebar">
+          <span class="sparkle">✳</span>
+        </button>
+      </div>
+
+      <button class="new-chat" id="newChat">
+        <span class="side-symbol">＋</span>
+        <span class="new-label">New chat</span>
+      </button>
+
+      <button class="side-link" id="recentButton">
+        <span class="side-symbol">◷</span>
+        <span class="side-label">Recent chats</span>
+      </button>
+
+      <button class="side-link" id="clearButton">
+        <span class="side-symbol">⌫</span>
+        <span class="side-label">Clear conversation</span>
+      </button>
+
+      <div class="sidebar-bottom">
+        <div class="side-link">
+          <span class="side-symbol">✧</span>
+          <span class="side-label">Dew AI</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="icon-button" id="openSidebar"
+                  aria-label="Toggle sidebar" title="Toggle sidebar">
+            <span style="font-size:22px">☰</span>
+          </button>
+
+          <!-- Sparkle only. No Aster text label. -->
+          <span class="sparkle" aria-label="Aster" title="Aster">✳</span>
+        </div>
+
+        <div class="profile" aria-label="Profile">M</div>
+      </header>
+
+      <section class="conversation">
+        <div class="welcome" id="welcome">
+          <h1 id="greeting">Good morning.</h1>
+        </div>
+
+        <div class="messages" id="messages" aria-live="polite"></div>
+
+        <div class="suggestions" id="suggestions">
+          <button class="suggestion"
+                  data-prompt="Help me develop an idea into a clear plan.">
+            <span>✧ Develop an idea</span>
+            <small>Turn a rough thought into a practical plan.</small>
+          </button>
+
+          <button class="suggestion"
+                  data-prompt="Explain a difficult topic clearly, step by step.">
+            <span>▤ Learn something</span>
+            <small>Break down a complex topic.</small>
+          </button>
+
+          <button class="suggestion"
+                  data-prompt="Help me write and improve some code.">
+            <span>⌘ Write some code</span>
+            <small>Work through programming problems.</small>
+          </button>
+
+          <button class="suggestion"
+                  data-prompt="Help me research a topic and identify useful sources.">
+            <span>⌕ Research a topic</span>
+            <small>Explore information and useful sources.</small>
+          </button>
+        </div>
+
+        <div class="composer-area">
+          <form class="composer" id="chatForm">
+            <textarea
+              id="prompt"
+              rows="1"
+              placeholder="Ask Dew anything..."
+              aria-label="Message Dew"
+            ></textarea>
+
+            <div class="composer-controls">
+
+              <!-- Dropdown 1: Dew + mode in ONE selector -->
+              <div class="dropdown" id="dewDropdown">
+                <button class="dropdown-trigger"
+                        type="button"
+                        id="dewTrigger"
+                        aria-haspopup="true"
+                        aria-expanded="false">
+                  <span class="dew-mark">✳</span>
+                  <span id="dewLabel">Dew Standard</span>
+                  <span class="chevron">▾</span>
+                </button>
+
+                <div class="dropdown-menu" id="dewMenu" role="menu">
+                  <div class="menu-heading">Choose Dew mode</div>
+
+                  <button class="menu-option selected"
+                          type="button" role="menuitemradio"
+                          aria-checked="true" data-mode="Standard">
+                    <span>Dew Standard</span>
+                    <span class="check">✓</span>
+                  </button>
+
+                  <button class="menu-option"
+                          type="button" role="menuitemradio"
+                          aria-checked="false" data-mode="Search">
+                    <span>Dew Search</span>
+                    <span class="check"></span>
+                  </button>
+
+                  <button class="menu-option"
+                          type="button" role="menuitemradio"
+                          aria-checked="false" data-mode="Extended">
+                    <span>Dew Extended</span>
+                    <span class="check"></span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Dropdown 2: Reasoning level -->
+              <div class="dropdown" id="reasoningDropdown">
+                <button class="dropdown-trigger"
+                        type="button"
+                        id="reasoningTrigger"
+                        aria-haspopup="true"
+                        aria-expanded="false">
+                  <span id="reasoningLabel">Medium</span>
+                  <span class="chevron">▾</span>
+                </button>
+
+                <div class="dropdown-menu reasoning-menu"
+                     id="reasoningMenu" role="menu">
+                  <div class="menu-heading">Reasoning level</div>
+
+                  <button class="menu-option"
+                          type="button" role="menuitemradio"
+                          aria-checked="false" data-level="Low">
+                    <span>Low</span>
+                    <span class="check"></span>
+                  </button>
+
+                  <button class="menu-option selected"
+                          type="button" role="menuitemradio"
+                          aria-checked="true" data-level="Medium">
+                    <span>Medium</span>
+                    <span class="check">✓</span>
+                  </button>
+
+                  <button class="menu-option"
+                          type="button" role="menuitemradio"
+                          aria-checked="false" data-level="High">
+                    <span>High</span>
+                    <span class="check"></span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="spacer"></div>
+
+              <button class="send-button" id="sendButton"
+                      type="submit" aria-label="Send message"
+                      title="Send message" disabled>
+                ↑
+              </button>
+            </div>
+          </form>
+
+          <div class="disclaimer">
+            Dew can make mistakes. Check important information.
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const sidebar = document.getElementById("sidebar");
+    const promptInput = document.getElementById("prompt");
+    const sendButton = document.getElementById("sendButton");
+    const chatForm = document.getElementById("chatForm");
+    const messages = document.getElementById("messages");
+    const welcome = document.getElementById("welcome");
+    const suggestions = document.getElementById("suggestions");
+
+    let selectedMode = "Standard";
+    let selectedReasoning = "Medium";
+    let busy = false;
+
+    // Set a greeting without adding a subtitle.
+    const hour = new Date().getHours();
+    const greeting = document.getElementById("greeting");
+
+    greeting.textContent =
+      hour < 12 ? "Good morning." :
+      hour < 18 ? "Good afternoon." :
+      "Good evening.";
+
+    // Sidebar controls.
+    document.getElementById("closeSidebar").addEventListener("click", () => {
+      sidebar.classList.add("collapsed");
+    });
+
+    document.getElementById("openSidebar").addEventListener("click", () => {
+      sidebar.classList.toggle("collapsed");
+    });
+
+    function newChat() {
+      messages.replaceChildren();
+      messages.classList.remove("active");
+      welcome.style.display = "";
+      suggestions.style.display = "";
+      promptInput.value = "";
+      promptInput.focus();
+      updateSendButton();
+    }
+
+    document.getElementById("newChat").addEventListener("click", newChat);
+    document.getElementById("clearButton").addEventListener("click", newChat);
+
+    document.getElementById("recentButton").addEventListener("click", () => {
+      alert("Chat history will appear here when conversation storage is connected.");
+    });
+
+    // Accessible dropdown behavior.
+    const dropdowns = [
+      {
+        trigger: document.getElementById("dewTrigger"),
+        menu: document.getElementById("dewMenu")
+      },
+      {
+        trigger: document.getElementById("reasoningTrigger"),
+        menu: document.getElementById("reasoningMenu")
+      }
+    ];
+
+    function closeDropdowns(except = null) {
+      dropdowns.forEach(dropdown => {
+        if (dropdown !== except) {
+          dropdown.menu.classList.remove("open");
+          dropdown.trigger.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    dropdowns.forEach(dropdown => {
+      dropdown.trigger.addEventListener("click", event => {
+        event.stopPropagation();
+
+        const willOpen = !dropdown.menu.classList.contains("open");
+        closeDropdowns(dropdown);
+
+        dropdown.menu.classList.toggle("open", willOpen);
+        dropdown.trigger.setAttribute("aria-expanded", String(willOpen));
+      });
+    });
+
+    document.addEventListener("click", event => {
+      if (!event.target.closest(".dropdown")) {
+        closeDropdowns();
+      }
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        closeDropdowns();
+      }
+    });
+
+    function updateRadioOptions(menu, attribute, value) {
+      menu.querySelectorAll(`[data-${attribute}]`).forEach(option => {
+        const selected = option.dataset[attribute] === value;
+
+        option.classList.toggle("selected", selected);
+        option.setAttribute("aria-checked", String(selected));
+
+        const check = option.querySelector(".check");
+        if (check) check.textContent = selected ? "✓" : "";
+      });
+    }
+
+    document.querySelectorAll("[data-mode]").forEach(option => {
+      option.addEventListener("click", () => {
+        selectedMode = option.dataset.mode;
+
+        document.getElementById("dewLabel").textContent =
+          `Dew ${selectedMode}`;
+
+        updateRadioOptions(
+          document.getElementById("dewMenu"),
+          "mode",
+          selectedMode
+        );
+
+        closeDropdowns();
+      });
+    });
+
+    document.querySelectorAll("[data-level]").forEach(option => {
+      option.addEventListener("click", () => {
+        selectedReasoning = option.dataset.level;
+
+        document.getElementById("reasoningLabel").textContent =
+          selectedReasoning;
+
+        updateRadioOptions(
+          document.getElementById("reasoningMenu"),
+          "level",
+          selectedReasoning
+        );
+
+        closeDropdowns();
+      });
+    });
+
+    // Composer behavior.
+    function updateSendButton() {
+      sendButton.disabled = busy || !promptInput.value.trim();
+    }
+
+    promptInput.addEventListener("input", () => {
+      promptInput.style.height = "auto";
+      promptInput.style.height =
+        Math.min(promptInput.scrollHeight, 180) + "px";
+
+      updateSendButton();
+    });
+
+    promptInput.addEventListener("keydown", event => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        chatForm.requestSubmit();
+      }
+    });
+
+    document.querySelectorAll("[data-prompt]").forEach(button => {
+      button.addEventListener("click", () => {
+        promptInput.value = button.dataset.prompt;
+        promptInput.dispatchEvent(new Event("input"));
+        promptInput.focus();
+      });
+    });
+
+    function addMessage(text, type) {
+      const message = document.createElement("div");
+      message.className = `message ${type}`;
+      message.textContent = text;
+      messages.appendChild(message);
+      return message;
+    }
+
+    /*
+      BACKEND INTEGRATION
+
+      Replace the placeholder below with your deployed Dew API endpoint.
+
+      Expected request:
+      {
+        message: "...",
+        mode: "Standard" | "Search" | "Extended",
+        reasoning: "Low" | "Medium" | "High"
+      }
+
+      Expected response:
+      { "reply": "..." }
+
+      Never put private API keys in browser-side JavaScript.
+    */
+
+    const DEW_API_URL = ""; // Add your real API endpoint here.
+
+    async function getDewReply(message) {
+      if (!DEW_API_URL) {
+        throw new Error(
+          "Dew's backend is not connected yet. Configure DEW_API_URL in index.html."
+        );
+      }
+
+      const response = await fetch(DEW_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message,
+          mode: selectedMode,
+          reasoning: selectedReasoning
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Dew API returned HTTP ${response.status}.`);
+      }
+
+      const data = await response.json();
+
+      if (typeof data.reply !== "string") {
+        throw new Error("The Dew API did not return a reply.");
+      }
+
+      return data.reply;
+    }
+
+    chatForm.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const text = promptInput.value.trim();
+      if (!text || busy) return;
+
+      welcome.style.display = "none";
+      suggestions.style.display = "none";
+      messages.classList.add("active");
+
+      addMessage(text, "user");
+
+      promptInput.value = "";
+      promptInput.style.height = "auto";
+
+      busy = true;
+      updateSendButton();
+
+      const loadingMessage = addMessage("Dew is thinking...", "assistant");
+
+      try {
+        const reply = await getDewReply(text);
+        loadingMessage.textContent = reply;
+      } catch (error) {
+        loadingMessage.textContent = error.message;
+        loadingMessage.style.color = "#d9b6b6";
+      } finally {
+        busy = false;
+        updateSendButton();
+        promptInput.focus();
+      }
+    });
+  </script>
+</body>
+</html>
