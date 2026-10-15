@@ -5,47 +5,49 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#131314">
-  <meta name="description" content="Dew is an AI assistant for thinking, learning, research, and coding.">
-  <title>Dew — AI Assistant</title>
+  <title>Aster</title>
+
+  <!-- Aster sparkle browser-tab icon -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23131314'/%3E%3Ctext x='32' y='49' text-anchor='middle' font-size='52' fill='%23c4b5fd'%3E%E2%9C%B3%3C/text%3E%3C/svg%3E">
 
   <style>
     :root {
       color-scheme: dark;
       --bg: #131314;
-      --panel: #1e1f20;
-      --hover: #2b2c2e;
+      --sidebar: #1e1f20;
+      --surface: #1e1f20;
+      --surface-hover: #28292a;
+      --border: #37383a;
       --text: #e3e3e3;
-      --muted: #a1a1aa;
+      --muted: #a0a0a5;
       --accent: #c4b5fd;
-      --border: #38393b;
+      --accent-soft: #29233b;
+      --danger: #ffb4ab;
     }
 
     * {
       box-sizing: border-box;
     }
 
-    html,
-    body {
+    html, body {
       margin: 0;
-      min-height: 100%;
+      width: 100%;
+      height: 100%;
     }
 
     body {
       background: var(--bg);
       color: var(--text);
       font-family: Inter, "Segoe UI", Arial, sans-serif;
-      min-height: 100vh;
-      min-height: 100dvh;
+      overflow: hidden;
     }
 
-    button,
-    textarea {
+    button, textarea {
       font: inherit;
     }
 
     button {
       color: inherit;
-      cursor: pointer;
     }
 
     button:focus-visible,
@@ -54,34 +56,43 @@
       outline-offset: 3px;
     }
 
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .45;
+    }
+
     .app {
-      min-height: 100vh;
-      min-height: 100dvh;
       display: flex;
+      width: 100%;
+      height: 100dvh;
     }
 
     /* SIDEBAR */
 
     .sidebar {
-      width: 260px;
-      flex-shrink: 0;
-      background: #191a1b;
-      padding: 20px 14px;
+      width: 264px;
+      min-width: 264px;
+      background: var(--sidebar);
       display: flex;
       flex-direction: column;
+      padding: 16px 12px;
+      transition: width .2s ease, min-width .2s ease;
       overflow: hidden;
-      transition: width .2s ease, padding .2s ease;
+      z-index: 10;
     }
 
     .sidebar.collapsed {
       width: 76px;
+      min-width: 76px;
     }
 
     .sidebar-top {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 0 8px 28px;
+      gap: 14px;
+      min-height: 44px;
+      padding: 0 9px;
+      margin-bottom: 30px;
     }
 
     .icon-button {
@@ -93,444 +104,315 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      cursor: pointer;
       flex-shrink: 0;
+      color: var(--muted);
+      font-size: 21px;
+      transition: background .15s, color .15s;
     }
 
     .icon-button:hover {
-      background: var(--hover);
+      background: var(--surface-hover);
+      color: var(--text);
     }
 
-    .sparkle {
-      color: var(--accent);
+    .brand-mark {
       font-size: 29px;
+      color: var(--accent);
       line-height: 1;
-      filter: drop-shadow(0 0 9px #a78bfa44);
+      user-select: none;
     }
 
     .new-chat {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 13px;
       width: 100%;
+      min-height: 46px;
       border: 0;
       border-radius: 24px;
-      padding: 13px 16px;
-      background: #28292b;
+      padding: 0 17px;
+      margin-bottom: 26px;
+      background: #28292a;
+      color: #dddde1;
+      cursor: pointer;
+      white-space: nowrap;
       text-align: left;
+    }
+
+    .new-chat:hover {
+      background: #333436;
+    }
+
+    .new-chat-symbol {
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .sidebar-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 0 13px;
+      margin-bottom: 12px;
       white-space: nowrap;
     }
 
-    .new-chat:hover,
-    .side-link:hover {
-      background: #343537;
-    }
-
-    .side-link {
+    .recent-list {
       display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-top: 8px;
-      padding: 12px 14px;
-      border-radius: 24px;
+      flex-direction: column;
+      gap: 4px;
+      overflow-y: auto;
+    }
+
+    .recent-item {
       border: 0;
+      border-radius: 22px;
       background: transparent;
+      padding: 12px 14px;
       text-align: left;
-      white-space: nowrap;
+      cursor: pointer;
+      font-size: 13px;
       overflow: hidden;
-      flex-shrink: 0;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text);
     }
 
-    .side-symbol {
-      width: 20px;
-      text-align: center;
-      font-size: 18px;
-      flex-shrink: 0;
-    }
-
-    .sidebar.collapsed .side-label,
-    .sidebar.collapsed .new-label {
-      display: none;
-    }
-
-    .sidebar.collapsed .new-chat {
-      justify-content: center;
-      padding: 13px 0;
-    }
-
-    .sidebar.collapsed .side-link {
-      justify-content: center;
-      padding: 12px 0;
+    .recent-item:hover {
+      background: #2b2c2d;
     }
 
     .sidebar-bottom {
       margin-top: auto;
-      padding-top: 20px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.6;
+      padding-top: 15px;
+      border-top: 1px solid #333436;
     }
 
-    /* MAIN WORKSPACE */
+    .sidebar.collapsed .hide-collapsed {
+      display: none;
+    }
+
+    .sidebar.collapsed .sidebar-top {
+      padding: 0 4px;
+    }
+
+    .sidebar.collapsed .new-chat {
+      justify-content: center;
+      padding: 0;
+    }
+
+    .sidebar.collapsed .new-chat .new-chat-text,
+    .sidebar.collapsed .sidebar-label,
+    .sidebar.collapsed .recent-list,
+    .sidebar.collapsed .brand-mark {
+      display: none;
+    }
+
+    /* MAIN CONTENT */
 
     .main {
-      flex: 1;
+      position: relative;
       min-width: 0;
-      min-height: 100vh;
-      min-height: 100dvh;
+      flex: 1;
+      height: 100%;
       display: flex;
       flex-direction: column;
-      position: relative;
+      background: var(--bg);
     }
 
     .topbar {
-      height: 72px;
-      min-height: 72px;
-      padding: 0 28px;
+      height: 68px;
+      min-height: 68px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      padding: 0 28px;
     }
 
     .topbar-left {
       display: flex;
       align-items: center;
       gap: 12px;
+      min-width: 0;
     }
 
-    .profile {
-      width: 35px;
-      height: 35px;
+    .model-name {
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .model-chevron {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
-      display: grid;
-      place-items: center;
-      background: #35313f;
-      border: 1px solid #5d526e;
-      color: #e5d9ff;
-      flex-shrink: 0;
+      background: #8e8e93;
     }
 
-    /* CONVERSATION LAYOUT */
+    .status-dot.online {
+      background: #81c995;
+    }
+
+    .status-dot.busy {
+      background: #e6c27a;
+    }
+
+    /* SCROLLABLE CONVERSATION */
 
     .conversation {
       flex: 1;
       min-height: 0;
-      width: 100%;
-      max-width: 920px;
-      margin: 0 auto;
-      padding: 24px 28px 20px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Landing screen: greeting, composer, then suggestions. */
-
-    .conversation.landing {
-      justify-content: center;
+      overflow-y: auto;
+      scroll-behavior: smooth;
     }
 
     .welcome {
-      flex: 0 0 auto;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 0 0 30px;
-    }
-
-    .welcome h1 {
-      margin: 0;
-      font-size: clamp(32px, 5vw, 48px);
-      font-weight: 500;
-      letter-spacing: -1.8px;
-      line-height: 1.2;
-      background: linear-gradient(
-        100deg,
-        #d9caff,
-        #e9e7f0,
-        #a8c7fa
-      );
-      color: transparent;
-      background-clip: text;
-      -webkit-background-clip: text;
-    }
-
-    /* CHAT MESSAGES */
-
-    .messages {
-      display: none;
-      flex-direction: column;
-      gap: 24px;
-      padding: 20px 0 30px;
-    }
-
-    .messages.active {
-      display: flex;
-    }
-
-    .message {
-      max-width: 85%;
-      line-height: 1.7;
-      font-size: 15px;
-      overflow-wrap: anywhere;
-      white-space: pre-wrap;
-    }
-
-    .message.user {
-      align-self: flex-end;
-      background: #303134;
-      padding: 14px 18px;
-      border-radius: 22px 22px 5px 22px;
-    }
-
-    .message.assistant {
-      align-self: flex-start;
-      width: 100%;
-      padding: 8px 0;
-    }
-
-    .message.assistant.error {
-      color: #d9b6b6;
-    }
-
-    /* SUGGESTED PROMPTS */
-
-    .suggestions {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-      margin: 24px auto 0;
-      width: 100%;
-      max-width: 680px;
-    }
-
-    .suggestion {
-      min-height: 88px;
-      padding: 16px;
-      border-radius: 17px;
-      background: var(--panel);
-      border: 1px solid transparent;
-      text-align: left;
-      color: #dedee2;
-      transition: background .15s, border-color .15s;
-    }
-
-    .suggestion:hover {
-      background: #28292b;
-      border-color: #444549;
-    }
-
-    .suggestion small {
-      display: block;
-      color: var(--muted);
-      margin-top: 8px;
-      line-height: 1.4;
-    }
-
-    /* COMPOSER */
-
-    .composer-area {
-      width: 100%;
-      max-width: 800px;
+      width: min(850px, calc(100% - 44px));
       margin: 0 auto;
-      flex-shrink: 0;
+      padding: 50px 0 35px;
     }
+
+    .greeting {
+      font-size: clamp(34px, 5vw, 51px);
+      line-height: 1.15;
+      letter-spacing: -1.8px;
+      font-weight: 500;
+      margin: 10px 0 14px;
+      background: linear-gradient(105deg, #c4b5fd 0%, #e4d7ff 35%, #d8d9e2 76%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.6;
+      margin: 0 0 35px;
+    }
+
+    /* COMPOSER COMES BEFORE SUGGESTIONS */
 
     .composer {
-      background: var(--panel);
-      border: 1px solid #3a3b3d;
-      border-radius: 28px;
-      padding: 17px 17px 12px;
-      transition: border-color .2s, box-shadow .2s;
+      width: 100%;
+      background: #1e1f20;
+      border: 1px solid #363739;
+      border-radius: 29px;
+      padding: 17px 18px 12px;
+      transition: border-color .2s, background .2s;
     }
 
     .composer:focus-within {
-      border-color: #686477;
-      box-shadow: 0 0 0 1px #c4b5fd10;
+      border-color: #55515f;
+      background: #202122;
     }
 
-    .composer textarea {
+    .message-input {
       display: block;
       width: 100%;
-      min-height: 45px;
-      max-height: 180px;
+      min-height: 55px;
+      max-height: 200px;
       resize: none;
-      outline: none;
       border: 0;
+      outline: 0;
       background: transparent;
       color: var(--text);
       font-size: 16px;
-      line-height: 1.6;
-      padding: 2px 3px 10px;
+      line-height: 1.55;
+      padding: 5px 2px;
     }
 
-    .composer textarea::placeholder {
-      color: #a3a3aa;
+    .message-input::placeholder {
+      color: #a5a5aa;
     }
 
-    .composer-controls {
+    .composer-bottom {
       display: flex;
       align-items: center;
-      gap: 9px;
-      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 7px;
     }
 
-    /* DROPDOWNS */
+    .composer-options {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 7px;
+      min-width: 0;
+    }
 
-    .dropdown {
+    .dropdown-wrap {
       position: relative;
     }
 
-    .dropdown-trigger {
+    .dropdown-button {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 9px;
-      min-height: 38px;
+      gap: 8px;
+      min-height: 37px;
+      padding: 0 12px;
       border: 1px solid transparent;
-      border-radius: 22px;
+      border-radius: 20px;
       background: transparent;
-      padding: 8px 12px;
+      color: #d4d4d8;
+      cursor: pointer;
       font-size: 13px;
       white-space: nowrap;
     }
 
-    .dropdown-trigger:hover,
-    .dropdown-trigger[aria-expanded="true"] {
-      background: #303134;
-      border-color: #414247;
+    .dropdown-button:hover,
+    .dropdown-button.active {
+      background: #303133;
+      border-color: #414244;
     }
 
-    .dew-mark {
+    .dropdown-icon {
+      font-size: 16px;
       color: var(--accent);
-      font-size: 17px;
     }
 
     .chevron {
-      color: #aaaab2;
-      font-size: 12px;
+      font-size: 10px;
+      color: var(--muted);
     }
 
     .dropdown-menu {
-      position: absolute;
-      bottom: calc(100% + 10px);
-      left: 0;
-      min-width: 205px;
-      padding: 6px;
-      background: #292a2d;
-      border: 1px solid #44454a;
-      border-radius: 16px;
-      box-shadow: 0 12px 40px #0007;
       display: none;
-      z-index: 20;
+      position: absolute;
+      bottom: calc(100% + 9px);
+      left: 0;
+      width: 218px;
+      padding: 7px;
+      border: 1px solid #414244;
+      border-radius: 17px;
+      background: #252627;
+      box-shadow: 0 12px 35px #0007;
+      z-index: 30;
     }
 
     .dropdown-menu.open {
       display: block;
-      animation: appear .12s ease-out;
+      animation: menuIn .12s ease-out;
     }
 
-    .menu-heading {
-      padding: 10px 11px 7px;
-      color: var(--muted);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .menu-option {
-      width: 100%;
-      border: 0;
-      border-radius: 10px;
-      padding: 11px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      background: transparent;
-      text-align: left;
-      font-size: 13px;
-    }
-
-    .menu-option:hover,
-    .menu-option.selected {
-      background: #3a3b3f;
-    }
-
-    .check {
-      color: var(--accent);
-    }
-
-    .reasoning-menu {
-      min-width: 170px;
-    }
-
-    .spacer {
-      flex: 1;
-    }
-
-    .send-button {
-      height: 39px;
-      width: 39px;
-      flex-shrink: 0;
-      display: grid;
-      place-items: center;
-      border: 0;
-      border-radius: 50%;
-      background: #e5e1f5;
-      color: #24212e;
-      font-size: 22px;
-      font-weight: 600;
-      transition: opacity .2s, transform .2s;
-    }
-
-    .send-button:hover {
-      transform: scale(1.04);
-    }
-
-    .send-button:disabled {
-      opacity: .35;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .disclaimer {
-      padding: 13px 8px 0;
-      color: #888990;
-      text-align: center;
-      font-size: 11px;
-      line-height: 1.5;
-    }
-
-    /* ACTIVE CHAT: messages scroll above the bottom composer. */
-
-    .conversation.chatting {
-      justify-content: flex-start;
-    }
-
-    .conversation.chatting .welcome,
-    .conversation.chatting .suggestions {
-      display: none;
-    }
-
-    .conversation.chatting .messages {
-      display: flex;
-      flex: 1 1 auto;
-      min-height: 0;
-      overflow-y: auto;
-      overscroll-behavior: contain;
-      scrollbar-width: thin;
-      scrollbar-color: #444549 transparent;
-    }
-
-    .conversation.chatting .composer-area {
-      margin-top: auto;
-      padding-top: 12px;
-      padding-bottom: 4px;
-    }
-
-    @keyframes appear {
+    @keyframes menuIn {
       from {
         opacity: 0;
         transform: translateY(4px);
@@ -541,125 +423,431 @@
       }
     }
 
-    /* RESPONSIVE */
+    .menu-heading {
+      padding: 9px 11px 7px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .6px;
+      color: #96969d;
+      text-transform: uppercase;
+    }
 
-    @media (max-width: 720px) {
+    .menu-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      padding: 11px;
+      border: 0;
+      border-radius: 11px;
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .menu-option:hover {
+      background: #343537;
+    }
+
+    .menu-option.selected {
+      background: var(--accent-soft);
+      color: #e3d9ff;
+    }
+
+    .option-description {
+      display: block;
+      color: #9999a1;
+      font-size: 11px;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    .option-check {
+      color: var(--accent);
+      font-size: 15px;
+    }
+
+    .send-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 43px;
+      height: 43px;
+      min-width: 43px;
+      border: 0;
+      border-radius: 50%;
+      background: #e4d7ff;
+      color: #201a2c;
+      cursor: pointer;
+      font-size: 25px;
+      line-height: 1;
+      transition: transform .15s, background .15s;
+    }
+
+    .send-button:hover:not(:disabled) {
+      background: #f0e8ff;
+      transform: scale(1.04);
+    }
+
+    .send-button:disabled {
+      background: #37383a;
+      color: #818188;
+      opacity: 1;
+    }
+
+    /* SUGGESTIONS */
+
+    .suggestions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .suggestion {
+      min-height: 132px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 17px;
+      border: 1px solid transparent;
+      border-radius: 17px;
+      background: #1e1f20;
+      text-align: left;
+      cursor: pointer;
+      transition: background .15s, border-color .15s, transform .15s;
+    }
+
+    .suggestion:hover {
+      background: #28292a;
+      border-color: #414244;
+      transform: translateY(-2px);
+    }
+
+    .suggestion-text {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #d9d9de;
+    }
+
+    .suggestion-icon {
+      align-self: flex-end;
+      font-size: 19px;
+      color: var(--accent);
+    }
+
+    /* MESSAGES */
+
+    .messages {
+      width: min(850px, calc(100% - 44px));
+      margin: 0 auto;
+      padding: 30px 0 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 27px;
+    }
+
+    .message {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .message.user {
+      align-items: flex-end;
+    }
+
+    .message-role {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: #b6b6bc;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .role-mark {
+      font-size: 17px;
+      color: var(--accent);
+    }
+
+    .message-body {
+      max-width: 100%;
+      font-size: 15px;
+      line-height: 1.8;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .user-bubble {
+      max-width: min(85%, 600px);
+      padding: 13px 18px;
+      background: #292a2b;
+      border-radius: 21px 21px 5px 21px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    .message-error {
+      color: var(--danger);
+    }
+
+    .message-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 3px;
+    }
+
+    .small-action {
+      border: 0;
+      background: transparent;
+      color: #9999a1;
+      border-radius: 8px;
+      padding: 6px 9px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .small-action:hover {
+      background: #292a2b;
+      color: var(--text);
+    }
+
+    .typing {
+      display: inline-flex;
+      gap: 5px;
+      padding: 8px 0;
+    }
+
+    .typing span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #b9a8e9;
+      animation: pulse 1.1s infinite ease-in-out;
+    }
+
+    .typing span:nth-child(2) {
+      animation-delay: .15s;
+    }
+
+    .typing span:nth-child(3) {
+      animation-delay: .3s;
+    }
+
+    @keyframes pulse {
+      0%, 60%, 100% {
+        opacity: .3;
+        transform: translateY(0);
+      }
+      30% {
+        opacity: 1;
+        transform: translateY(-4px);
+      }
+    }
+
+    /* BOTTOM AREA */
+
+    .bottom-area {
+      flex-shrink: 0;
+      padding: 0 22px 14px;
+      background: linear-gradient(transparent, var(--bg) 18%);
+    }
+
+    .bottom-inner {
+      width: min(850px, 100%);
+      margin: 0 auto;
+    }
+
+    .disclaimer {
+      margin-top: 12px;
+      text-align: center;
+      color: #85858b;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .toast {
+      position: absolute;
+      bottom: 92px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: calc(100% - 36px);
+      background: #303133;
+      border: 1px solid #494a4d;
+      border-radius: 12px;
+      padding: 12px 17px;
+      color: #e5e5e8;
+      font-size: 13px;
+      box-shadow: 0 5px 20px #0005;
+      z-index: 50;
+      display: none;
+    }
+
+    .toast.visible {
+      display: block;
+    }
+
+    /* MOBILE */
+
+    .mobile-overlay {
+      display: none;
+    }
+
+    @media (max-width: 760px) {
       .sidebar {
         position: fixed;
-        z-index: 50;
         inset: 0 auto 0 0;
-        width: 260px;
-        min-height: 100vh;
-        min-height: 100dvh;
-        box-shadow: 12px 0 40px #0005;
+        height: 100dvh;
+        width: 270px;
+        min-width: 270px;
+        transform: translateX(-100%);
+        transition: transform .22s ease;
+        box-shadow: none;
+      }
+
+      .sidebar.mobile-open {
+        transform: translateX(0);
+        box-shadow: 15px 0 50px #0006;
       }
 
       .sidebar.collapsed {
-        width: 0;
-        padding: 0;
-        overflow: hidden;
-        border: 0;
+        width: 270px;
+        min-width: 270px;
+      }
+
+      .sidebar.collapsed .hide-collapsed,
+      .sidebar.collapsed .brand-mark,
+      .sidebar.collapsed .new-chat .new-chat-text,
+      .sidebar.collapsed .sidebar-label,
+      .sidebar.collapsed .recent-list {
+        display: initial;
+      }
+
+      .sidebar.collapsed .sidebar-top {
+        padding: 0 9px;
+      }
+
+      .sidebar.collapsed .new-chat {
+        justify-content: flex-start;
+        padding: 0 17px;
+      }
+
+      .mobile-overlay.visible {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: #0008;
+        z-index: 9;
       }
 
       .topbar {
-        height: 62px;
-        min-height: 62px;
-        padding: 0 14px;
-      }
-
-      .conversation {
-        padding: 12px 15px 14px;
-      }
-
-      .conversation.landing {
-        justify-content: center;
+        padding: 0 15px;
       }
 
       .welcome {
-        padding-bottom: 26px;
+        width: calc(100% - 30px);
+        padding-top: 35px;
       }
 
-      .welcome h1 {
-        letter-spacing: -1.2px;
+      .greeting {
+        letter-spacing: -1px;
       }
 
-      .suggestions {
-        gap: 8px;
-        margin-top: 20px;
-      }
-
-      .suggestion {
-        min-height: 80px;
-        padding: 12px;
-        font-size: 13px;
+      .subtitle {
+        font-size: 14px;
+        margin-bottom: 25px;
       }
 
       .composer {
-        padding: 14px 12px 10px;
+        padding: 13px 12px 10px;
+        border-radius: 24px;
       }
 
-      .composer-controls {
-        gap: 4px;
+      .composer-bottom {
+        align-items: flex-end;
       }
 
-      .dropdown-trigger {
-        gap: 6px;
-        padding: 8px 9px;
+      .composer-options {
+        gap: 3px;
+      }
+
+      .dropdown-button {
+        padding: 0 8px;
+        gap: 5px;
         font-size: 12px;
       }
 
-      .message {
-        max-width: 94%;
+      .dropdown-menu {
+        width: 210px;
+      }
+
+      .suggestions {
+        grid-template-columns: 1fr;
+        gap: 9px;
+        margin-top: 17px;
+      }
+
+      .suggestion {
+        min-height: 86px;
+        flex-direction: row;
+        align-items: center;
+        padding: 15px;
+      }
+
+      .suggestion-icon {
+        flex-shrink: 0;
+      }
+
+      .messages {
+        width: calc(100% - 30px);
+      }
+
+      .bottom-area {
+        padding: 0 12px 10px;
+      }
+
+      .disclaimer {
+        font-size: 10px;
       }
     }
 
     @media (max-width: 390px) {
-      .suggestions {
-        grid-template-columns: 1fr;
+      .model-name {
+        font-size: 14px;
       }
 
-      .suggestion {
-        min-height: 65px;
+      .status {
+        font-size: 11px;
       }
 
-      .dropdown-trigger {
-        padding: 7px;
+      .dropdown-button {
+        padding: 0 6px;
+        font-size: 11px;
       }
 
-      .composer-controls {
-        gap: 2px;
+      .composer-options {
+        gap: 0;
       }
 
-      .dew-mark {
-        font-size: 15px;
-      }
-    }
-
-    @media (max-height: 650px) and (min-width: 721px) {
-      .conversation {
-        padding-top: 12px;
-        padding-bottom: 12px;
-      }
-
-      .welcome {
-        padding-bottom: 16px;
-      }
-
-      .suggestions {
-        margin-top: 16px;
-      }
-
-      .suggestion {
-        min-height: 72px;
+      .send-button {
+        width: 39px;
+        height: 39px;
+        min-width: 39px;
       }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
+      *, *::before, *::after {
         animation-duration: .01ms !important;
         transition-duration: .01ms !important;
+        scroll-behavior: auto !important;
       }
     }
   </style>
@@ -668,661 +856,858 @@
 <body>
   <div class="app">
 
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-top">
-        <button
-          class="icon-button"
-          id="closeSidebar"
-          aria-label="Collapse sidebar"
-          title="Collapse sidebar"
-          type="button"
-        >
-          <span class="sparkle">✳</span>
+        <button class="icon-button" id="sidebarToggle"
+                aria-label="Toggle sidebar" title="Toggle sidebar">
+          ☰
         </button>
+        <span class="brand-mark" aria-label="Aster">✳</span>
       </div>
 
-      <button class="new-chat" id="newChat" type="button">
-        <span class="side-symbol">＋</span>
-        <span class="new-label">New chat</span>
+      <button class="new-chat" id="newChat">
+        <span class="new-chat-symbol">＋</span>
+        <span class="new-chat-text hide-collapsed">New chat</span>
       </button>
 
-      <button class="side-link" id="recentButton" type="button">
-        <span class="side-symbol">◷</span>
-        <span class="side-label">Recent chats</span>
-      </button>
+      <div class="sidebar-label hide-collapsed">Recent</div>
 
-      <button class="side-link" id="clearButton" type="button">
-        <span class="side-symbol">⌫</span>
-        <span class="side-label">Clear conversation</span>
-      </button>
+      <div class="recent-list hide-collapsed" id="recentList">
+        <div style="padding: 12px 13px; color: #898990; font-size: 12px;">
+          Your recent chats will appear here.
+        </div>
+      </div>
 
       <div class="sidebar-bottom">
-        <div class="side-link">
-          <span class="side-symbol">✧</span>
-          <span class="side-label">Dew AI</span>
-        </div>
+        <button class="icon-button" id="connectionButton"
+                title="Check Dew connection" aria-label="Check Dew connection">
+          ◉
+        </button>
+        <span class="hide-collapsed"
+              style="font-size:12px;color:#96969d;vertical-align:middle;">
+          Dew connection
+        </span>
       </div>
     </aside>
 
-    <!-- MAIN WORKSPACE -->
+    <!-- MAIN -->
     <main class="main">
       <header class="topbar">
         <div class="topbar-left">
-          <button
-            class="icon-button"
-            id="openSidebar"
-            aria-label="Toggle sidebar"
-            title="Toggle sidebar"
-            type="button"
-          >
-            <span style="font-size:22px">☰</span>
-          </button>
+          <button class="icon-button" id="mobileMenu"
+                  aria-label="Open menu" title="Open menu"
+                  style="display:none;">☰</button>
 
-          <!-- Sparkle only. No visible Aster text label. -->
-          <span class="sparkle" aria-label="Aster" title="Aster">✳</span>
+          <span class="model-name">Dew</span>
+          <span class="model-chevron">▾</span>
         </div>
 
-        <div class="profile" aria-label="Profile">M</div>
+        <div class="status" aria-live="polite">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">Checking connection</span>
+        </div>
       </header>
 
-      <!--
-        IMPORTANT ORDER:
-        1. Greeting
-        2. Messages
-        3. Composer
-        4. Suggestions
+      <section class="conversation" id="conversation">
+        <div id="welcome" class="welcome">
+          <h1 class="greeting" id="greeting">Where should we start?</h1>
+          <p class="subtitle" id="subtitle">
+            A little curiosity can lead somewhere interesting.
+          </p>
 
-        Messages are hidden on the landing screen.
-        During a conversation, suggestions and greeting are hidden,
-        leaving messages above the composer.
-      -->
-      <section class="conversation landing" id="conversation">
-
-        <div class="welcome" id="welcome">
-          <h1 id="greeting">What are we thinking today?</h1>
-        </div>
-
-        <div
-          class="messages"
-          id="messages"
-          aria-live="polite"
-          aria-relevant="additions text"
-        ></div>
-
-        <!-- CHAT COMPOSER -->
-        <div class="composer-area">
+          <!-- CHAT BAR IS ABOVE SUGGESTIONS -->
           <form class="composer" id="chatForm">
             <textarea
-              id="prompt"
-              rows="1"
-              placeholder="Ask Dew anything..."
+              class="message-input"
+              id="messageInput"
+              rows="2"
+              maxlength="1200"
+              placeholder="Ask Dew anything"
               aria-label="Message Dew"
+              required
             ></textarea>
 
-            <div class="composer-controls">
+            <div class="composer-bottom">
+              <div class="composer-options">
 
-              <!-- DROPDOWN 1: DEW MODE -->
-              <div class="dropdown" id="dewDropdown">
-                <button
-                  class="dropdown-trigger"
-                  type="button"
-                  id="dewTrigger"
-                  aria-haspopup="true"
-                  aria-expanded="false"
-                >
-                  <span class="dew-mark">✳</span>
-                  <span id="dewLabel">Dew Standard</span>
-                  <span class="chevron">▾</span>
-                </button>
-
-                <div
-                  class="dropdown-menu"
-                  id="dewMenu"
-                  role="menu"
-                  aria-label="Choose Dew mode"
-                >
-                  <div class="menu-heading">Choose Dew mode</div>
-
-                  <button
-                    class="menu-option selected"
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked="true"
-                    data-mode="Standard"
-                  >
-                    <span>Dew Standard</span>
-                    <span class="check">✓</span>
+                <!-- DEW MODE DROPDOWN -->
+                <div class="dropdown-wrap">
+                  <button type="button" class="dropdown-button"
+                          id="modeButton" aria-haspopup="true"
+                          aria-expanded="false">
+                    <span class="dropdown-icon">✳</span>
+                    <span id="modeLabel">Dew Standard</span>
+                    <span class="chevron">▾</span>
                   </button>
 
-                  <button
-                    class="menu-option"
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked="false"
-                    data-mode="Search"
-                  >
-                    <span>Dew Search</span>
-                    <span class="check"></span>
+                  <div class="dropdown-menu" id="modeMenu" role="menu">
+                    <div class="menu-heading">Choose Dew mode</div>
+
+                    <button type="button" class="menu-option selected"
+                            data-mode="Standard" role="menuitemradio"
+                            aria-checked="true">
+                      <span>
+                        <strong>Dew Standard</strong>
+                        <span class="option-description">
+                          Everyday questions, writing and coding
+                        </span>
+                      </span>
+                      <span class="option-check">✓</span>
+                    </button>
+
+                    <button type="button" class="menu-option"
+                            data-mode="Extended" role="menuitemradio"
+                            aria-checked="false">
+                      <span>
+                        <strong>Dew Extended</strong>
+                        <span class="option-description">
+                          For more involved tasks
+                        </span>
+                      </span>
+                      <span class="option-check"></span>
+                    </button>
+
+                    <button type="button" class="menu-option"
+                            data-mode="Search" role="menuitemradio"
+                            aria-checked="false">
+                      <span>
+                        <strong>Dew Search</strong>
+                        <span class="option-description">
+                          Web-oriented questions
+                        </span>
+                      </span>
+                      <span class="option-check"></span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- THINKING LEVEL DROPDOWN -->
+                <div class="dropdown-wrap">
+                  <button type="button" class="dropdown-button"
+                          id="thinkingButton" aria-haspopup="true"
+                          aria-expanded="false">
+                    <span id="thinkingLabel">Medium</span>
+                    <span class="chevron">▾</span>
                   </button>
 
-                  <button
-                    class="menu-option"
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked="false"
-                    data-mode="Extended"
-                  >
-                    <span>Dew Extended</span>
-                    <span class="check"></span>
-                  </button>
+                  <div class="dropdown-menu" id="thinkingMenu" role="menu">
+                    <div class="menu-heading">Thinking level</div>
+
+                    <button type="button" class="menu-option"
+                            data-thinking="Low" role="menuitemradio"
+                            aria-checked="false">
+                      <span>
+                        <strong>Low</strong>
+                        <span class="option-description">
+                          Faster responses
+                        </span>
+                      </span>
+                      <span class="option-check"></span>
+                    </button>
+
+                    <button type="button" class="menu-option selected"
+                            data-thinking="Medium" role="menuitemradio"
+                            aria-checked="true">
+                      <span>
+                        <strong>Medium</strong>
+                        <span class="option-description">
+                          Balanced reasoning
+                        </span>
+                      </span>
+                      <span class="option-check">✓</span>
+                    </button>
+
+                    <button type="button" class="menu-option"
+                            data-thinking="High" role="menuitemradio"
+                            aria-checked="false">
+                      <span>
+                        <strong>High</strong>
+                        <span class="option-description">
+                          More deliberate reasoning
+                        </span>
+                      </span>
+                      <span class="option-check"></span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <!-- DROPDOWN 2: REASONING -->
-              <div class="dropdown" id="reasoningDropdown">
-                <button
-                  class="dropdown-trigger"
-                  type="button"
-                  id="reasoningTrigger"
-                  aria-haspopup="true"
-                  aria-expanded="false"
-                >
-                  <span id="reasoningLabel">Medium</span>
-                  <span class="chevron">▾</span>
-                </button>
-
-                <div
-                  class="dropdown-menu reasoning-menu"
-                  id="reasoningMenu"
-                  role="menu"
-                  aria-label="Choose reasoning level"
-                >
-                  <div class="menu-heading">Reasoning level</div>
-
-                  <button
-                    class="menu-option"
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked="false"
-                    data-level="Low"
-                  >
-                    <span>Low</span>
-                    <span class="check"></span>
-                  </button>
-
-                  <button
-                    class="menu-option selected"
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked="true"
-                    data-level="Medium"
-                  >
-                    <span>Medium</span>
-                    <span class="check">✓</span>
-                  </button>
-
-                  <button
-                    class="menu-option"
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked="false"
-                    data-level="High"
-                  >
-                    <span>High</span>
-                    <span class="check"></span>
-                  </button>
-                </div>
-              </div>
-
-              <div class="spacer"></div>
-
-              <button
-                class="send-button"
-                id="sendButton"
-                type="submit"
-                aria-label="Send message"
-                title="Send message"
-                disabled
-              >↑</button>
+              <button type="submit" class="send-button" id="sendButton"
+                      aria-label="Send message" title="Send message">
+                ↑
+              </button>
             </div>
           </form>
 
+          <!-- SUGGESTION TILES BELOW THE CHAT BAR -->
+          <div class="suggestions" id="suggestions">
+            <button class="suggestion" data-prompt="Explain a difficult concept in a simple, interesting way.">
+              <span class="suggestion-text">
+                Explain something complicated in simple terms
+              </span>
+              <span class="suggestion-icon">✧</span>
+            </button>
+
+            <button class="suggestion" data-prompt="Help me brainstorm an original idea for a project.">
+              <span class="suggestion-text">
+                Help me come up with an original idea
+              </span>
+              <span class="suggestion-icon">✳</span>
+            </button>
+
+            <button class="suggestion" data-prompt="Help me write clean, understandable code and explain how it works.">
+              <span class="suggestion-text">
+                Build something with code
+              </span>
+              <span class="suggestion-icon">⌘</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="messages" id="messages" hidden></div>
+      </section>
+
+      <footer class="bottom-area">
+        <div class="bottom-inner">
           <div class="disclaimer">
             Dew can make mistakes. Check important information.
           </div>
         </div>
+      </footer>
 
-        <!-- SUGGESTIONS APPEAR UNDER THE COMPOSER ON THE LANDING SCREEN -->
-        <div class="suggestions" id="suggestions">
-          <button
-            class="suggestion"
-            type="button"
-            data-prompt="Help me develop an idea into a clear plan."
-          >
-            <span>✧ Develop an idea</span>
-            <small>Turn a rough thought into a practical plan.</small>
-          </button>
-
-          <button
-            class="suggestion"
-            type="button"
-            data-prompt="Explain a difficult topic clearly, step by step."
-          >
-            <span>▤ Learn something</span>
-            <small>Break down a complex topic.</small>
-          </button>
-
-          <button
-            class="suggestion"
-            type="button"
-            data-prompt="Help me write and improve some code."
-          >
-            <span>⌘ Write some code</span>
-            <small>Work through programming problems.</small>
-          </button>
-
-          <button
-            class="suggestion"
-            type="button"
-            data-prompt="Help me research a topic and identify useful sources."
-          >
-            <span>⌕ Research a topic</span>
-            <small>Explore information and useful sources.</small>
-          </button>
-        </div>
-
-      </section>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </main>
   </div>
 
   <script>
-    /* ELEMENTS */
+    "use strict";
 
-    const sidebar = document.getElementById("sidebar");
-    const conversation = document.getElementById("conversation");
-    const promptInput = document.getElementById("prompt");
-    const sendButton = document.getElementById("sendButton");
-    const chatForm = document.getElementById("chatForm");
-    const messages = document.getElementById("messages");
-    const welcome = document.getElementById("welcome");
-    const suggestions = document.getElementById("suggestions");
-    const greeting = document.getElementById("greeting");
+    // --------------------------------------------------
+    // CONFIGURATION
+    // --------------------------------------------------
+
+    // This URL is the temporary Cloudflare tunnel URL.
+    // If the tunnel changes, update this value.
+    const DEW_API_URL =
+      "https://folding-ideas-nirvana-redeem.trycloudflare.com/api/chat";
 
     let selectedMode = "Standard";
     let selectedReasoning = "Medium";
-    let busy = false;
+    let isSending = false;
+    let currentChatId = 0;
+    let toastTimer = null;
 
-    /* RANDOM GREETINGS */
+    const $ = (id) => document.getElementById(id);
 
-    const captions = [
-      "What are we thinking today?",
-      "Let's make something useful.",
-      "A new idea starts here.",
-      "What can we figure out?",
-      "Ready when you are.",
-      "Let's get to work.",
-      "Big ideas start somewhere.",
-      "What shall we explore today?",
-      "Curiosity looks good on you.",
-      "Bring your next idea to life.",
-      "What are we building today?",
-      "Let's solve something interesting.",
-      "Start with a question.",
-      "Your next idea starts here.",
-      "What would you like to understand?",
-      "Think it through with Dew.",
-      "Let's make sense of it.",
-      "One question can start anything."
+    const sidebar = $("sidebar");
+    const mobileOverlay = $("mobileOverlay");
+    const conversation = $("conversation");
+    const welcome = $("welcome");
+    const messages = $("messages");
+    const input = $("messageInput");
+    const sendButton = $("sendButton");
+    const statusDot = $("statusDot");
+    const statusText = $("statusText");
+
+    // --------------------------------------------------
+    // GREETINGS
+    // --------------------------------------------------
+
+    const greetings = [
+      {
+        title: "Where should we start?",
+        subtitle: "A little curiosity can lead somewhere interesting."
+      },
+      {
+        title: "What's on your mind?",
+        subtitle: "Bring a question, a challenge, or a new idea."
+      },
+      {
+        title: "Let's explore something.",
+        subtitle: "From a quick question to a complicated problem."
+      },
+      {
+        title: "Ready when you are.",
+        subtitle: "Think it through, build it, or figure it out."
+      },
+      {
+        title: "What are we working on?",
+        subtitle: "Every interesting idea starts somewhere."
+      }
     ];
 
-    function setRandomGreeting() {
-      const previousCaption = greeting.textContent;
-      let nextCaption = previousCaption;
+    function setGreeting() {
+      const item = greetings[
+        Math.floor(Math.random() * greetings.length)
+      ];
 
-      if (captions.length > 1) {
-        while (nextCaption === previousCaption) {
-          nextCaption = captions[
-            Math.floor(Math.random() * captions.length)
-          ];
-        }
-      }
-
-      greeting.textContent = nextCaption;
+      $("greeting").textContent = item.title;
+      $("subtitle").textContent = item.subtitle;
     }
 
-    // A different caption on every page load, not based on the time.
-    setRandomGreeting();
+    // --------------------------------------------------
+    // STATUS
+    // --------------------------------------------------
 
-    /* SIDEBAR */
+    function setStatus(state, text) {
+      statusDot.className = "status-dot";
 
-    document.getElementById("closeSidebar").addEventListener("click", () => {
-      if (window.matchMedia("(max-width: 720px)").matches) {
-        sidebar.classList.add("collapsed");
+      if (state === "online") {
+        statusDot.classList.add("online");
+      } else if (state === "busy") {
+        statusDot.classList.add("busy");
+      }
+
+      statusText.textContent = text;
+    }
+
+    function showToast(message) {
+      const toast = $("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+
+      clearTimeout(toastTimer);
+
+      toastTimer = setTimeout(() => {
+        toast.classList.remove("visible");
+      }, 4200);
+    }
+
+    async function checkConnection(showMessage = false) {
+      setStatus("", "Checking connection");
+
+      try {
+        // A short, non-generating request to check the API.
+        const controller = new AbortController();
+        const timeout = setTimeout(
+          () => controller.abort(),
+          10000
+        );
+
+        let response;
+
+        try {
+          response = await fetch(
+            DEW_API_URL.replace(/\/api\/chat\/?$/, "/health"),
+            {
+              method: "GET",
+              signal: controller.signal
+            }
+          );
+        } finally {
+          clearTimeout(timeout);
+        }
+
+        if (!response.ok) {
+          throw new Error("Health check returned HTTP " + response.status);
+        }
+
+        const data = await response.json();
+
+        if (data.status === "ok") {
+          setStatus("online", "Connected");
+          if (showMessage) showToast("Dew API is reachable.");
+        } else {
+          throw new Error("Unexpected health response");
+        }
+      } catch (error) {
+        console.warn("Dew health check:", error);
+        setStatus("", "Connection unavailable");
+
+        if (showMessage) {
+          showToast(
+            "Could not verify Dew. Check that Colab and the tunnel are running."
+          );
+        }
+      }
+    }
+
+    // --------------------------------------------------
+    // DROPDOWNS
+    // --------------------------------------------------
+
+    const dropdowns = [
+      {
+        button: $("modeButton"),
+        menu: $("modeMenu")
+      },
+      {
+        button: $("thinkingButton"),
+        menu: $("thinkingMenu")
+      }
+    ];
+
+    function closeDropdowns(exceptMenu = null) {
+      dropdowns.forEach(({ button, menu }) => {
+        if (menu !== exceptMenu) {
+          menu.classList.remove("open");
+          button.classList.remove("active");
+          button.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    function toggleDropdown(button, menu) {
+      const willOpen = !menu.classList.contains("open");
+
+      closeDropdowns();
+
+      if (willOpen) {
+        menu.classList.add("open");
+        button.classList.add("active");
+        button.setAttribute("aria-expanded", "true");
+      }
+    }
+
+    $("modeButton").addEventListener("click", (event) => {
+      event.stopPropagation();
+      toggleDropdown($("modeButton"), $("modeMenu"));
+    });
+
+    $("thinkingButton").addEventListener("click", (event) => {
+      event.stopPropagation();
+      toggleDropdown($("thinkingButton"), $("thinkingMenu"));
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".dropdown-wrap")) {
+        closeDropdowns();
+      }
+    });
+
+    function updateModeOptions() {
+      document.querySelectorAll("[data-mode]").forEach((button) => {
+        const selected = button.dataset.mode === selectedMode;
+
+        button.classList.toggle("selected", selected);
+        button.setAttribute("aria-checked", String(selected));
+
+        const check = button.querySelector(".option-check");
+        if (check) check.textContent = selected ? "✓" : "";
+      });
+
+      $("modeLabel").textContent = "Dew " + selectedMode;
+    }
+
+    document.querySelectorAll("[data-mode]").forEach((button) => {
+      button.addEventListener("click", () => {
+        selectedMode = button.dataset.mode;
+        updateModeOptions();
+        closeDropdowns();
+      });
+    });
+
+    function updateThinkingOptions() {
+      document.querySelectorAll("[data-thinking]").forEach((button) => {
+        const selected = button.dataset.thinking === selectedReasoning;
+
+        button.classList.toggle("selected", selected);
+        button.setAttribute("aria-checked", String(selected));
+
+        const check = button.querySelector(".option-check");
+        if (check) check.textContent = selected ? "✓" : "";
+      });
+
+      $("thinkingLabel").textContent = selectedReasoning;
+    }
+
+    document.querySelectorAll("[data-thinking]").forEach((button) => {
+      button.addEventListener("click", () => {
+        selectedReasoning = button.dataset.thinking;
+        updateThinkingOptions();
+        closeDropdowns();
+      });
+    });
+
+    // --------------------------------------------------
+    // SIDEBAR
+    // --------------------------------------------------
+
+    function updateMobileMenuVisibility() {
+      $("mobileMenu").style.display =
+        window.innerWidth <= 760 ? "inline-flex" : "none";
+
+      if (window.innerWidth > 760) {
+        mobileOverlay.classList.remove("visible");
+        sidebar.classList.remove("mobile-open");
+      }
+    }
+
+    $("sidebarToggle").addEventListener("click", () => {
+      if (window.innerWidth <= 760) {
+        sidebar.classList.toggle("mobile-open");
+        mobileOverlay.classList.toggle("visible");
       } else {
         sidebar.classList.toggle("collapsed");
       }
     });
 
-    document.getElementById("openSidebar").addEventListener("click", () => {
-      sidebar.classList.toggle("collapsed");
+    $("mobileMenu").addEventListener("click", () => {
+      sidebar.classList.add("mobile-open");
+      mobileOverlay.classList.add("visible");
     });
 
-    // Keep the sidebar out of the way on small screens.
-    function setInitialSidebarState() {
-      if (window.matchMedia("(max-width: 720px)").matches) {
-        sidebar.classList.add("collapsed");
-      } else {
-        sidebar.classList.remove("collapsed");
+    mobileOverlay.addEventListener("click", () => {
+      sidebar.classList.remove("mobile-open");
+      mobileOverlay.classList.remove("visible");
+    });
+
+    window.addEventListener("resize", updateMobileMenuVisibility);
+    updateMobileMenuVisibility();
+
+    // --------------------------------------------------
+    // CHAT HISTORY
+    // --------------------------------------------------
+
+    let chatHistory = [];
+
+    function addRecentChat(title, chatId) {
+      const list = $("recentList");
+
+      if (list.querySelector("[data-empty-recent]")) {
+        list.innerHTML = "";
       }
+
+      const item = document.createElement("button");
+      item.className = "recent-item";
+      item.textContent = title;
+      item.title = title;
+
+      item.addEventListener("click", () => {
+        const entry = chatHistory.find((chat) => chat.id === chatId);
+
+        if (entry) {
+          renderHistory(entry);
+          closeMobileSidebar();
+        }
+      });
+
+      list.prepend(item);
     }
 
-    setInitialSidebarState();
+    function closeMobileSidebar() {
+      sidebar.classList.remove("mobile-open");
+      mobileOverlay.classList.remove("visible");
+    }
 
-    let previousMobileState =
-      window.matchMedia("(max-width: 720px)").matches;
+    function renderHistory(entry) {
+      currentChatId = entry.id;
+      messages.replaceChildren();
 
-    window.addEventListener("resize", () => {
-      const currentMobileState =
-        window.matchMedia("(max-width: 720px)").matches;
+      entry.messages.forEach((item) => {
+        addMessage(item.role, item.text, false);
+      });
 
-      if (currentMobileState !== previousMobileState) {
-        setInitialSidebarState();
-        previousMobileState = currentMobileState;
-      }
-    });
-
-    /* NEW CHAT AND CLEAR CONVERSATION */
+      welcome.hidden = true;
+      messages.hidden = false;
+      conversation.scrollTop = conversation.scrollHeight;
+    }
 
     function newChat() {
+      currentChatId = Date.now() + Math.floor(Math.random() * 1000);
       messages.replaceChildren();
-      messages.classList.remove("active");
-
-      conversation.classList.remove("chatting");
-      conversation.classList.add("landing");
-
-      welcome.style.display = "";
-      suggestions.style.display = "";
-
-      promptInput.value = "";
-      promptInput.style.height = "auto";
-
-      setRandomGreeting();
+      messages.hidden = true;
+      welcome.hidden = false;
+      input.value = "";
+      resizeInput();
+      setGreeting();
       closeDropdowns();
-      updateSendButton();
-
-      promptInput.focus();
+      closeMobileSidebar();
+      input.focus();
     }
 
-    document.getElementById("newChat").addEventListener("click", newChat);
-    document.getElementById("clearButton").addEventListener("click", newChat);
+    $("newChat").addEventListener("click", newChat);
 
-    document.getElementById("recentButton").addEventListener("click", () => {
-      alert(
-        "Chat history will appear here when conversation storage is connected."
-      );
-    });
+    // --------------------------------------------------
+    // MESSAGE RENDERING
+    // --------------------------------------------------
 
-    /* DROPDOWNS */
+    function addMessage(role, text, save = true) {
+      messages.hidden = false;
+      welcome.hidden = true;
 
-    const dropdowns = [
-      {
-        trigger: document.getElementById("dewTrigger"),
-        menu: document.getElementById("dewMenu")
-      },
-      {
-        trigger: document.getElementById("reasoningTrigger"),
-        menu: document.getElementById("reasoningMenu")
-      }
-    ];
+      const wrapper = document.createElement("article");
+      wrapper.className = "message " + (role === "user" ? "user" : "assistant");
 
-    function closeDropdowns(except = null) {
-      dropdowns.forEach(dropdown => {
-        if (dropdown !== except) {
-          dropdown.menu.classList.remove("open");
-          dropdown.trigger.setAttribute("aria-expanded", "false");
+      if (role === "user") {
+        const bubble = document.createElement("div");
+        bubble.className = "user-bubble";
+        bubble.textContent = text;
+        wrapper.appendChild(bubble);
+      } else {
+        const roleLabel = document.createElement("div");
+        roleLabel.className = "message-role";
+
+        const mark = document.createElement("span");
+        mark.className = "role-mark";
+        mark.textContent = "✳";
+
+        const label = document.createElement("span");
+        label.textContent = "Dew";
+
+        roleLabel.append(mark, label);
+
+        const body = document.createElement("div");
+        body.className = "message-body";
+        body.textContent = text;
+
+        wrapper.append(roleLabel, body);
+
+        if (!wrapper.classList.contains("message-error")) {
+          const actions = document.createElement("div");
+          actions.className = "message-actions";
+
+          const copy = document.createElement("button");
+          copy.className = "small-action";
+          copy.textContent = "Copy response";
+          copy.addEventListener("click", async () => {
+            try {
+              await navigator.clipboard.writeText(text);
+              showToast("Response copied.");
+            } catch {
+              showToast("Clipboard access was blocked by your browser.");
+            }
+          });
+
+          actions.appendChild(copy);
+          wrapper.appendChild(actions);
         }
-      });
-    }
-
-    dropdowns.forEach(dropdown => {
-      dropdown.trigger.addEventListener("click", event => {
-        event.stopPropagation();
-
-        const willOpen = !dropdown.menu.classList.contains("open");
-
-        closeDropdowns(dropdown);
-
-        dropdown.menu.classList.toggle("open", willOpen);
-        dropdown.trigger.setAttribute(
-          "aria-expanded",
-          String(willOpen)
-        );
-      });
-    });
-
-    document.addEventListener("click", event => {
-      if (!event.target.closest(".dropdown")) {
-        closeDropdowns();
       }
-    });
 
-    document.addEventListener("keydown", event => {
-      if (event.key === "Escape") {
-        closeDropdowns();
-      }
-    });
+      messages.appendChild(wrapper);
 
-    function updateRadioOptions(menu, attribute, value) {
-      menu.querySelectorAll(`[data-${attribute}]`).forEach(option => {
-        const selected = option.dataset[attribute] === value;
+      if (save) {
+        let entry = chatHistory.find((chat) => chat.id === currentChatId);
 
-        option.classList.toggle("selected", selected);
-        option.setAttribute("aria-checked", String(selected));
+        if (!entry) {
+          entry = {
+            id: currentChatId,
+            title: role === "user" ? text.slice(0, 38) : "New conversation",
+            messages: []
+          };
 
-        const check = option.querySelector(".check");
+          chatHistory.unshift(entry);
 
-        if (check) {
-          check.textContent = selected ? "✓" : "";
+          if (role === "user") {
+            addRecentChat(entry.title, entry.id);
+          }
         }
-      });
+
+        entry.messages.push({ role, text });
+      }
+
+      conversation.scrollTop = conversation.scrollHeight;
+
+      return wrapper;
     }
 
-    /* DEW MODE SELECTION */
+    function addTypingIndicator() {
+      const wrapper = document.createElement("article");
+      wrapper.className = "message assistant";
+      wrapper.id = "typingIndicator";
 
-    document.querySelectorAll("[data-mode]").forEach(option => {
-      option.addEventListener("click", () => {
-        selectedMode = option.dataset.mode;
+      const label = document.createElement("div");
+      label.className = "message-role";
 
-        document.getElementById("dewLabel").textContent =
-          `Dew ${selectedMode}`;
+      const mark = document.createElement("span");
+      mark.className = "role-mark";
+      mark.textContent = "✳";
 
-        updateRadioOptions(
-          document.getElementById("dewMenu"),
-          "mode",
-          selectedMode
-        );
+      const name = document.createElement("span");
+      name.textContent = "Dew is thinking";
 
-        closeDropdowns();
-      });
-    });
+      label.append(mark, name);
 
-    /* REASONING SELECTION */
+      const dots = document.createElement("div");
+      dots.className = "typing";
+      dots.innerHTML = "<span></span><span></span><span></span>";
 
-    document.querySelectorAll("[data-level]").forEach(option => {
-      option.addEventListener("click", () => {
-        selectedReasoning = option.dataset.level;
-
-        document.getElementById("reasoningLabel").textContent =
-          selectedReasoning;
-
-        updateRadioOptions(
-          document.getElementById("reasoningMenu"),
-          "level",
-          selectedReasoning
-        );
-
-        closeDropdowns();
-      });
-    });
-
-    /* COMPOSER */
-
-    function updateSendButton() {
-      sendButton.disabled = busy || !promptInput.value.trim();
+      wrapper.append(label, dots);
+      messages.appendChild(wrapper);
+      conversation.scrollTop = conversation.scrollHeight;
     }
 
-    promptInput.addEventListener("input", () => {
-      promptInput.style.height = "auto";
+    // --------------------------------------------------
+    // DEW API REQUEST
+    // --------------------------------------------------
 
-      promptInput.style.height =
-        Math.min(promptInput.scrollHeight, 180) + "px";
+    async function getDewReply(message) {
+      const payload = {
+        message: message,
+        mode: "Dew " + selectedMode,
+        thinking: selectedReasoning
+      };
 
-      updateSendButton();
+      let response;
+
+      try {
+        response = await fetch(DEW_API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+      } catch (error) {
+        console.error("Dew network error:", error);
+
+        throw new Error(
+          "Could not connect to Dew. Check that Colab is running and the Cloudflare tunnel URL is still valid."
+        );
+      }
+
+      const raw = await response.text();
+      let data;
+
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        console.error("Invalid response from Dew:", raw);
+
+        throw new Error(
+          "Dew returned an unreadable response (HTTP " +
+          response.status + "). The backend or tunnel may be unavailable."
+        );
+      }
+
+      if (!response.ok) {
+        console.error("Dew API error:", data);
+
+        const detail = typeof data.detail === "string"
+          ? data.detail
+          : "HTTP " + response.status;
+
+        throw new Error("Dew API error: " + detail);
+      }
+
+      if (typeof data.answer !== "string") {
+        console.error("Unexpected Dew response:", data);
+
+        throw new Error(
+          "Dew responded, but the expected answer field was missing."
+        );
+      }
+
+      return data.answer;
+    }
+
+    // --------------------------------------------------
+    // SEND MESSAGE
+    // --------------------------------------------------
+
+    async function sendMessage(message) {
+      const cleanMessage = message.trim();
+
+      if (!cleanMessage || isSending) return;
+
+      if (cleanMessage.length > 1200) {
+        showToast("Messages must be 1,200 characters or fewer.");
+        return;
+      }
+
+      isSending = true;
+      sendButton.disabled = true;
+      input.disabled = true;
+
+      closeDropdowns();
+
+      addMessage("user", cleanMessage);
+      input.value = "";
+      resizeInput();
+
+      setStatus("busy", "Dew is responding");
+      addTypingIndicator();
+
+      try {
+        const answer = await getDewReply(cleanMessage);
+
+        $("typingIndicator")?.remove();
+        addMessage("assistant", answer);
+
+        setStatus("online", "Connected");
+      } catch (error) {
+        $("typingIndicator")?.remove();
+
+        console.error("Dew request failed:", error);
+
+        const errorMessage = error instanceof Error
+          ? error.message
+          : "An unexpected error occurred.";
+
+        const errorNode = addMessage(
+          "assistant",
+          "I couldn't complete that request.\n\n" + errorMessage,
+          false
+        );
+
+        errorNode.classList.add("message-error");
+        const body = errorNode.querySelector(".message-body");
+
+        if (body) body.classList.add("message-error");
+
+        setStatus("", "Request failed");
+      } finally {
+        isSending = false;
+        sendButton.disabled = false;
+        input.disabled = false;
+        input.focus();
+      }
+    }
+
+    $("chatForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      await sendMessage(input.value);
     });
 
-    promptInput.addEventListener("keydown", event => {
+    // Enter sends. Shift+Enter inserts a newline.
+    input.addEventListener("keydown", (event) => {
       if (
         event.key === "Enter" &&
         !event.shiftKey &&
         !event.isComposing
       ) {
         event.preventDefault();
-        chatForm.requestSubmit();
+
+        if (!isSending) {
+          $("chatForm").requestSubmit();
+        }
       }
     });
 
-    /* SUGGESTION CARDS */
+    function resizeInput() {
+      input.style.height = "auto";
+      input.style.height = Math.min(input.scrollHeight, 200) + "px";
+    }
 
-    document.querySelectorAll("[data-prompt]").forEach(button => {
+    input.addEventListener("input", resizeInput);
+
+    // Suggestion tiles fill and submit the prompt.
+    document.querySelectorAll("[data-prompt]").forEach((button) => {
       button.addEventListener("click", () => {
-        promptInput.value = button.dataset.prompt;
-
-        promptInput.dispatchEvent(new Event("input"));
-        promptInput.focus();
+        input.value = button.dataset.prompt;
+        resizeInput();
+        $("chatForm").requestSubmit();
       });
     });
 
-    /* MESSAGE RENDERING */
-
-    function scrollMessagesToBottom() {
-      messages.scrollTop = messages.scrollHeight;
-    }
-
-    function addMessage(text, type) {
-      const message = document.createElement("div");
-
-      message.className = `message ${type}`;
-      message.textContent = text;
-
-      messages.appendChild(message);
-      scrollMessagesToBottom();
-
-      return message;
-    }
-
-    /* BACKEND INTEGRATION */
-
-    /*
-      Add your deployed Dew API endpoint below.
-
-      Expected request:
-      {
-        "message": "Hello",
-        "mode": "Standard",
-        "reasoning": "Medium"
-      }
-
-      Expected response:
-      {
-        "reply": "Hello! How can I help?"
-      }
-
-      Do not place private API keys in browser-side JavaScript.
-    */
-
-    const DEW_API_URL =
-  "https://folding-ideas-nirvana-redeem.trycloudflare.com/api/chat";
-
-    async function getDewReply(message) {
-      if (!DEW_API_URL) {
-        throw new Error(
-          "Dew's backend is not connected yet. Configure DEW_API_URL in index.html."
-        );
-      }
-
-      const response = await fetch(DEW_API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          message,
-          mode: selectedMode,
-          reasoning: selectedReasoning
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Dew API returned HTTP ${response.status}.`);
-      }
-
-      const data = await response.json();
-
-      if (typeof data.reply !== "string") {
-        throw new Error("The Dew API did not return a reply.");
-      }
-
-      return data.reply;
-    }
-
-    /* SEND A MESSAGE */
-
-    chatForm.addEventListener("submit", async event => {
-      event.preventDefault();
-
-      const text = promptInput.value.trim();
-
-      if (!text || busy) {
-        return;
-      }
-
-      // Switch from landing layout to chat layout.
-      // CSS now places messages above the bottom composer.
-      conversation.classList.remove("landing");
-      conversation.classList.add("chatting");
-
-      welcome.style.display = "none";
-      suggestions.style.display = "none";
-      messages.classList.add("active");
-
-      addMessage(text, "user");
-
-      promptInput.value = "";
-      promptInput.style.height = "auto";
-
-      busy = true;
-      updateSendButton();
-
-      const loadingMessage = addMessage(
-        "Dew is thinking...",
-        "assistant"
-      );
-
-      try {
-        const reply = await getDewReply(text);
-
-        loadingMessage.textContent = reply;
-      } catch (error) {
-        loadingMessage.textContent = error.message;
-        loadingMessage.classList.add("error");
-      } finally {
-        busy = false;
-        updateSendButton();
-        scrollMessagesToBottom();
-        promptInput.focus();
-      }
+    $("connectionButton").addEventListener("click", () => {
+      checkConnection(true);
     });
+
+    // --------------------------------------------------
+    // INITIALISE
+    // --------------------------------------------------
+
+    setGreeting();
+    updateModeOptions();
+    updateThinkingOptions();
+    checkConnection();
+
+    // Keep the initial view ready for typing.
+    input.focus({ preventScroll: true });
   </script>
 </body>
 </html>
