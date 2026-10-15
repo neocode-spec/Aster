@@ -2,1712 +2,956 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#131314">
-  <title>Aster</title>
-
-  <!-- Aster sparkle browser-tab icon -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23131314'/%3E%3Ctext x='32' y='49' text-anchor='middle' font-size='52' fill='%23c4b5fd'%3E%E2%9C%B3%3C/text%3E%3C/svg%3E">
-
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #131314;
-      --sidebar: #1e1f20;
-      --surface: #1e1f20;
-      --surface-hover: #28292a;
-      --border: #37383a;
-      --text: #e3e3e3;
-      --muted: #a0a0a5;
-      --accent: #c4b5fd;
-      --accent-soft: #29233b;
-      --danger: #ffb4ab;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html, body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: Inter, "Segoe UI", Arial, sans-serif;
-      overflow: hidden;
-    }
-
-    button, textarea {
-      font: inherit;
-    }
-
-    button {
-      color: inherit;
-    }
-
-    button:focus-visible,
-    textarea:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 3px;
-    }
-
-    button:disabled {
-      cursor: not-allowed;
-      opacity: .45;
-    }
-
-    .app {
-      display: flex;
-      width: 100%;
-      height: 100dvh;
-    }
-
-    /* SIDEBAR */
-
-    .sidebar {
-      width: 264px;
-      min-width: 264px;
-      background: var(--sidebar);
-      display: flex;
-      flex-direction: column;
-      padding: 16px 12px;
-      transition: width .2s ease, min-width .2s ease;
-      overflow: hidden;
-      z-index: 10;
-    }
-
-    .sidebar.collapsed {
-      width: 76px;
-      min-width: 76px;
-    }
-
-    .sidebar-top {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      min-height: 44px;
-      padding: 0 9px;
-      margin-bottom: 30px;
-    }
-
-    .icon-button {
-      width: 42px;
-      height: 42px;
-      border: 0;
-      border-radius: 50%;
-      background: transparent;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      flex-shrink: 0;
-      color: var(--muted);
-      font-size: 21px;
-      transition: background .15s, color .15s;
-    }
-
-    .icon-button:hover {
-      background: var(--surface-hover);
-      color: var(--text);
-    }
-
-    .brand-mark {
-      font-size: 29px;
-      color: var(--accent);
-      line-height: 1;
-      user-select: none;
-    }
-
-    .new-chat {
-      display: flex;
-      align-items: center;
-      gap: 13px;
-      width: 100%;
-      min-height: 46px;
-      border: 0;
-      border-radius: 24px;
-      padding: 0 17px;
-      margin-bottom: 26px;
-      background: #28292a;
-      color: #dddde1;
-      cursor: pointer;
-      white-space: nowrap;
-      text-align: left;
-    }
-
-    .new-chat:hover {
-      background: #333436;
-    }
-
-    .new-chat-symbol {
-      font-size: 22px;
-      line-height: 1;
-    }
-
-    .sidebar-label {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--muted);
-      padding: 0 13px;
-      margin-bottom: 12px;
-      white-space: nowrap;
-    }
-
-    .recent-list {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      overflow-y: auto;
-    }
-
-    .recent-item {
-      border: 0;
-      border-radius: 22px;
-      background: transparent;
-      padding: 12px 14px;
-      text-align: left;
-      cursor: pointer;
-      font-size: 13px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      color: var(--text);
-    }
-
-    .recent-item:hover {
-      background: #2b2c2d;
-    }
-
-    .sidebar-bottom {
-      margin-top: auto;
-      padding-top: 15px;
-      border-top: 1px solid #333436;
-    }
-
-    .sidebar.collapsed .hide-collapsed {
-      display: none;
-    }
-
-    .sidebar.collapsed .sidebar-top {
-      padding: 0 4px;
-    }
-
-    .sidebar.collapsed .new-chat {
-      justify-content: center;
-      padding: 0;
-    }
-
-    .sidebar.collapsed .new-chat .new-chat-text,
-    .sidebar.collapsed .sidebar-label,
-    .sidebar.collapsed .recent-list,
-    .sidebar.collapsed .brand-mark {
-      display: none;
-    }
-
-    /* MAIN CONTENT */
-
-    .main {
-      position: relative;
-      min-width: 0;
-      flex: 1;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      background: var(--bg);
-    }
-
-    .topbar {
-      height: 68px;
-      min-height: 68px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 28px;
-    }
-
-    .topbar-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0;
-    }
-
-    .model-name {
-      color: var(--text);
-      font-size: 16px;
-      font-weight: 500;
-      white-space: nowrap;
-    }
-
-    .model-chevron {
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    .status {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #8e8e93;
-    }
-
-    .status-dot.online {
-      background: #81c995;
-    }
-
-    .status-dot.busy {
-      background: #e6c27a;
-    }
-
-    /* SCROLLABLE CONVERSATION */
-
-    .conversation {
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
-      scroll-behavior: smooth;
-    }
-
-    .welcome {
-      width: min(850px, calc(100% - 44px));
-      margin: 0 auto;
-      padding: 50px 0 35px;
-    }
-
-    .greeting {
-      font-size: clamp(34px, 5vw, 51px);
-      line-height: 1.15;
-      letter-spacing: -1.8px;
-      font-weight: 500;
-      margin: 10px 0 14px;
-      background: linear-gradient(105deg, #c4b5fd 0%, #e4d7ff 35%, #d8d9e2 76%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .subtitle {
-      color: var(--muted);
-      font-size: 16px;
-      line-height: 1.6;
-      margin: 0 0 35px;
-    }
-
-    /* COMPOSER COMES BEFORE SUGGESTIONS */
-
-    .composer {
-      width: 100%;
-      background: #1e1f20;
-      border: 1px solid #363739;
-      border-radius: 29px;
-      padding: 17px 18px 12px;
-      transition: border-color .2s, background .2s;
-    }
-
-    .composer:focus-within {
-      border-color: #55515f;
-      background: #202122;
-    }
-
-    .message-input {
-      display: block;
-      width: 100%;
-      min-height: 55px;
-      max-height: 200px;
-      resize: none;
-      border: 0;
-      outline: 0;
-      background: transparent;
-      color: var(--text);
-      font-size: 16px;
-      line-height: 1.55;
-      padding: 5px 2px;
-    }
-
-    .message-input::placeholder {
-      color: #a5a5aa;
-    }
-
-    .composer-bottom {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-top: 7px;
-    }
-
-    .composer-options {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 7px;
-      min-width: 0;
-    }
-
-    .dropdown-wrap {
-      position: relative;
-    }
-
-    .dropdown-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      min-height: 37px;
-      padding: 0 12px;
-      border: 1px solid transparent;
-      border-radius: 20px;
-      background: transparent;
-      color: #d4d4d8;
-      cursor: pointer;
-      font-size: 13px;
-      white-space: nowrap;
-    }
-
-    .dropdown-button:hover,
-    .dropdown-button.active {
-      background: #303133;
-      border-color: #414244;
-    }
-
-    .dropdown-icon {
-      font-size: 16px;
-      color: var(--accent);
-    }
-
-    .chevron {
-      font-size: 10px;
-      color: var(--muted);
-    }
-
-    .dropdown-menu {
-      display: none;
-      position: absolute;
-      bottom: calc(100% + 9px);
-      left: 0;
-      width: 218px;
-      padding: 7px;
-      border: 1px solid #414244;
-      border-radius: 17px;
-      background: #252627;
-      box-shadow: 0 12px 35px #0007;
-      z-index: 30;
-    }
-
-    .dropdown-menu.open {
-      display: block;
-      animation: menuIn .12s ease-out;
-    }
-
-    @keyframes menuIn {
-      from {
-        opacity: 0;
-        transform: translateY(4px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .menu-heading {
-      padding: 9px 11px 7px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: .6px;
-      color: #96969d;
-      text-transform: uppercase;
-    }
-
-    .menu-option {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      width: 100%;
-      padding: 11px;
-      border: 0;
-      border-radius: 11px;
-      background: transparent;
-      text-align: left;
-      cursor: pointer;
-      font-size: 13px;
-    }
-
-    .menu-option:hover {
-      background: #343537;
-    }
-
-    .menu-option.selected {
-      background: var(--accent-soft);
-      color: #e3d9ff;
-    }
-
-    .option-description {
-      display: block;
-      color: #9999a1;
-      font-size: 11px;
-      margin-top: 4px;
-      line-height: 1.4;
-    }
-
-    .option-check {
-      color: var(--accent);
-      font-size: 15px;
-    }
-
-    .send-button {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 43px;
-      height: 43px;
-      min-width: 43px;
-      border: 0;
-      border-radius: 50%;
-      background: #e4d7ff;
-      color: #201a2c;
-      cursor: pointer;
-      font-size: 25px;
-      line-height: 1;
-      transition: transform .15s, background .15s;
-    }
-
-    .send-button:hover:not(:disabled) {
-      background: #f0e8ff;
-      transform: scale(1.04);
-    }
-
-    .send-button:disabled {
-      background: #37383a;
-      color: #818188;
-      opacity: 1;
-    }
-
-    /* SUGGESTIONS */
-
-    .suggestions {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-      margin-top: 22px;
-    }
-
-    .suggestion {
-      min-height: 132px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 14px;
-      padding: 17px;
-      border: 1px solid transparent;
-      border-radius: 17px;
-      background: #1e1f20;
-      text-align: left;
-      cursor: pointer;
-      transition: background .15s, border-color .15s, transform .15s;
-    }
-
-    .suggestion:hover {
-      background: #28292a;
-      border-color: #414244;
-      transform: translateY(-2px);
-    }
-
-    .suggestion-text {
-      font-size: 14px;
-      line-height: 1.5;
-      color: #d9d9de;
-    }
-
-    .suggestion-icon {
-      align-self: flex-end;
-      font-size: 19px;
-      color: var(--accent);
-    }
-
-    /* MESSAGES */
-
-    .messages {
-      width: min(850px, calc(100% - 44px));
-      margin: 0 auto;
-      padding: 30px 0 40px;
-      display: flex;
-      flex-direction: column;
-      gap: 27px;
-    }
-
-    .message {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .message.user {
-      align-items: flex-end;
-    }
-
-    .message-role {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      color: #b6b6bc;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .role-mark {
-      font-size: 17px;
-      color: var(--accent);
-    }
-
-    .message-body {
-      max-width: 100%;
-      font-size: 15px;
-      line-height: 1.8;
-      overflow-wrap: anywhere;
-      white-space: pre-wrap;
-    }
-
-    .user-bubble {
-      max-width: min(85%, 600px);
-      padding: 13px 18px;
-      background: #292a2b;
-      border-radius: 21px 21px 5px 21px;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-      font-size: 15px;
-      line-height: 1.65;
-    }
-
-    .message-error {
-      color: var(--danger);
-    }
-
-    .message-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 3px;
-    }
-
-    .small-action {
-      border: 0;
-      background: transparent;
-      color: #9999a1;
-      border-radius: 8px;
-      padding: 6px 9px;
-      cursor: pointer;
-      font-size: 12px;
-    }
-
-    .small-action:hover {
-      background: #292a2b;
-      color: var(--text);
-    }
-
-    .typing {
-      display: inline-flex;
-      gap: 5px;
-      padding: 8px 0;
-    }
-
-    .typing span {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #b9a8e9;
-      animation: pulse 1.1s infinite ease-in-out;
-    }
-
-    .typing span:nth-child(2) {
-      animation-delay: .15s;
-    }
-
-    .typing span:nth-child(3) {
-      animation-delay: .3s;
-    }
-
-    @keyframes pulse {
-      0%, 60%, 100% {
-        opacity: .3;
-        transform: translateY(0);
-      }
-      30% {
-        opacity: 1;
-        transform: translateY(-4px);
-      }
-    }
-
-    /* BOTTOM AREA */
-
-    .bottom-area {
-      flex-shrink: 0;
-      padding: 0 22px 14px;
-      background: linear-gradient(transparent, var(--bg) 18%);
-    }
-
-    .bottom-inner {
-      width: min(850px, 100%);
-      margin: 0 auto;
-    }
-
-    .disclaimer {
-      margin-top: 12px;
-      text-align: center;
-      color: #85858b;
-      font-size: 11px;
-      line-height: 1.5;
-    }
-
-    .toast {
-      position: absolute;
-      bottom: 92px;
-      left: 50%;
-      transform: translateX(-50%);
-      max-width: calc(100% - 36px);
-      background: #303133;
-      border: 1px solid #494a4d;
-      border-radius: 12px;
-      padding: 12px 17px;
-      color: #e5e5e8;
-      font-size: 13px;
-      box-shadow: 0 5px 20px #0005;
-      z-index: 50;
-      display: none;
-    }
-
-    .toast.visible {
-      display: block;
-    }
-
-    /* MOBILE */
-
-    .mobile-overlay {
-      display: none;
-    }
-
-    @media (max-width: 760px) {
-      .sidebar {
-        position: fixed;
-        inset: 0 auto 0 0;
-        height: 100dvh;
-        width: 270px;
-        min-width: 270px;
-        transform: translateX(-100%);
-        transition: transform .22s ease;
-        box-shadow: none;
-      }
-
-      .sidebar.mobile-open {
-        transform: translateX(0);
-        box-shadow: 15px 0 50px #0006;
-      }
-
-      .sidebar.collapsed {
-        width: 270px;
-        min-width: 270px;
-      }
-
-      .sidebar.collapsed .hide-collapsed,
-      .sidebar.collapsed .brand-mark,
-      .sidebar.collapsed .new-chat .new-chat-text,
-      .sidebar.collapsed .sidebar-label,
-      .sidebar.collapsed .recent-list {
-        display: initial;
-      }
-
-      .sidebar.collapsed .sidebar-top {
-        padding: 0 9px;
-      }
-
-      .sidebar.collapsed .new-chat {
-        justify-content: flex-start;
-        padding: 0 17px;
-      }
-
-      .mobile-overlay.visible {
-        display: block;
-        position: fixed;
-        inset: 0;
-        background: #0008;
-        z-index: 9;
-      }
-
-      .topbar {
-        padding: 0 15px;
-      }
-
-      .welcome {
-        width: calc(100% - 30px);
-        padding-top: 35px;
-      }
-
-      .greeting {
-        letter-spacing: -1px;
-      }
-
-      .subtitle {
-        font-size: 14px;
-        margin-bottom: 25px;
-      }
-
-      .composer {
-        padding: 13px 12px 10px;
-        border-radius: 24px;
-      }
-
-      .composer-bottom {
-        align-items: flex-end;
-      }
-
-      .composer-options {
-        gap: 3px;
-      }
-
-      .dropdown-button {
-        padding: 0 8px;
-        gap: 5px;
-        font-size: 12px;
-      }
-
-      .dropdown-menu {
-        width: 210px;
-      }
-
-      .suggestions {
-        grid-template-columns: 1fr;
-        gap: 9px;
-        margin-top: 17px;
-      }
-
-      .suggestion {
-        min-height: 86px;
-        flex-direction: row;
-        align-items: center;
-        padding: 15px;
-      }
-
-      .suggestion-icon {
-        flex-shrink: 0;
-      }
-
-      .messages {
-        width: calc(100% - 30px);
-      }
-
-      .bottom-area {
-        padding: 0 12px 10px;
-      }
-
-      .disclaimer {
-        font-size: 10px;
-      }
-    }
-
-    @media (max-width: 390px) {
-      .model-name {
-        font-size: 14px;
-      }
-
-      .status {
-        font-size: 11px;
-      }
-
-      .dropdown-button {
-        padding: 0 6px;
-        font-size: 11px;
-      }
-
-      .composer-options {
-        gap: 0;
-      }
-
-      .send-button {
-        width: 39px;
-        height: 39px;
-        min-width: 39px;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: .01ms !important;
-        transition-duration: .01ms !important;
-        scroll-behavior: auto !important;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#131314">
+<title>Aster</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23131314'/%3E%3Ctext x='32' y='49' text-anchor='middle' font-size='52' fill='%23c4b5fd'%3E%E2%9C%B3%3C/text%3E%3C/svg%3E">
+
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #131314;
+  --sidebar: #1e1f20;
+  --surface: #202122;
+  --hover: #2b2c2e;
+  --border: #3c3d40;
+  --text: #e3e3e3;
+  --muted: #a1a1a8;
+  --accent: #c4b5fd;
+  --accent-soft: #302745;
+}
+* { box-sizing: border-box; }
+html, body { width:100%; height:100%; margin:0; }
+body {
+  background:var(--bg); color:var(--text);
+  font-family:Inter,"Segoe UI",Arial,sans-serif;
+  overflow:hidden;
+}
+button, textarea { font:inherit; }
+button { color:inherit; }
+button:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+button:disabled { opacity:.5; cursor:wait; }
+.app { display:flex; width:100%; height:100dvh; }
+
+/* Sidebar */
+.sidebar {
+  width:260px; min-width:260px; padding:16px 12px;
+  background:var(--sidebar); display:flex; flex-direction:column;
+  overflow:hidden; transition:width .2s,min-width .2s; z-index:20;
+}
+.sidebar.collapsed { width:76px; min-width:76px; }
+.sidebar-top { display:flex; align-items:center; gap:12px; padding:0 8px; margin-bottom:28px; }
+.icon-button {
+  width:42px; height:42px; border:0; border-radius:50%;
+  background:transparent; color:var(--muted); font-size:20px;
+  cursor:pointer; flex-shrink:0;
+}
+.icon-button:hover { background:var(--hover); color:var(--text); }
+.brand-mark { font-size:29px; color:var(--accent); }
+.new-chat {
+  min-height:46px; width:100%; border:0; border-radius:24px;
+  background:#292a2c; display:flex; align-items:center; gap:13px;
+  padding:0 17px; cursor:pointer; white-space:nowrap; text-align:left;
+}
+.new-chat:hover { background:#343538; }
+.sidebar-label { font-size:12px; color:var(--muted); padding:22px 13px 10px; }
+.recent-list { overflow-y:auto; }
+.recent-item {
+  display:block; width:100%; overflow:hidden; text-overflow:ellipsis;
+  white-space:nowrap; text-align:left; border:0; background:transparent;
+  padding:12px 13px; border-radius:20px; cursor:pointer; font-size:13px;
+}
+.recent-item:hover { background:var(--hover); }
+.sidebar-bottom { margin-top:auto; padding-top:14px; border-top:1px solid #353638; }
+.sidebar.collapsed .hide-collapsed,
+.sidebar.collapsed .brand-mark,
+.sidebar.collapsed .sidebar-label,
+.sidebar.collapsed .recent-list { display:none; }
+.sidebar.collapsed .sidebar-top { padding:0 4px; }
+.sidebar.collapsed .new-chat { justify-content:center; padding:0; }
+
+/* Main layout */
+.main { flex:1; min-width:0; height:100%; display:flex; flex-direction:column; }
+.topbar {
+  height:66px; min-height:66px; padding:0 26px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.topbar-left { display:flex; align-items:center; gap:11px; }
+.model-name { font-size:16px; font-weight:500; }
+.status { display:flex; align-items:center; gap:7px; color:var(--muted); font-size:12px; }
+.status-dot { width:7px; height:7px; border-radius:50%; background:#888; }
+.status-dot.online { background:#81c995; }
+.status-dot.busy { background:#e6c27a; }
+
+/* Conversation scrolling */
+.conversation { flex:1; min-height:0; overflow-y:auto; scroll-behavior:smooth; }
+.welcome { width:min(850px,calc(100% - 40px)); margin:0 auto; padding:55px 0 32px; }
+.greeting {
+  font-size:clamp(34px,5vw,51px); line-height:1.15;
+  letter-spacing:-1.7px; font-weight:500; margin:10px 0 14px;
+  background:linear-gradient(105deg,#c4b5fd,#e7dcff 45%,#d5d6e1);
+  color:transparent; background-clip:text; -webkit-background-clip:text;
+}
+.subtitle { color:var(--muted); font-size:16px; line-height:1.6; margin:0 0 32px; }
+
+/* Chat composer: focus glow + movable single composer */
+.composer-slot { width:100%; }
+.composer {
+  width:100%; padding:16px 17px 12px;
+  background:#1e1f20; border:1px solid #3a3b3d;
+  border-radius:28px;
+  transition:border-color .2s,box-shadow .2s,background .2s;
+}
+.composer:focus-within {
+  border-color:#b5a0ff;
+  box-shadow:0 0 0 1px #b5a0ff55,0 0 20px #a78bfa25,0 0 38px #a78bfa12;
+  background:#222124;
+}
+.composer textarea {
+  display:block; width:100%; min-height:54px; max-height:190px;
+  padding:5px 2px; resize:none; outline:none; border:0;
+  background:transparent; color:var(--text); font-size:16px;
+  line-height:1.55;
+}
+.composer textarea::placeholder { color:#a3a3aa; }
+.composer-bottom { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.composer-options { display:flex; flex-wrap:wrap; align-items:center; gap:5px; min-width:0; }
+.dropdown-wrap { position:relative; }
+.dropdown-button {
+  display:flex; align-items:center; gap:7px; min-height:37px;
+  padding:0 11px; border:1px solid transparent; border-radius:20px;
+  background:transparent; color:#d8d8dc; font-size:13px;
+  white-space:nowrap; cursor:pointer;
+}
+.dropdown-button:hover,.dropdown-button.active { background:#303133; border-color:#444548; }
+.dropdown-icon { color:var(--accent); font-size:16px; }
+.chevron { color:var(--muted); font-size:10px; }
+.dropdown-menu {
+  display:none; position:absolute; bottom:calc(100% + 10px); left:0;
+  width:220px; padding:7px; background:#252627;
+  border:1px solid #414244; border-radius:16px;
+  box-shadow:0 12px 35px #0008; z-index:50;
+}
+.dropdown-menu.open { display:block; }
+.menu-heading { padding:9px 11px; font-size:11px; color:#a0a0a6; text-transform:uppercase; letter-spacing:.5px; }
+.menu-option {
+  width:100%; display:flex; align-items:center; justify-content:space-between;
+  gap:10px; padding:11px; border:0; border-radius:10px;
+  background:transparent; text-align:left; cursor:pointer; font-size:13px;
+}
+.menu-option:hover { background:#343537; }
+.menu-option.selected { background:var(--accent-soft); color:#e3d9ff; }
+.option-description { display:block; margin-top:4px; font-size:11px; line-height:1.4; color:#a3a3aa; }
+.option-check { color:var(--accent); }
+.send-button {
+  display:flex; align-items:center; justify-content:center;
+  width:43px; height:43px; min-width:43px; border:0;
+  border-radius:50%; background:#e4d7ff; color:#211a2c;
+  font-size:26px; cursor:pointer; transition:transform .15s,background .15s;
+}
+.send-button:hover:not(:disabled) { transform:scale(1.04); background:#f1eaff; }
+.send-button:disabled { background:#38383b; color:#85858c; }
+
+/* Suggestions */
+.suggestions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:22px; }
+.suggestion {
+  min-height:126px; display:flex; flex-direction:column;
+  justify-content:space-between; gap:12px; padding:17px;
+  border:1px solid transparent; border-radius:17px;
+  background:#1e1f20; text-align:left; cursor:pointer;
+  transition:background .15s,border-color .15s,transform .15s;
+}
+.suggestion:hover { background:#28292a; border-color:#424346; transform:translateY(-2px); }
+.suggestion-text { font-size:14px; line-height:1.5; }
+.suggestion-icon { align-self:flex-end; color:var(--accent); font-size:19px; }
+
+/* Chat messages */
+.messages { width:min(850px,calc(100% - 40px)); margin:0 auto; padding:30px 0 35px; display:flex; flex-direction:column; gap:27px; }
+.message { display:flex; flex-direction:column; gap:10px; min-width:0; }
+.message.user { align-items:flex-end; }
+.message-role { display:flex; align-items:center; gap:9px; color:#b7b7bd; font-size:12px; font-weight:600; }
+.role-mark { color:var(--accent); font-size:17px; }
+.user-bubble {
+  max-width:85%; padding:13px 18px; background:#292a2c;
+  border-radius:21px 21px 5px 21px; white-space:pre-wrap;
+  overflow-wrap:anywhere; font-size:15px; line-height:1.65;
+}
+.message-body { font-size:15px; line-height:1.8; overflow-wrap:anywhere; min-width:0; }
+.message-body p { margin:0 0 14px; }
+.message-body p:last-child { margin-bottom:0; }
+.message-body h1,.message-body h2,.message-body h3 { line-height:1.35; margin:22px 0 10px; }
+.message-body h1 { font-size:25px; }
+.message-body h2 { font-size:21px; }
+.message-body h3 { font-size:17px; }
+.message-body ul,.message-body ol { padding-left:25px; margin:8px 0 15px; }
+.message-body li { margin:5px 0; }
+.message-body blockquote { border-left:3px solid var(--accent); padding-left:14px; color:#c4c4cb; margin:14px 0; }
+.message-body pre { padding:15px; border:1px solid #393a3c; background:#191a1b; border-radius:12px; overflow:auto; }
+.message-body pre code { white-space:pre; background:transparent; padding:0; }
+.message-body code { font-family:Consolas,monospace; font-size:.9em; background:#303033; padding:2px 5px; border-radius:5px; }
+.message-body a { color:#c4b5fd; }
+.table-wrap { width:100%; overflow-x:auto; margin:14px 0; border:1px solid #3c3d40; border-radius:10px; }
+.message-body table { width:100%; border-collapse:collapse; font-size:13px; line-height:1.55; }
+.message-body th,.message-body td { padding:10px 12px; text-align:left; vertical-align:top; border-bottom:1px solid #3c3d40; }
+.message-body th { background:#28272e; color:#e2d8ff; font-weight:600; }
+.message-body tr:last-child td { border-bottom:0; }
+.message-body tr:nth-child(even) td { background:#191a1b; }
+.message-actions { display:flex; gap:8px; margin-top:5px; }
+.small-action { border:0; background:transparent; color:#a3a3aa; padding:6px 9px; border-radius:8px; cursor:pointer; font-size:12px; }
+.small-action:hover { background:#292a2c; color:var(--text); }
+.message-error { color:#ffb4ab; }
+.typing { display:flex; gap:5px; padding:8px 0; }
+.typing span { width:6px; height:6px; border-radius:50%; background:var(--accent); animation:pulse 1s infinite; }
+.typing span:nth-child(2) { animation-delay:.15s; }
+.typing span:nth-child(3) { animation-delay:.3s; }
+@keyframes pulse { 0%,60%,100% { opacity:.3; transform:translateY(0); } 30% { opacity:1; transform:translateY(-4px); } }
+
+/* Bottom composer: remains visible in an active conversation */
+.bottom-area { flex-shrink:0; padding:12px 22px 10px; background:var(--bg); }
+.bottom-inner { width:min(850px,100%); margin:0 auto; }
+.disclaimer { margin-top:10px; text-align:center; color:#85858b; font-size:11px; line-height:1.5; }
+.toast {
+  position:absolute; bottom:100px; left:50%; transform:translateX(-50%);
+  display:none; max-width:calc(100% - 30px); padding:12px 16px;
+  border:1px solid #494a4d; border-radius:12px; background:#303133;
+  box-shadow:0 5px 20px #0005; color:#eee; font-size:13px; z-index:100;
+}
+.toast.visible { display:block; }
+
+@media(max-width:760px) {
+  .sidebar { position:fixed; inset:0 auto 0 0; height:100dvh; transform:translateX(-105%); box-shadow:none; }
+  .sidebar.mobile-open { transform:translateX(0); box-shadow:15px 0 50px #0007; }
+  .sidebar.collapsed { width:260px; min-width:260px; }
+  .sidebar.collapsed .hide-collapsed,.sidebar.collapsed .brand-mark,.sidebar.collapsed .sidebar-label,.sidebar.collapsed .recent-list { display:initial; }
+  .sidebar.collapsed .sidebar-top { padding:0 8px; }
+  .sidebar.collapsed .new-chat { justify-content:flex-start; padding:0 17px; }
+  .mobile-overlay.visible { display:block; position:fixed; inset:0; background:#0008; z-index:19; }
+  .topbar { padding:0 14px; }
+  .welcome { width:calc(100% - 30px); padding-top:36px; }
+  .greeting { letter-spacing:-1px; }
+  .subtitle { font-size:14px; }
+  .suggestions { grid-template-columns:1fr; gap:9px; }
+  .suggestion { min-height:78px; flex-direction:row; align-items:center; }
+  .suggestion-icon { flex-shrink:0; }
+  .messages { width:calc(100% - 30px); }
+  .bottom-area { padding:10px 12px 8px; }
+  .composer { padding:12px 11px 9px; border-radius:23px; }
+  .dropdown-button { padding:0 7px; gap:5px; font-size:12px; }
+  .composer-options { gap:0; }
+  .message-body table { font-size:12px; }
+  .message-body th,.message-body td { padding:8px; }
+}
+@media(max-width:390px) {
+  .dropdown-button { font-size:11px; padding:0 5px; }
+  .send-button { width:39px; height:39px; min-width:39px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; scroll-behavior:auto!important; }
+}
+</style>
 </head>
 
 <body>
-  <div class="app">
+<div class="app">
+  <div class="mobile-overlay" id="mobileOverlay"></div>
 
-    <div class="mobile-overlay" id="mobileOverlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <button class="icon-button" id="sidebarToggle" aria-label="Toggle sidebar">☰</button>
+      <span class="brand-mark" aria-label="Aster">✳</span>
+    </div>
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-top">
-        <button class="icon-button" id="sidebarToggle"
-                aria-label="Toggle sidebar" title="Toggle sidebar">
-          ☰
+    <button class="new-chat" id="newChat">
+      <span style="font-size:22px">＋</span>
+      <span class="new-chat-text hide-collapsed">New chat</span>
+    </button>
+
+    <div class="sidebar-label hide-collapsed">Recent</div>
+    <div class="recent-list hide-collapsed" id="recentList">
+      <div style="padding:12px;color:#898990;font-size:12px">Your recent chats will appear here.</div>
+    </div>
+
+    <div class="sidebar-bottom">
+      <button class="icon-button" id="connectionButton" title="Check Dew connection" aria-label="Check Dew connection">◉</button>
+      <span class="hide-collapsed" style="font-size:12px;color:#96969d">Dew connection</span>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-button" id="mobileMenu" aria-label="Open menu" style="display:none">☰</button>
+        <span class="model-name">Dew</span><span class="chevron">▾</span>
+      </div>
+      <div class="status" aria-live="polite">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Checking connection</span>
+      </div>
+    </header>
+
+    <section class="conversation" id="conversation">
+      <div class="welcome" id="welcome">
+        <h1 class="greeting" id="greeting">Where should we start?</h1>
+        <p class="subtitle" id="subtitle">A little curiosity can lead somewhere interesting.</p>
+
+        <!-- The same composer moves to the bottom when a conversation starts. -->
+        <div class="composer-slot" id="welcomeSlot"></div>
+
+        <div class="suggestions" id="suggestions">
+          <button class="suggestion" data-prompt="Explain a difficult concept in a simple, interesting way.">
+            <span class="suggestion-text">Explain something complicated in simple terms</span>
+            <span class="suggestion-icon">✧</span>
+          </button>
+          <button class="suggestion" data-prompt="Help me brainstorm an original idea for a project.">
+            <span class="suggestion-text">Help me come up with an original idea</span>
+            <span class="suggestion-icon">✳</span>
+          </button>
+          <button class="suggestion" data-prompt="Help me write clean, understandable code and explain how it works.">
+            <span class="suggestion-text">Build something with code</span>
+            <span class="suggestion-icon">⌘</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="messages" id="messages" hidden></div>
+    </section>
+
+    <footer class="bottom-area">
+      <div class="bottom-inner">
+        <div class="composer-slot" id="bottomSlot"></div>
+        <div class="disclaimer">Dew can make mistakes. Check important information.</div>
+      </div>
+    </footer>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </main>
+</div>
+
+<!-- One composer element, relocated by JavaScript -->
+<form class="composer" id="chatForm">
+  <textarea id="messageInput" rows="2" maxlength="1200" placeholder="Ask Dew anything" aria-label="Message Dew" required></textarea>
+  <div class="composer-bottom">
+    <div class="composer-options">
+      <div class="dropdown-wrap">
+        <button type="button" class="dropdown-button" id="modeButton" aria-haspopup="true" aria-expanded="false">
+          <span class="dropdown-icon">✳</span><span id="modeLabel">Dew Standard</span><span class="chevron">▾</span>
         </button>
-        <span class="brand-mark" aria-label="Aster">✳</span>
-      </div>
-
-      <button class="new-chat" id="newChat">
-        <span class="new-chat-symbol">＋</span>
-        <span class="new-chat-text hide-collapsed">New chat</span>
-      </button>
-
-      <div class="sidebar-label hide-collapsed">Recent</div>
-
-      <div class="recent-list hide-collapsed" id="recentList">
-        <div style="padding: 12px 13px; color: #898990; font-size: 12px;">
-          Your recent chats will appear here.
+        <div class="dropdown-menu" id="modeMenu" role="menu">
+          <div class="menu-heading">Choose Dew mode</div>
+          <button type="button" class="menu-option selected" data-mode="Standard" role="menuitemradio" aria-checked="true">
+            <span><strong>Dew Standard</strong><span class="option-description">Everyday work, writing and coding</span></span><span class="option-check">✓</span>
+          </button>
+          <button type="button" class="menu-option" data-mode="Extended" role="menuitemradio" aria-checked="false">
+            <span><strong>Dew Extended</strong><span class="option-description">For more involved tasks</span></span><span class="option-check"></span>
+          </button>
+          <button type="button" class="menu-option" data-mode="Search" role="menuitemradio" aria-checked="false">
+            <span><strong>Dew Search</strong><span class="option-description">Web-oriented questions</span></span><span class="option-check"></span>
+          </button>
         </div>
       </div>
 
-      <div class="sidebar-bottom">
-        <button class="icon-button" id="connectionButton"
-                title="Check Dew connection" aria-label="Check Dew connection">
-          ◉
+      <div class="dropdown-wrap">
+        <button type="button" class="dropdown-button" id="thinkingButton" aria-haspopup="true" aria-expanded="false">
+          <span id="thinkingLabel">Medium</span><span class="chevron">▾</span>
         </button>
-        <span class="hide-collapsed"
-              style="font-size:12px;color:#96969d;vertical-align:middle;">
-          Dew connection
-        </span>
+        <div class="dropdown-menu" id="thinkingMenu" role="menu">
+          <div class="menu-heading">Thinking level</div>
+          <button type="button" class="menu-option" data-thinking="Low" role="menuitemradio" aria-checked="false">
+            <span><strong>Low</strong><span class="option-description">Faster responses</span></span><span class="option-check"></span>
+          </button>
+          <button type="button" class="menu-option selected" data-thinking="Medium" role="menuitemradio" aria-checked="true">
+            <span><strong>Medium</strong><span class="option-description">Balanced reasoning</span></span><span class="option-check">✓</span>
+          </button>
+          <button type="button" class="menu-option" data-thinking="High" role="menuitemradio" aria-checked="false">
+            <span><strong>High</strong><span class="option-description">More deliberate reasoning</span></span><span class="option-check"></span>
+          </button>
+        </div>
       </div>
-    </aside>
-
-    <!-- MAIN -->
-    <main class="main">
-      <header class="topbar">
-        <div class="topbar-left">
-          <button class="icon-button" id="mobileMenu"
-                  aria-label="Open menu" title="Open menu"
-                  style="display:none;">☰</button>
-
-          <span class="model-name">Dew</span>
-          <span class="model-chevron">▾</span>
-        </div>
-
-        <div class="status" aria-live="polite">
-          <span class="status-dot" id="statusDot"></span>
-          <span id="statusText">Checking connection</span>
-        </div>
-      </header>
-
-      <section class="conversation" id="conversation">
-        <div id="welcome" class="welcome">
-          <h1 class="greeting" id="greeting">Where should we start?</h1>
-          <p class="subtitle" id="subtitle">
-            A little curiosity can lead somewhere interesting.
-          </p>
-
-          <!-- CHAT BAR IS ABOVE SUGGESTIONS -->
-          <form class="composer" id="chatForm">
-            <textarea
-              class="message-input"
-              id="messageInput"
-              rows="2"
-              maxlength="1200"
-              placeholder="Ask Dew anything"
-              aria-label="Message Dew"
-              required
-            ></textarea>
-
-            <div class="composer-bottom">
-              <div class="composer-options">
-
-                <!-- DEW MODE DROPDOWN -->
-                <div class="dropdown-wrap">
-                  <button type="button" class="dropdown-button"
-                          id="modeButton" aria-haspopup="true"
-                          aria-expanded="false">
-                    <span class="dropdown-icon">✳</span>
-                    <span id="modeLabel">Dew Standard</span>
-                    <span class="chevron">▾</span>
-                  </button>
-
-                  <div class="dropdown-menu" id="modeMenu" role="menu">
-                    <div class="menu-heading">Choose Dew mode</div>
-
-                    <button type="button" class="menu-option selected"
-                            data-mode="Standard" role="menuitemradio"
-                            aria-checked="true">
-                      <span>
-                        <strong>Dew Standard</strong>
-                        <span class="option-description">
-                          Everyday questions, writing and coding
-                        </span>
-                      </span>
-                      <span class="option-check">✓</span>
-                    </button>
-
-                    <button type="button" class="menu-option"
-                            data-mode="Extended" role="menuitemradio"
-                            aria-checked="false">
-                      <span>
-                        <strong>Dew Extended</strong>
-                        <span class="option-description">
-                          For more involved tasks
-                        </span>
-                      </span>
-                      <span class="option-check"></span>
-                    </button>
-
-                    <button type="button" class="menu-option"
-                            data-mode="Search" role="menuitemradio"
-                            aria-checked="false">
-                      <span>
-                        <strong>Dew Search</strong>
-                        <span class="option-description">
-                          Web-oriented questions
-                        </span>
-                      </span>
-                      <span class="option-check"></span>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- THINKING LEVEL DROPDOWN -->
-                <div class="dropdown-wrap">
-                  <button type="button" class="dropdown-button"
-                          id="thinkingButton" aria-haspopup="true"
-                          aria-expanded="false">
-                    <span id="thinkingLabel">Medium</span>
-                    <span class="chevron">▾</span>
-                  </button>
-
-                  <div class="dropdown-menu" id="thinkingMenu" role="menu">
-                    <div class="menu-heading">Thinking level</div>
-
-                    <button type="button" class="menu-option"
-                            data-thinking="Low" role="menuitemradio"
-                            aria-checked="false">
-                      <span>
-                        <strong>Low</strong>
-                        <span class="option-description">
-                          Faster responses
-                        </span>
-                      </span>
-                      <span class="option-check"></span>
-                    </button>
-
-                    <button type="button" class="menu-option selected"
-                            data-thinking="Medium" role="menuitemradio"
-                            aria-checked="true">
-                      <span>
-                        <strong>Medium</strong>
-                        <span class="option-description">
-                          Balanced reasoning
-                        </span>
-                      </span>
-                      <span class="option-check">✓</span>
-                    </button>
-
-                    <button type="button" class="menu-option"
-                            data-thinking="High" role="menuitemradio"
-                            aria-checked="false">
-                      <span>
-                        <strong>High</strong>
-                        <span class="option-description">
-                          More deliberate reasoning
-                        </span>
-                      </span>
-                      <span class="option-check"></span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <button type="submit" class="send-button" id="sendButton"
-                      aria-label="Send message" title="Send message">
-                ↑
-              </button>
-            </div>
-          </form>
-
-          <!-- SUGGESTION TILES BELOW THE CHAT BAR -->
-          <div class="suggestions" id="suggestions">
-            <button class="suggestion" data-prompt="Explain a difficult concept in a simple, interesting way.">
-              <span class="suggestion-text">
-                Explain something complicated in simple terms
-              </span>
-              <span class="suggestion-icon">✧</span>
-            </button>
-
-            <button class="suggestion" data-prompt="Help me brainstorm an original idea for a project.">
-              <span class="suggestion-text">
-                Help me come up with an original idea
-              </span>
-              <span class="suggestion-icon">✳</span>
-            </button>
-
-            <button class="suggestion" data-prompt="Help me write clean, understandable code and explain how it works.">
-              <span class="suggestion-text">
-                Build something with code
-              </span>
-              <span class="suggestion-icon">⌘</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="messages" id="messages" hidden></div>
-      </section>
-
-      <footer class="bottom-area">
-        <div class="bottom-inner">
-          <div class="disclaimer">
-            Dew can make mistakes. Check important information.
-          </div>
-        </div>
-      </footer>
-
-      <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    </main>
+    </div>
+    <button type="submit" class="send-button" id="sendButton" aria-label="Send message" title="Send message">↑</button>
   </div>
+</form>
 
-  <script>
-    "use strict";
+<script>
+"use strict";
 
-    // --------------------------------------------------
-    // CONFIGURATION
-    // --------------------------------------------------
+/* Update this if your temporary Cloudflare tunnel URL changes. */
+const DEW_API_URL = "https://folding-ideas-nirvana-redeem.trycloudflare.com/api/chat";
 
-    // This URL is the temporary Cloudflare tunnel URL.
-    // If the tunnel changes, update this value.
-    const DEW_API_URL =
-      "https://folding-ideas-nirvana-redeem.trycloudflare.com/api/chat";
+const $ = id => document.getElementById(id);
+const sidebar = $("sidebar");
+const overlay = $("mobileOverlay");
+const conversation = $("conversation");
+const welcome = $("welcome");
+const messages = $("messages");
+const input = $("messageInput");
+const composer = $("chatForm");
+const sendButton = $("sendButton");
 
-    let selectedMode = "Standard";
-    let selectedReasoning = "Medium";
-    let isSending = false;
-    let currentChatId = 0;
-    let toastTimer = null;
+let selectedMode = "Standard";
+let selectedReasoning = "Medium";
+let isSending = false;
+let currentChatId = null;
+let chats = [];
+let toastTimer;
 
-    const $ = (id) => document.getElementById(id);
+const greetings = [
+  ["Where should we start?", "A little curiosity can lead somewhere interesting."],
+  ["What's on your mind?", "Bring a question, a challenge, or a new idea."],
+  ["Let's explore something.", "From a quick question to a complicated problem."],
+  ["Ready when you are.", "Think it through, build it, or figure it out."],
+  ["What are we working on?", "Every interesting idea starts somewhere."]
+];
 
-    const sidebar = $("sidebar");
-    const mobileOverlay = $("mobileOverlay");
-    const conversation = $("conversation");
-    const welcome = $("welcome");
-    const messages = $("messages");
-    const input = $("messageInput");
-    const sendButton = $("sendButton");
-    const statusDot = $("statusDot");
-    const statusText = $("statusText");
+function setGreeting() {
+  const greeting = greetings[Math.floor(Math.random() * greetings.length)];
+  $("greeting").textContent = greeting[0];
+  $("subtitle").textContent = greeting[1];
+}
 
-    // --------------------------------------------------
-    // GREETINGS
-    // --------------------------------------------------
+function setStatus(state, text) {
+  $("statusDot").className = "status-dot" + (state ? " " + state : "");
+  $("statusText").textContent = text;
+}
 
-    const greetings = [
-      {
-        title: "Where should we start?",
-        subtitle: "A little curiosity can lead somewhere interesting."
-      },
-      {
-        title: "What's on your mind?",
-        subtitle: "Bring a question, a challenge, or a new idea."
-      },
-      {
-        title: "Let's explore something.",
-        subtitle: "From a quick question to a complicated problem."
-      },
-      {
-        title: "Ready when you are.",
-        subtitle: "Think it through, build it, or figure it out."
-      },
-      {
-        title: "What are we working on?",
-        subtitle: "Every interesting idea starts somewhere."
+function showToast(text) {
+  const toast = $("toast");
+  toast.textContent = text;
+  toast.classList.add("visible");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove("visible"), 4000);
+}
+
+/* Move the existing composer, keeping its controls and listeners intact. */
+function moveComposerToBottom() {
+  $("bottomSlot").appendChild(composer);
+  $("suggestions").hidden = true;
+}
+
+function moveComposerToWelcome() {
+  $("welcomeSlot").appendChild(composer);
+  $("suggestions").hidden = false;
+}
+
+/* Dropdowns */
+const dropdownPairs = [
+  [$("modeButton"), $("modeMenu")],
+  [$("thinkingButton"), $("thinkingMenu")]
+];
+
+function closeDropdowns() {
+  dropdownPairs.forEach(([button, menu]) => {
+    menu.classList.remove("open");
+    button.classList.remove("active");
+    button.setAttribute("aria-expanded", "false");
+  });
+}
+
+function toggleDropdown(button, menu) {
+  const opening = !menu.classList.contains("open");
+  closeDropdowns();
+  if (opening) {
+    menu.classList.add("open");
+    button.classList.add("active");
+    button.setAttribute("aria-expanded", "true");
+  }
+}
+
+$("modeButton").addEventListener("click", e => {
+  e.stopPropagation();
+  toggleDropdown($("modeButton"), $("modeMenu"));
+});
+
+$("thinkingButton").addEventListener("click", e => {
+  e.stopPropagation();
+  toggleDropdown($("thinkingButton"), $("thinkingMenu"));
+});
+
+document.addEventListener("click", e => {
+  if (!e.target.closest(".dropdown-wrap")) closeDropdowns();
+});
+
+function refreshOptions(attribute, selected, labelId, prefix = "") {
+  document.querySelectorAll("[" + attribute + "]").forEach(button => {
+    const value = button.getAttribute(attribute);
+    const active = value === selected;
+    button.classList.toggle("selected", active);
+    button.setAttribute("aria-checked", String(active));
+    button.querySelector(".option-check").textContent = active ? "✓" : "";
+  });
+  $(labelId).textContent = prefix + selected;
+}
+
+document.querySelectorAll("[data-mode]").forEach(button => {
+  button.addEventListener("click", () => {
+    selectedMode = button.dataset.mode;
+    refreshOptions("data-mode", selectedMode, "modeLabel", "Dew ");
+    closeDropdowns();
+  });
+});
+
+document.querySelectorAll("[data-thinking]").forEach(button => {
+  button.addEventListener("click", () => {
+    selectedReasoning = button.dataset.thinking;
+    refreshOptions("data-thinking", selectedReasoning, "thinkingLabel");
+    closeDropdowns();
+  });
+});
+
+/* Sidebar */
+function closeMobileSidebar() {
+  sidebar.classList.remove("mobile-open");
+  overlay.classList.remove("visible");
+}
+
+function updateMobileMenu() {
+  $("mobileMenu").style.display = innerWidth <= 760 ? "inline-flex" : "none";
+  if (innerWidth > 760) closeMobileSidebar();
+}
+
+$("sidebarToggle").addEventListener("click", () => {
+  if (innerWidth <= 760) {
+    sidebar.classList.toggle("mobile-open");
+    overlay.classList.toggle("visible");
+  } else {
+    sidebar.classList.toggle("collapsed");
+  }
+});
+
+$("mobileMenu").addEventListener("click", () => {
+  sidebar.classList.add("mobile-open");
+  overlay.classList.add("visible");
+});
+overlay.addEventListener("click", closeMobileSidebar);
+window.addEventListener("resize", updateMobileMenu);
+updateMobileMenu();
+
+/* Safe Markdown renderer.
+   Model output is escaped first. Only formatting tags created here become HTML. */
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  })[char]);
+}
+
+function inlineMarkdown(value) {
+  let s = escapeHTML(value);
+
+  // Inline code first, so other formatting doesn't alter its contents.
+  const codeParts = [];
+  s = s.replace(/`([^`\n]+)`/g, (_, code) => {
+    const token = "%%CODE" + codeParts.length + "%%";
+    codeParts.push("<code>" + code + "</code>");
+    return token;
+  });
+
+  s = s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  s = s.replace(/__(.+?)__/g, "<strong>$1</strong>");
+  s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+  s = s.replace(/~~(.+?)~~/g, "<del>$1</del>");
+  s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
+    '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
+  codeParts.forEach((code, i) => {
+    s = s.replace("%%CODE" + i + "%%", code);
+  });
+  return s;
+}
+
+function splitTableRow(line) {
+  let row = line.trim();
+  if (row.startsWith("|")) row = row.slice(1);
+  if (row.endsWith("|")) row = row.slice(0, -1);
+  return row.split("|").map(cell => cell.trim());
+}
+
+function isTableDivider(line) {
+  const cells = splitTableRow(line);
+  return cells.length > 0 && cells.every(cell => /^:?-{3,}:?$/.test(cell.replace(/\s/g, "")));
+}
+
+function renderMarkdown(markdown) {
+  const lines = String(markdown).replace(/\r\n?/g, "\n").split("\n");
+  const out = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    if (!line.trim()) { i++; continue; }
+
+    // Fenced code blocks
+    if (/^\s*```/.test(line)) {
+      const language = line.trim().slice(3).trim();
+      i++;
+      const code = [];
+      while (i < lines.length && !/^\s*```/.test(lines[i])) {
+        code.push(lines[i++]);
       }
-    ];
-
-    function setGreeting() {
-      const item = greetings[
-        Math.floor(Math.random() * greetings.length)
-      ];
-
-      $("greeting").textContent = item.title;
-      $("subtitle").textContent = item.subtitle;
+      if (i < lines.length) i++;
+      out.push("<pre><code>" + escapeHTML(code.join("\n")) + "</code></pre>");
+      continue;
     }
 
-    // --------------------------------------------------
-    // STATUS
-    // --------------------------------------------------
+    // Markdown tables, including Java feature tables
+    if (i + 1 < lines.length && line.includes("|") && isTableDivider(lines[i + 1])) {
+      const headers = splitTableRow(line);
+      i += 2;
+      const rows = [];
 
-    function setStatus(state, text) {
-      statusDot.className = "status-dot";
-
-      if (state === "online") {
-        statusDot.classList.add("online");
-      } else if (state === "busy") {
-        statusDot.classList.add("busy");
-      }
-
-      statusText.textContent = text;
-    }
-
-    function showToast(message) {
-      const toast = $("toast");
-      toast.textContent = message;
-      toast.classList.add("visible");
-
-      clearTimeout(toastTimer);
-
-      toastTimer = setTimeout(() => {
-        toast.classList.remove("visible");
-      }, 4200);
-    }
-
-    async function checkConnection(showMessage = false) {
-      setStatus("", "Checking connection");
-
-      try {
-        // A short, non-generating request to check the API.
-        const controller = new AbortController();
-        const timeout = setTimeout(
-          () => controller.abort(),
-          10000
-        );
-
-        let response;
-
-        try {
-          response = await fetch(
-            DEW_API_URL.replace(/\/api\/chat\/?$/, "/health"),
-            {
-              method: "GET",
-              signal: controller.signal
-            }
-          );
-        } finally {
-          clearTimeout(timeout);
-        }
-
-        if (!response.ok) {
-          throw new Error("Health check returned HTTP " + response.status);
-        }
-
-        const data = await response.json();
-
-        if (data.status === "ok") {
-          setStatus("online", "Connected");
-          if (showMessage) showToast("Dew API is reachable.");
-        } else {
-          throw new Error("Unexpected health response");
-        }
-      } catch (error) {
-        console.warn("Dew health check:", error);
-        setStatus("", "Connection unavailable");
-
-        if (showMessage) {
-          showToast(
-            "Could not verify Dew. Check that Colab and the tunnel are running."
-          );
-        }
-      }
-    }
-
-    // --------------------------------------------------
-    // DROPDOWNS
-    // --------------------------------------------------
-
-    const dropdowns = [
-      {
-        button: $("modeButton"),
-        menu: $("modeMenu")
-      },
-      {
-        button: $("thinkingButton"),
-        menu: $("thinkingMenu")
-      }
-    ];
-
-    function closeDropdowns(exceptMenu = null) {
-      dropdowns.forEach(({ button, menu }) => {
-        if (menu !== exceptMenu) {
-          menu.classList.remove("open");
-          button.classList.remove("active");
-          button.setAttribute("aria-expanded", "false");
-        }
-      });
-    }
-
-    function toggleDropdown(button, menu) {
-      const willOpen = !menu.classList.contains("open");
-
-      closeDropdowns();
-
-      if (willOpen) {
-        menu.classList.add("open");
-        button.classList.add("active");
-        button.setAttribute("aria-expanded", "true");
-      }
-    }
-
-    $("modeButton").addEventListener("click", (event) => {
-      event.stopPropagation();
-      toggleDropdown($("modeButton"), $("modeMenu"));
-    });
-
-    $("thinkingButton").addEventListener("click", (event) => {
-      event.stopPropagation();
-      toggleDropdown($("thinkingButton"), $("thinkingMenu"));
-    });
-
-    document.addEventListener("click", (event) => {
-      if (!event.target.closest(".dropdown-wrap")) {
-        closeDropdowns();
-      }
-    });
-
-    function updateModeOptions() {
-      document.querySelectorAll("[data-mode]").forEach((button) => {
-        const selected = button.dataset.mode === selectedMode;
-
-        button.classList.toggle("selected", selected);
-        button.setAttribute("aria-checked", String(selected));
-
-        const check = button.querySelector(".option-check");
-        if (check) check.textContent = selected ? "✓" : "";
-      });
-
-      $("modeLabel").textContent = "Dew " + selectedMode;
-    }
-
-    document.querySelectorAll("[data-mode]").forEach((button) => {
-      button.addEventListener("click", () => {
-        selectedMode = button.dataset.mode;
-        updateModeOptions();
-        closeDropdowns();
-      });
-    });
-
-    function updateThinkingOptions() {
-      document.querySelectorAll("[data-thinking]").forEach((button) => {
-        const selected = button.dataset.thinking === selectedReasoning;
-
-        button.classList.toggle("selected", selected);
-        button.setAttribute("aria-checked", String(selected));
-
-        const check = button.querySelector(".option-check");
-        if (check) check.textContent = selected ? "✓" : "";
-      });
-
-      $("thinkingLabel").textContent = selectedReasoning;
-    }
-
-    document.querySelectorAll("[data-thinking]").forEach((button) => {
-      button.addEventListener("click", () => {
-        selectedReasoning = button.dataset.thinking;
-        updateThinkingOptions();
-        closeDropdowns();
-      });
-    });
-
-    // --------------------------------------------------
-    // SIDEBAR
-    // --------------------------------------------------
-
-    function updateMobileMenuVisibility() {
-      $("mobileMenu").style.display =
-        window.innerWidth <= 760 ? "inline-flex" : "none";
-
-      if (window.innerWidth > 760) {
-        mobileOverlay.classList.remove("visible");
-        sidebar.classList.remove("mobile-open");
-      }
-    }
-
-    $("sidebarToggle").addEventListener("click", () => {
-      if (window.innerWidth <= 760) {
-        sidebar.classList.toggle("mobile-open");
-        mobileOverlay.classList.toggle("visible");
-      } else {
-        sidebar.classList.toggle("collapsed");
-      }
-    });
-
-    $("mobileMenu").addEventListener("click", () => {
-      sidebar.classList.add("mobile-open");
-      mobileOverlay.classList.add("visible");
-    });
-
-    mobileOverlay.addEventListener("click", () => {
-      sidebar.classList.remove("mobile-open");
-      mobileOverlay.classList.remove("visible");
-    });
-
-    window.addEventListener("resize", updateMobileMenuVisibility);
-    updateMobileMenuVisibility();
-
-    // --------------------------------------------------
-    // CHAT HISTORY
-    // --------------------------------------------------
-
-    let chatHistory = [];
-
-    function addRecentChat(title, chatId) {
-      const list = $("recentList");
-
-      if (list.querySelector("[data-empty-recent]")) {
-        list.innerHTML = "";
+      while (i < lines.length && lines[i].trim() && lines[i].includes("|")) {
+        rows.push(splitTableRow(lines[i]));
+        i++;
       }
 
-      const item = document.createElement("button");
-      item.className = "recent-item";
-      item.textContent = title;
-      item.title = title;
+      let table = '<div class="table-wrap"><table><thead><tr>';
+      headers.forEach(cell => table += "<th>" + inlineMarkdown(cell) + "</th>");
+      table += "</tr></thead><tbody>";
 
-      item.addEventListener("click", () => {
-        const entry = chatHistory.find((chat) => chat.id === chatId);
-
-        if (entry) {
-          renderHistory(entry);
-          closeMobileSidebar();
-        }
-      });
-
-      list.prepend(item);
-    }
-
-    function closeMobileSidebar() {
-      sidebar.classList.remove("mobile-open");
-      mobileOverlay.classList.remove("visible");
-    }
-
-    function renderHistory(entry) {
-      currentChatId = entry.id;
-      messages.replaceChildren();
-
-      entry.messages.forEach((item) => {
-        addMessage(item.role, item.text, false);
-      });
-
-      welcome.hidden = true;
-      messages.hidden = false;
-      conversation.scrollTop = conversation.scrollHeight;
-    }
-
-    function newChat() {
-      currentChatId = Date.now() + Math.floor(Math.random() * 1000);
-      messages.replaceChildren();
-      messages.hidden = true;
-      welcome.hidden = false;
-      input.value = "";
-      resizeInput();
-      setGreeting();
-      closeDropdowns();
-      closeMobileSidebar();
-      input.focus();
-    }
-
-    $("newChat").addEventListener("click", newChat);
-
-    // --------------------------------------------------
-    // MESSAGE RENDERING
-    // --------------------------------------------------
-
-    function addMessage(role, text, save = true) {
-      messages.hidden = false;
-      welcome.hidden = true;
-
-      const wrapper = document.createElement("article");
-      wrapper.className = "message " + (role === "user" ? "user" : "assistant");
-
-      if (role === "user") {
-        const bubble = document.createElement("div");
-        bubble.className = "user-bubble";
-        bubble.textContent = text;
-        wrapper.appendChild(bubble);
-      } else {
-        const roleLabel = document.createElement("div");
-        roleLabel.className = "message-role";
-
-        const mark = document.createElement("span");
-        mark.className = "role-mark";
-        mark.textContent = "✳";
-
-        const label = document.createElement("span");
-        label.textContent = "Dew";
-
-        roleLabel.append(mark, label);
-
-        const body = document.createElement("div");
-        body.className = "message-body";
-        body.textContent = text;
-
-        wrapper.append(roleLabel, body);
-
-        if (!wrapper.classList.contains("message-error")) {
-          const actions = document.createElement("div");
-          actions.className = "message-actions";
-
-          const copy = document.createElement("button");
-          copy.className = "small-action";
-          copy.textContent = "Copy response";
-          copy.addEventListener("click", async () => {
-            try {
-              await navigator.clipboard.writeText(text);
-              showToast("Response copied.");
-            } catch {
-              showToast("Clipboard access was blocked by your browser.");
-            }
-          });
-
-          actions.appendChild(copy);
-          wrapper.appendChild(actions);
-        }
-      }
-
-      messages.appendChild(wrapper);
-
-      if (save) {
-        let entry = chatHistory.find((chat) => chat.id === currentChatId);
-
-        if (!entry) {
-          entry = {
-            id: currentChatId,
-            title: role === "user" ? text.slice(0, 38) : "New conversation",
-            messages: []
-          };
-
-          chatHistory.unshift(entry);
-
-          if (role === "user") {
-            addRecentChat(entry.title, entry.id);
-          }
-        }
-
-        entry.messages.push({ role, text });
-      }
-
-      conversation.scrollTop = conversation.scrollHeight;
-
-      return wrapper;
-    }
-
-    function addTypingIndicator() {
-      const wrapper = document.createElement("article");
-      wrapper.className = "message assistant";
-      wrapper.id = "typingIndicator";
-
-      const label = document.createElement("div");
-      label.className = "message-role";
-
-      const mark = document.createElement("span");
-      mark.className = "role-mark";
-      mark.textContent = "✳";
-
-      const name = document.createElement("span");
-      name.textContent = "Dew is thinking";
-
-      label.append(mark, name);
-
-      const dots = document.createElement("div");
-      dots.className = "typing";
-      dots.innerHTML = "<span></span><span></span><span></span>";
-
-      wrapper.append(label, dots);
-      messages.appendChild(wrapper);
-      conversation.scrollTop = conversation.scrollHeight;
-    }
-
-    // --------------------------------------------------
-    // DEW API REQUEST
-    // --------------------------------------------------
-
-    async function getDewReply(message) {
-      const payload = {
-        message: message,
-        mode: "Dew " + selectedMode,
-        thinking: selectedReasoning
-      };
-
-      let response;
-
-      try {
-        response = await fetch(DEW_API_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(payload)
+      rows.forEach(row => {
+        table += "<tr>";
+        headers.forEach((_, index) => {
+          table += "<td>" + inlineMarkdown(row[index] || "") + "</td>";
         });
-      } catch (error) {
-        console.error("Dew network error:", error);
-
-        throw new Error(
-          "Could not connect to Dew. Check that Colab is running and the Cloudflare tunnel URL is still valid."
-        );
-      }
-
-      const raw = await response.text();
-      let data;
-
-      try {
-        data = JSON.parse(raw);
-      } catch {
-        console.error("Invalid response from Dew:", raw);
-
-        throw new Error(
-          "Dew returned an unreadable response (HTTP " +
-          response.status + "). The backend or tunnel may be unavailable."
-        );
-      }
-
-      if (!response.ok) {
-        console.error("Dew API error:", data);
-
-        const detail = typeof data.detail === "string"
-          ? data.detail
-          : "HTTP " + response.status;
-
-        throw new Error("Dew API error: " + detail);
-      }
-
-      if (typeof data.answer !== "string") {
-        console.error("Unexpected Dew response:", data);
-
-        throw new Error(
-          "Dew responded, but the expected answer field was missing."
-        );
-      }
-
-      return data.answer;
-    }
-
-    // --------------------------------------------------
-    // SEND MESSAGE
-    // --------------------------------------------------
-
-    async function sendMessage(message) {
-      const cleanMessage = message.trim();
-
-      if (!cleanMessage || isSending) return;
-
-      if (cleanMessage.length > 1200) {
-        showToast("Messages must be 1,200 characters or fewer.");
-        return;
-      }
-
-      isSending = true;
-      sendButton.disabled = true;
-      input.disabled = true;
-
-      closeDropdowns();
-
-      addMessage("user", cleanMessage);
-      input.value = "";
-      resizeInput();
-
-      setStatus("busy", "Dew is responding");
-      addTypingIndicator();
-
-      try {
-        const answer = await getDewReply(cleanMessage);
-
-        $("typingIndicator")?.remove();
-        addMessage("assistant", answer);
-
-        setStatus("online", "Connected");
-      } catch (error) {
-        $("typingIndicator")?.remove();
-
-        console.error("Dew request failed:", error);
-
-        const errorMessage = error instanceof Error
-          ? error.message
-          : "An unexpected error occurred.";
-
-        const errorNode = addMessage(
-          "assistant",
-          "I couldn't complete that request.\n\n" + errorMessage,
-          false
-        );
-
-        errorNode.classList.add("message-error");
-        const body = errorNode.querySelector(".message-body");
-
-        if (body) body.classList.add("message-error");
-
-        setStatus("", "Request failed");
-      } finally {
-        isSending = false;
-        sendButton.disabled = false;
-        input.disabled = false;
-        input.focus();
-      }
-    }
-
-    $("chatForm").addEventListener("submit", async (event) => {
-      event.preventDefault();
-      await sendMessage(input.value);
-    });
-
-    // Enter sends. Shift+Enter inserts a newline.
-    input.addEventListener("keydown", (event) => {
-      if (
-        event.key === "Enter" &&
-        !event.shiftKey &&
-        !event.isComposing
-      ) {
-        event.preventDefault();
-
-        if (!isSending) {
-          $("chatForm").requestSubmit();
-        }
-      }
-    });
-
-    function resizeInput() {
-      input.style.height = "auto";
-      input.style.height = Math.min(input.scrollHeight, 200) + "px";
-    }
-
-    input.addEventListener("input", resizeInput);
-
-    // Suggestion tiles fill and submit the prompt.
-    document.querySelectorAll("[data-prompt]").forEach((button) => {
-      button.addEventListener("click", () => {
-        input.value = button.dataset.prompt;
-        resizeInput();
-        $("chatForm").requestSubmit();
+        table += "</tr>";
       });
+
+      table += "</tbody></table></div>";
+      out.push(table);
+      continue;
+    }
+
+    // Headings
+    const heading = line.match(/^\s*(#{1,3})\s+(.+)$/);
+    if (heading) {
+      const level = heading[1].length;
+      out.push("<h" + level + ">" + inlineMarkdown(heading[2]) + "</h" + level + ">");
+      i++;
+      continue;
+    }
+
+    // Horizontal rule
+    if (/^\s*(---+|\*\*\*+|___+)\s*$/.test(line)) {
+      out.push("<hr>");
+      i++;
+      continue;
+    }
+
+    // Blockquotes
+    if (/^\s*>\s?/.test(line)) {
+      const quote = [];
+      while (i < lines.length && /^\s*>\s?/.test(lines[i])) {
+        quote.push(lines[i++].replace(/^\s*>\s?/, ""));
+      }
+      out.push("<blockquote>" + quote.map(v => inlineMarkdown(v)).join("<br>") + "</blockquote>");
+      continue;
+    }
+
+    // Ordered and unordered lists
+    if (/^\s*([-*+]|\d+[.)])\s+/.test(line)) {
+      const ordered = /^\s*\d+[.)]\s+/.test(line);
+      const tag = ordered ? "ol" : "ul";
+      const items = [];
+      const pattern = ordered ? /^\s*\d+[.)]\s+/ : /^\s*[-*+]\s+/;
+
+      while (i < lines.length && pattern.test(lines[i])) {
+        items.push("<li>" + inlineMarkdown(lines[i].replace(pattern, "")) + "</li>");
+        i++;
+      }
+      out.push("<" + tag + ">" + items.join("") + "</" + tag + ">");
+      continue;
+    }
+
+    // Paragraph
+    const paragraph = [];
+    while (
+      i < lines.length &&
+      lines[i].trim() &&
+      !/^\s*```/.test(lines[i]) &&
+      !/^\s*#{1,3}\s+/.test(lines[i]) &&
+      !/^\s*(---+|\*\*\*+|___+)\s*$/.test(lines[i]) &&
+      !/^\s*>\s?/.test(lines[i]) &&
+      !/^\s*([-*+]|\d+[.)])\s+/.test(lines[i]) &&
+      !(i + 1 < lines.length && lines[i].includes("|") && isTableDivider(lines[i + 1]))
+    ) {
+      paragraph.push(lines[i++]);
+    }
+
+    out.push("<p>" + paragraph.map(inlineMarkdown).join("<br>") + "</p>");
+  }
+
+  return out.join("\n");
+}
+
+/* Chat history */
+function addRecentChat(chat) {
+  const list = $("recentList");
+  if (list.children.length === 1 && list.textContent.includes("Your recent chats")) {
+    list.replaceChildren();
+  }
+
+  const button = document.createElement("button");
+  button.className = "recent-item";
+  button.textContent = chat.title;
+  button.title = chat.title;
+  button.addEventListener("click", () => {
+    currentChatId = chat.id;
+    renderHistory(chat);
+    closeMobileSidebar();
+  });
+  list.prepend(button);
+}
+
+function renderHistory(chat) {
+  messages.replaceChildren();
+  chat.messages.forEach(item => renderMessage(item.role, item.text, false));
+  welcome.hidden = true;
+  messages.hidden = false;
+  moveComposerToBottom();
+  conversation.scrollTop = conversation.scrollHeight;
+}
+
+function ensureChat() {
+  if (currentChatId) return;
+  currentChatId = Date.now() + Math.floor(Math.random() * 1000);
+  const chat = { id: currentChatId, title: "New conversation", messages: [] };
+  chats.unshift(chat);
+  return chat;
+}
+
+function saveMessage(role, text) {
+  let chat = chats.find(item => item.id === currentChatId);
+  if (!chat) chat = ensureChat();
+
+  if (role === "user" && chat.messages.length === 0) {
+    chat.title = text.slice(0, 42);
+    addRecentChat(chat);
+  }
+  chat.messages.push({ role, text });
+}
+
+function renderMessage(role, text, save = true) {
+  const wrapper = document.createElement("article");
+  wrapper.className = "message " + (role === "user" ? "user" : "assistant");
+
+  if (role === "user") {
+    const bubble = document.createElement("div");
+    bubble.className = "user-bubble";
+    bubble.textContent = text;
+    wrapper.appendChild(bubble);
+  } else {
+    const label = document.createElement("div");
+    label.className = "message-role";
+
+    const mark = document.createElement("span");
+    mark.className = "role-mark";
+    mark.textContent = "✳";
+
+    const name = document.createElement("span");
+    name.textContent = "Dew";
+    label.append(mark, name);
+
+    const body = document.createElement("div");
+    body.className = "message-body";
+    body.innerHTML = renderMarkdown(text);
+
+    const actions = document.createElement("div");
+    actions.className = "message-actions";
+    const copy = document.createElement("button");
+    copy.className = "small-action";
+    copy.textContent = "Copy response";
+    copy.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast("Response copied.");
+      } catch {
+        showToast("Clipboard access was blocked by your browser.");
+      }
     });
 
-    $("connectionButton").addEventListener("click", () => {
-      checkConnection(true);
+    actions.appendChild(copy);
+    wrapper.append(label, body, actions);
+  }
+
+  messages.appendChild(wrapper);
+  if (save) saveMessage(role, text);
+  conversation.scrollTop = conversation.scrollHeight;
+  return wrapper;
+}
+
+function addTyping() {
+  const node = document.createElement("article");
+  node.className = "message assistant";
+  node.id = "typingIndicator";
+  node.innerHTML = '<div class="message-role"><span class="role-mark">✳</span><span>Dew is thinking</span></div><div class="typing"><span></span><span></span><span></span></div>';
+  messages.appendChild(node);
+  conversation.scrollTop = conversation.scrollHeight;
+}
+
+/* Dew API */
+async function getDewReply(message) {
+  const payload = {
+    message,
+    mode: "Dew " + selectedMode,
+    thinking: selectedReasoning
+  };
+
+  let response;
+  try {
+    response = await fetch(DEW_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
     });
+  } catch (error) {
+    console.error("Dew connection error:", error);
+    throw new Error("Could not connect to Dew. Check that Colab is running and the Cloudflare tunnel URL is current.");
+  }
 
-    // --------------------------------------------------
-    // INITIALISE
-    // --------------------------------------------------
+  const raw = await response.text();
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    console.error("Unreadable Dew response:", raw);
+    throw new Error("Dew returned an unreadable response (HTTP " + response.status + ").");
+  }
 
-    setGreeting();
-    updateModeOptions();
-    updateThinkingOptions();
-    checkConnection();
+  if (!response.ok) {
+    const detail = typeof data.detail === "string" ? data.detail : "HTTP " + response.status;
+    throw new Error("Dew API error: " + detail);
+  }
 
-    // Keep the initial view ready for typing.
-    input.focus({ preventScroll: true });
-  </script>
+  if (typeof data.answer !== "string") {
+    console.error("Unexpected Dew response:", data);
+    throw new Error("The response did not contain an answer.");
+  }
+
+  return data.answer;
+}
+
+async function sendMessage(rawMessage) {
+  const message = rawMessage.trim();
+  if (!message || isSending) return;
+
+  if (message.length > 1200) {
+    showToast("Messages must be 1,200 characters or fewer.");
+    return;
+  }
+
+  isSending = true;
+  sendButton.disabled = true;
+  input.disabled = true;
+  closeDropdowns();
+
+  // Switch from welcome layout to active chat layout.
+  welcome.hidden = true;
+  messages.hidden = false;
+  moveComposerToBottom();
+
+  renderMessage("user", message);
+  input.value = "";
+  resizeInput();
+  addTyping();
+  setStatus("busy", "Dew is responding");
+
+  try {
+    const answer = await getDewReply(message);
+    $("typingIndicator")?.remove();
+    renderMessage("assistant", answer);
+    setStatus("online", "Connected");
+  } catch (error) {
+    $("typingIndicator")?.remove();
+    console.error(error);
+    const errorNode = renderMessage(
+      "assistant",
+      "I couldn't complete that request.\n\n" +
+      (error instanceof Error ? error.message : "Unexpected error."),
+      false
+    );
+    errorNode.querySelector(".message-body")?.classList.add("message-error");
+    setStatus("", "Request failed");
+  } finally {
+    isSending = false;
+    sendButton.disabled = false;
+    input.disabled = false;
+    input.focus();
+  }
+}
+
+composer.addEventListener("submit", event => {
+  event.preventDefault();
+  sendMessage(input.value);
+});
+
+input.addEventListener("keydown", event => {
+  if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+    event.preventDefault();
+    if (!isSending) composer.requestSubmit();
+  }
+});
+
+function resizeInput() {
+  input.style.height = "auto";
+  input.style.height = Math.min(input.scrollHeight, 190) + "px";
+}
+input.addEventListener("input", resizeInput);
+
+/* Suggestions */
+document.querySelectorAll("[data-prompt]").forEach(button => {
+  button.addEventListener("click", () => {
+    input.value = button.dataset.prompt;
+    resizeInput();
+    composer.requestSubmit();
+  });
+});
+
+/* Start a fresh conversation and return the composer to the welcome view. */
+$("newChat").addEventListener("click", () => {
+  currentChatId = null;
+  messages.replaceChildren();
+  messages.hidden = true;
+  welcome.hidden = false;
+  moveComposerToWelcome();
+  input.value = "";
+  resizeInput();
+  setGreeting();
+  closeDropdowns();
+  closeMobileSidebar();
+  conversation.scrollTop = 0;
+  input.focus();
+});
+
+async function checkConnection(showResult = false) {
+  setStatus("", "Checking connection");
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+
+  try {
+    const healthUrl = DEW_API_URL.replace(/\/api\/chat\/?$/, "/health");
+    const response = await fetch(healthUrl, { signal: controller.signal });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    const data = await response.json();
+    if (data.status !== "ok") throw new Error("Unexpected health response");
+    setStatus("online", "Connected");
+    if (showResult) showToast("Dew API is reachable.");
+  } catch (error) {
+    console.warn("Dew health check failed:", error);
+    setStatus("", "Connection unavailable");
+    if (showResult) showToast("Could not verify Dew. Check Colab and the Cloudflare tunnel.");
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+$("connectionButton").addEventListener("click", () => checkConnection(true));
+
+/* Initial view */
+moveComposerToWelcome();
+setGreeting();
+refreshOptions("data-mode", selectedMode, "modeLabel", "Dew ");
+refreshOptions("data-thinking", selectedReasoning, "thinkingLabel");
+checkConnection();
+</script>
 </body>
 </html>
