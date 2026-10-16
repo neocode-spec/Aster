@@ -6,24 +6,33 @@ const INSTRUCTIONS = {
 You are Dew, the AI assistant inside Aster.
 Handle greetings, everyday conversation, explanations, writing,
 coding, and problem-solving naturally using your existing knowledge.
-Do not use web search unless the user explicitly requests it.
+Never activate web search automatically.
 Be honest about uncertainty and never invent sources.
 `,
 
   "Dew Extended": `
 You are Dew Extended, the reasoning-focused mode inside Aster.
-Think carefully about complex questions and give detailed,
-well-structured answers. Use your existing knowledge by default.
-Do not use web search unless the user explicitly requests it.
+Think carefully about complex questions and provide detailed,
+well-structured answers.
+Use your existing knowledge. Never activate web search automatically.
 Be honest about uncertainty and never invent sources.
 `,
 
   "Dew Search": `
 You are Dew Search, the web research mode inside Aster.
 Use Google Search to research the user's question.
-Synthesize reliable information, cite relevant sources,
+Synthesize reliable information, cite relevant sources when available,
 and explain uncertainty. Never claim a search succeeded if it did not.
 `
+};
+
+const MODE_ALIASES = {
+  standard: "Dew Standard",
+  extended: "Dew Extended",
+  search: "Dew Search",
+  "Dew Standard": "Dew Standard",
+  "Dew Extended": "Dew Extended",
+  "Dew Search": "Dew Search"
 };
 
 const THINKING_BUDGET = {
@@ -32,12 +41,53 @@ const THINKING_BUDGET = {
   High: 8192
 };
 
-// Search in Standard or Extended only when explicitly requested.
-const EXPLICIT_SEARCH_PATTERN =
-  /\b(search (the )?web|search online|look (it|this|that|them) up|look online|google (it|this|that)|browse (the )?web|check online|find (online|on the web)|research (this|that|the topic|online)|use web search|look for sources online)\b/i;
+const THINKING_ALIASES = {
+  low: "Low",
+  medium: "Medium",
+  high: "High",
+  Low: "Low",
+  Medium: "Medium",
+  High: "High"
+};
 
 function sendError(res, status, code) {
   return res.status(status).json({ error: code });
+}
+
+function normalizeHistory(history, message) {
+  const validHistory = Array.isArray(history)
+    ? history
+        .filter(item =>
+          item &&
+          ["user", "assistant", "model"].includes(item.role) &&
+          typeof item.content === "string" &&
+          item.content.trim()
+        )
+        .slice(-20)
+    : [];
+
+  const contents = validHistory.map(item => ({
+    role: item.role === "user" ? "user" : "model",
+    parts: [{ text: item.content.trim() }]
+  }));
+
+  const last = contents[contents.length - 1];
+  const lastText = last?.parts?.[0]?.text;
+
+  // The frontend history normally already contains the latest message.
+  // Append it only when it is not already the final user message.
+  if (
+    !last ||
+    last.role !== "user" ||
+    lastText !== message
+  ) {
+    contents.push({
+      role: "user",
+      parts: [{ text: message }]
+    });
+  }
+
+  return contents;
 }
 
 export default async function handler(req, res) {
@@ -64,34 +114,21 @@ export default async function handler(req, res) {
         ? body.message.trim()
         : "";
 
-    const mode = Object.hasOwn(INSTRUCTIONS, body.mode)
-      ? body.mode
-      : "Dew Standard";
-
-    const thinking = ["Low", "Medium", "High"].includes(body.thinking)
-      ? body.thinking
-      : "Medium";
-
     if (!message) {
       return sendError(res, 400, "EMPTY_MESSAGE");
     }
 
-    if (message.length > 1200) {
+    if (message.length > 12000) {
       return sendError(res, 400, "MESSAGE_TOO_LONG");
     }
 
-    const explicitlyRequestedSearch =
-      EXPLICIT_SEARCH_PATTERN.test(message);
+    // Accept both the existing backend labels and the new frontend values.
+    const mode = MODE_ALIASES[body.mode] || "Dew Standard";
 
-    // Standard never searches automatically.
-    // Extended never searches automatically.
-    // Dew Search always attempts web search.
-    const useSearch =
-      mode === "Dew Search" ||
-      (
-        (mode === "Dew Standard" || mode === "Dew Extended") &&
-        explicitlyRequestedSearch
-      );
+    // The frontend sends "reasoning"; older versions may send "thinking".
+    const thinkingInput = body.reasoning ?? body.thinking ?? "Medium";
+    const thinking =
+      THINKING_ALIASES[thinkingInput] || "Medium";
 
     const ai = new GoogleGenAI({ apiKey });
 
@@ -102,13 +139,18 @@ export default async function handler(req, res) {
       }
     };
 
+    // Only the explicitly selected Dew Search mode activates Google Search.
+    const useSearch = mode === "Dew Search";
+
     if (useSearch) {
       config.tools = [{ googleSearch: {} }];
     }
 
+    const contents = normalizeHistory(body.history, message);
+
     const result = await ai.models.generateContent({
       model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
-      contents: message,
+      contents,
       config
     });
 
@@ -132,34 +174,34 @@ export default async function handler(req, res) {
         all.findIndex(item => item.url === source.url) === index
       );
 
+    const searchUsed =
+      useSearch && Boolean(grounding?.webSearchQueries?.length);
+
     return res.status(200).json({
       answer,
+      reply: answer,
       mode,
       thinking,
-      searchUsed: Boolean(grounding),
+      reasoning: thinking,
+      searchUsed,
       sources
     });
+
   } catch (error) {
-    // Keep technical details in server logs, not the public chat.
     console.error("Aster Gemini request failed:", error);
 
     const status = Number(error?.status || error?.code);
 
-    if (
-      status === 503 ||
-      status === 429 ||
-      status === 502 ||
-      status === 504
-    ) {
-      return sendError(
-        res,
-        503,
-        "TEMPORARILY_UNAVAILABLE"
-      );
+    if (status === 429 || status === 503 || status === 502 || status === 504) {
+      return sendError(res, 503, "TEMPORARILY_UNAVAILABLE");
     }
 
     if (status === 401 || status === 403) {
       return sendError(res, 503, "SERVICE_UNAVAILABLE");
+    }
+
+    if (error instanceof SyntaxError) {
+      return sendError(res, 400, "INVALID_REQUEST");
     }
 
     return sendError(res, 500, "REQUEST_FAILED");
