@@ -10,244 +10,373 @@
 
 <style>
 :root {
-  color-scheme: dark;
-  --bg: #131314;
-  --sidebar: #1e1f20;
-  --surface: #202122;
-  --hover: #2b2c2e;
-  --border: #3c3d40;
-  --text: #e3e3e3;
-  --muted: #a1a1a8;
-  --accent: #c4b5fd;
-  --accent-soft: #302745;
+  color-scheme:dark;
+  --bg:#131314;
+  --sidebar:#191a1b;
+  --surface:#202122;
+  --hover:#2b2c2e;
+  --border:#393a3d;
+  --text:#e3e3e3;
+  --muted:#a1a1a8;
+  --accent:#c4b5fd;
+  --accent-soft:#302745;
 }
-* { box-sizing: border-box; }
-html, body { width:100%; height:100%; margin:0; }
+* { box-sizing:border-box; }
+html,body { width:100%;height:100%;margin:0; }
 body {
-  background:var(--bg); color:var(--text);
+  background:var(--bg);color:var(--text);
   font-family:Inter,"Segoe UI",Arial,sans-serif;
   overflow:hidden;
 }
-button, textarea { font:inherit; }
+button,textarea { font:inherit; }
 button { color:inherit; }
-button:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
-button:disabled { opacity:.5; cursor:wait; }
-.app { display:flex; width:100%; height:100dvh; }
+button:focus-visible,textarea:focus-visible {
+  outline:2px solid var(--accent);outline-offset:2px;
+}
+button:disabled { opacity:.55;cursor:wait; }
+[hidden] { display:none!important; }
 
-/* Sidebar */
+.app { display:flex;width:100%;height:100dvh; }
+
+/* Compact, collapsible sidebar */
 .sidebar {
-  width:260px; min-width:260px; padding:16px 12px;
-  background:var(--sidebar); display:flex; flex-direction:column;
-  overflow:hidden; transition:width .2s,min-width .2s; z-index:20;
+  width:240px;min-width:240px;height:100%;
+  padding:13px 10px;background:var(--sidebar);
+  display:flex;flex-direction:column;overflow:hidden;
+  transition:width .2s,min-width .2s;
+  position:relative;z-index:30;
 }
-.sidebar.collapsed { width:76px; min-width:76px; }
-.sidebar-top { display:flex; align-items:center; gap:12px; padding:0 8px; margin-bottom:28px; }
+.sidebar.collapsed { width:68px;min-width:68px; }
+.sidebar-top {
+  height:46px;display:flex;align-items:center;
+  gap:10px;padding:0 3px;margin-bottom:18px;
+}
 .icon-button {
-  width:42px; height:42px; border:0; border-radius:50%;
-  background:transparent; color:var(--muted); font-size:20px;
-  cursor:pointer; flex-shrink:0;
+  width:40px;height:40px;flex-shrink:0;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:0;border-radius:50%;background:transparent;
+  color:var(--muted);font-size:20px;cursor:pointer;
 }
-.icon-button:hover { background:var(--hover); color:var(--text); }
-.brand-mark { font-size:29px; color:var(--accent); }
+.icon-button:hover { background:var(--hover);color:var(--text); }
+.brand-mark { color:var(--accent);font-size:27px; }
 .new-chat {
-  min-height:46px; width:100%; border:0; border-radius:24px;
-  background:#292a2c; display:flex; align-items:center; gap:13px;
-  padding:0 17px; cursor:pointer; white-space:nowrap; text-align:left;
+  width:100%;min-height:42px;display:flex;
+  align-items:center;gap:10px;padding:0 13px;
+  border:0;border-radius:23px;background:#292a2c;
+  cursor:pointer;text-align:left;white-space:nowrap;
 }
 .new-chat:hover { background:#343538; }
-.sidebar-label { font-size:12px; color:var(--muted); padding:22px 13px 10px; }
-.recent-list { overflow-y:auto; }
+.new-chat-symbol { font-size:22px;line-height:1; }
+.sidebar-label {
+  padding:21px 12px 8px;font-size:12px;color:var(--muted);
+}
+.recent-list {
+  flex:1;min-height:0;overflow-y:auto;
+  scrollbar-width:thin;
+}
 .recent-item {
-  display:block; width:100%; overflow:hidden; text-overflow:ellipsis;
-  white-space:nowrap; text-align:left; border:0; background:transparent;
-  padding:12px 13px; border-radius:20px; cursor:pointer; font-size:13px;
+  width:100%;display:block;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;
+  text-align:left;padding:10px 12px;
+  border:0;border-radius:12px;
+  background:transparent;font-size:13px;cursor:pointer;
 }
-.recent-item:hover { background:var(--hover); }
-.sidebar-bottom { margin-top:auto; padding-top:14px; border-top:1px solid #353638; }
-.sidebar.collapsed .hide-collapsed,
-.sidebar.collapsed .brand-mark,
-.sidebar.collapsed .sidebar-label,
-.sidebar.collapsed .recent-list { display:none; }
-.sidebar.collapsed .sidebar-top { padding:0 4px; }
-.sidebar.collapsed .new-chat { justify-content:center; padding:0; }
+.recent-item:hover,.recent-item.active { background:var(--hover); }
+.recent-empty { padding:12px;font-size:12px;color:#898990; }
+.sidebar-bottom {
+  display:flex;align-items:center;gap:8px;
+  padding-top:10px;border-top:1px solid #353638;
+}
+.sidebar.collapsed .hide-collapsed { display:none; }
+.sidebar.collapsed .sidebar-top { justify-content:center;padding:0; }
+.sidebar.collapsed .new-chat { justify-content:center;padding:0; }
+.sidebar.collapsed .sidebar-bottom { justify-content:center; }
 
-/* Main layout */
-.main { flex:1; min-width:0; height:100%; display:flex; flex-direction:column; }
-.topbar {
-  height:66px; min-height:66px; padding:0 26px;
-  display:flex; align-items:center; justify-content:space-between;
+/* Main area */
+.main {
+  flex:1;min-width:0;height:100%;
+  display:flex;flex-direction:column;
 }
-.topbar-left { display:flex; align-items:center; gap:11px; }
-.model-name { font-size:16px; font-weight:500; }
-.status { display:flex; align-items:center; gap:7px; color:var(--muted); font-size:12px; }
-.status-dot { width:7px; height:7px; border-radius:50%; background:#888; }
+.topbar {
+  height:58px;min-height:58px;padding:0 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;
+}
+.topbar-left { display:flex;align-items:center;gap:10px; }
+.model-name { font-size:16px;font-weight:550; }
+.status {
+  display:flex;align-items:center;gap:7px;
+  font-size:12px;color:var(--muted);
+}
+.status-dot { width:7px;height:7px;border-radius:50%;background:#888; }
 .status-dot.online { background:#81c995; }
 .status-dot.busy { background:#e6c27a; }
+.status-dot.error { background:#ff8a80; }
+.mobile-menu { display:none!important; }
 
-/* Conversation scrolling */
-.conversation { flex:1; min-height:0; overflow-y:auto; scroll-behavior:smooth; }
-.welcome { width:min(850px,calc(100% - 40px)); margin:0 auto; padding:55px 0 32px; }
-.greeting {
-  font-size:clamp(34px,5vw,51px); line-height:1.15;
-  letter-spacing:-1.7px; font-weight:500; margin:10px 0 14px;
-  background:linear-gradient(105deg,#c4b5fd,#e7dcff 45%,#d5d6e1);
-  color:transparent; background-clip:text; -webkit-background-clip:text;
+/* Scrollable conversation */
+.conversation {
+  flex:1;min-height:0;overflow-y:auto;
+  scroll-behavior:smooth;
 }
-.subtitle { color:var(--muted); font-size:16px; line-height:1.6; margin:0 0 32px; }
+.welcome {
+  width:min(760px,calc(100% - 40px));
+  margin:0 auto;padding:clamp(40px,9vh,100px) 0 30px;
+}
+.greeting {
+  margin:0 0 13px;
+  font-size:clamp(34px,4.4vw,49px);
+  line-height:1.15;letter-spacing:-1.6px;font-weight:500;
+  background:linear-gradient(105deg,#c4b5fd,#e7dcff 45%,#d5d6e1);
+  color:transparent;background-clip:text;-webkit-background-clip:text;
+}
+.subtitle {
+  margin:0 0 29px;color:var(--muted);
+  font-size:15px;line-height:1.6;
+}
+.suggestions {
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;margin-top:19px;
+}
+.suggestion {
+  min-height:112px;padding:14px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  gap:10px;text-align:left;border:1px solid transparent;
+  border-radius:15px;background:var(--surface);
+  cursor:pointer;transition:background .15s,border-color .15s;
+}
+.suggestion:hover { background:#28292a;border-color:#424346; }
+.suggestion-text { font-size:13px;line-height:1.5; }
+.suggestion-icon { align-self:flex-end;color:var(--accent);font-size:18px; }
 
-/* Chat composer: focus glow + movable single composer */
+/* Conversation messages */
+.messages {
+  width:min(760px,calc(100% - 40px));
+  margin:0 auto;padding:24px 0 32px;
+  display:flex;flex-direction:column;gap:25px;
+}
+.message { min-width:0;display:flex;flex-direction:column;gap:8px; }
+.message.user { align-items:flex-end; }
+.user-bubble {
+  max-width:min(88%,600px);padding:12px 16px;
+  background:#292a2c;border-radius:20px 20px 5px 20px;
+  white-space:pre-wrap;overflow-wrap:anywhere;
+  font-size:15px;line-height:1.65;
+}
+.message-role {
+  display:flex;align-items:center;gap:8px;
+  color:#b7b7bd;font-size:12px;font-weight:600;
+}
+.role-mark { color:var(--accent);font-size:17px; }
+.message-body {
+  min-width:0;font-size:15px;line-height:1.8;
+  overflow-wrap:anywhere;
+}
+.message-body p { margin:0 0 13px; }
+.message-body p:last-child { margin-bottom:0; }
+.message-body h1,.message-body h2,.message-body h3 {
+  line-height:1.35;margin:21px 0 9px;
+}
+.message-body h1 { font-size:25px; }
+.message-body h2 { font-size:21px; }
+.message-body h3 { font-size:17px; }
+.message-body ul,.message-body ol { padding-left:24px;margin:8px 0 14px; }
+.message-body li { margin:5px 0; }
+.message-body blockquote {
+  margin:13px 0;padding-left:13px;
+  border-left:3px solid var(--accent);color:#c4c4cb;
+}
+.message-body pre {
+  max-width:100%;overflow:auto;padding:14px;
+  border:1px solid var(--border);border-radius:12px;
+  background:#191a1b;
+}
+.message-body pre code { background:transparent;padding:0;white-space:pre; }
+.message-body code {
+  font-family:Consolas,monospace;font-size:.9em;
+  background:#303033;padding:2px 5px;border-radius:5px;
+}
+.message-body a { color:#c4b5fd;text-decoration:underline; }
+.message-body a:hover { color:#e4d7ff; }
+.table-wrap {
+  max-width:100%;overflow-x:auto;margin:14px 0;
+  border:1px solid var(--border);border-radius:10px;
+}
+.message-body table { width:100%;border-collapse:collapse;font-size:13px; }
+.message-body th,.message-body td {
+  padding:9px 11px;text-align:left;vertical-align:top;
+  border-bottom:1px solid var(--border);
+}
+.message-body th { background:#28272e;color:#e2d8ff; }
+.message-body tr:last-child td { border-bottom:0; }
+.message-actions {
+  display:flex;align-items:center;gap:5px;
+  flex-wrap:wrap;min-height:26px;
+}
+.small-action {
+  padding:5px 8px;border:0;border-radius:8px;
+  background:transparent;color:#9999a1;
+  font-size:12px;cursor:pointer;
+}
+.small-action:hover { background:#292a2c;color:var(--text); }
+.message-error { color:#ffb4ab; }
+.sources {
+  margin-top:15px;padding-top:11px;border-top:1px solid var(--border);
+  font-size:12px;color:var(--muted);
+}
+.sources-title { margin-bottom:7px;font-weight:600; }
+.sources a { display:inline-block;margin:3px 10px 3px 0; }
+.typing { display:flex;gap:5px;padding:8px 0; }
+.typing span {
+  width:6px;height:6px;border-radius:50%;background:var(--accent);
+  animation:pulse 1s infinite;
+}
+.typing span:nth-child(2) { animation-delay:.15s; }
+.typing span:nth-child(3) { animation-delay:.3s; }
+@keyframes pulse {
+  0%,60%,100% { opacity:.3;transform:translateY(0); }
+  30% { opacity:1;transform:translateY(-4px); }
+}
+
+/* Narrower centered composer */
+.bottom-area {
+  flex-shrink:0;padding:8px 20px 9px;background:var(--bg);
+}
+.bottom-inner { width:min(760px,100%);margin:0 auto; }
 .composer-slot { width:100%; }
 .composer {
-  width:100%; padding:16px 17px 12px;
-  background:#1e1f20; border:1px solid #3a3b3d;
-  border-radius:28px;
+  width:100%;padding:12px 14px 10px;
+  border:1px solid #3a3b3d;border-radius:23px;
+  background:#1e1f20;
   transition:border-color .2s,box-shadow .2s,background .2s;
 }
 .composer:focus-within {
   border-color:#b5a0ff;
-  box-shadow:0 0 0 1px #b5a0ff55,0 0 20px #a78bfa25,0 0 38px #a78bfa12;
+  box-shadow:0 0 0 1px #b5a0ff33,0 0 20px #a78bfa12;
   background:#222124;
 }
 .composer textarea {
-  display:block; width:100%; min-height:54px; max-height:190px;
-  padding:5px 2px; resize:none; outline:none; border:0;
-  background:transparent; color:var(--text); font-size:16px;
-  line-height:1.55;
+  display:block;width:100%;min-height:36px;max-height:170px;
+  padding:4px 2px;resize:none;outline:none;border:0;
+  background:transparent;color:var(--text);
+  font-size:15px;line-height:1.55;
 }
 .composer textarea::placeholder { color:#a3a3aa; }
-.composer-bottom { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-.composer-options { display:flex; flex-wrap:wrap; align-items:center; gap:5px; min-width:0; }
+.composer-bottom {
+  display:flex;align-items:center;justify-content:space-between;gap:7px;
+}
+.composer-options {
+  display:flex;flex-wrap:wrap;align-items:center;gap:3px;min-width:0;
+}
 .dropdown-wrap { position:relative; }
 .dropdown-button {
-  display:flex; align-items:center; gap:7px; min-height:37px;
-  padding:0 11px; border:1px solid transparent; border-radius:20px;
-  background:transparent; color:#d8d8dc; font-size:13px;
-  white-space:nowrap; cursor:pointer;
+  min-height:34px;padding:0 9px;
+  display:flex;align-items:center;gap:6px;
+  border:1px solid transparent;border-radius:18px;
+  background:transparent;color:#d8d8dc;
+  font-size:12px;white-space:nowrap;cursor:pointer;
 }
-.dropdown-button:hover,.dropdown-button.active { background:#303133; border-color:#444548; }
-.dropdown-icon { color:var(--accent); font-size:16px; }
-.chevron { color:var(--muted); font-size:10px; }
+.dropdown-button:hover,.dropdown-button.active {
+  background:#303133;border-color:#444548;
+}
+.dropdown-icon { color:var(--accent);font-size:15px; }
+.chevron { color:var(--muted);font-size:10px; }
 .dropdown-menu {
-  display:none; position:absolute; bottom:calc(100% + 10px); left:0;
-  width:220px; padding:7px; background:#252627;
-  border:1px solid #414244; border-radius:16px;
-  box-shadow:0 12px 35px #0008; z-index:50;
+  display:none;position:absolute;bottom:calc(100% + 9px);left:0;
+  width:235px;padding:7px;background:#252627;
+  border:1px solid #414244;border-radius:15px;
+  box-shadow:0 12px 35px #0008;z-index:50;
 }
 .dropdown-menu.open { display:block; }
-.menu-heading { padding:9px 11px; font-size:11px; color:#a0a0a6; text-transform:uppercase; letter-spacing:.5px; }
+.menu-heading {
+  padding:8px 10px;font-size:10px;color:#a0a0a6;
+  text-transform:uppercase;letter-spacing:.5px;
+}
 .menu-option {
-  width:100%; display:flex; align-items:center; justify-content:space-between;
-  gap:10px; padding:11px; border:0; border-radius:10px;
-  background:transparent; text-align:left; cursor:pointer; font-size:13px;
+  width:100%;display:flex;align-items:center;justify-content:space-between;
+  gap:10px;padding:10px;border:0;border-radius:10px;
+  background:transparent;text-align:left;cursor:pointer;font-size:12px;
 }
 .menu-option:hover { background:#343537; }
-.menu-option.selected { background:var(--accent-soft); color:#e3d9ff; }
-.option-description { display:block; margin-top:4px; font-size:11px; line-height:1.4; color:#a3a3aa; }
+.menu-option.selected { background:var(--accent-soft);color:#e3d9ff; }
+.option-description {
+  display:block;margin-top:3px;font-size:11px;
+  line-height:1.4;color:#a3a3aa;
+}
 .option-check { color:var(--accent); }
 .send-button {
-  display:flex; align-items:center; justify-content:center;
-  width:43px; height:43px; min-width:43px; border:0;
-  border-radius:50%; background:#e4d7ff; color:#211a2c;
-  font-size:26px; cursor:pointer; transition:transform .15s,background .15s;
+  width:39px;height:39px;min-width:39px;
+  display:flex;align-items:center;justify-content:center;
+  border:0;border-radius:50%;background:#e4d7ff;color:#211a2c;
+  font-size:25px;cursor:pointer;transition:background .15s,transform .15s;
 }
-.send-button:hover:not(:disabled) { transform:scale(1.04); background:#f1eaff; }
-.send-button:disabled { background:#38383b; color:#85858c; }
-
-/* Suggestions */
-.suggestions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:22px; }
-.suggestion {
-  min-height:126px; display:flex; flex-direction:column;
-  justify-content:space-between; gap:12px; padding:17px;
-  border:1px solid transparent; border-radius:17px;
-  background:#1e1f20; text-align:left; cursor:pointer;
-  transition:background .15s,border-color .15s,transform .15s;
+.send-button:hover:not(:disabled) { background:#f1eaff;transform:scale(1.04); }
+.send-button:disabled { background:#38383b;color:#85858c; }
+.disclaimer {
+  margin-top:8px;text-align:center;color:#85858b;
+  font-size:10px;line-height:1.4;
 }
-.suggestion:hover { background:#28292a; border-color:#424346; transform:translateY(-2px); }
-.suggestion-text { font-size:14px; line-height:1.5; }
-.suggestion-icon { align-self:flex-end; color:var(--accent); font-size:19px; }
-
-/* Chat messages */
-.messages { width:min(850px,calc(100% - 40px)); margin:0 auto; padding:30px 0 35px; display:flex; flex-direction:column; gap:27px; }
-.message { display:flex; flex-direction:column; gap:10px; min-width:0; }
-.message.user { align-items:flex-end; }
-.message-role { display:flex; align-items:center; gap:9px; color:#b7b7bd; font-size:12px; font-weight:600; }
-.role-mark { color:var(--accent); font-size:17px; }
-.user-bubble {
-  max-width:85%; padding:13px 18px; background:#292a2c;
-  border-radius:21px 21px 5px 21px; white-space:pre-wrap;
-  overflow-wrap:anywhere; font-size:15px; line-height:1.65;
-}
-.message-body { font-size:15px; line-height:1.8; overflow-wrap:anywhere; min-width:0; }
-.message-body p { margin:0 0 14px; }
-.message-body p:last-child { margin-bottom:0; }
-.message-body h1,.message-body h2,.message-body h3 { line-height:1.35; margin:22px 0 10px; }
-.message-body h1 { font-size:25px; }
-.message-body h2 { font-size:21px; }
-.message-body h3 { font-size:17px; }
-.message-body ul,.message-body ol { padding-left:25px; margin:8px 0 15px; }
-.message-body li { margin:5px 0; }
-.message-body blockquote { border-left:3px solid var(--accent); padding-left:14px; color:#c4c4cb; margin:14px 0; }
-.message-body pre { padding:15px; border:1px solid #393a3c; background:#191a1b; border-radius:12px; overflow:auto; }
-.message-body pre code { white-space:pre; background:transparent; padding:0; }
-.message-body code { font-family:Consolas,monospace; font-size:.9em; background:#303033; padding:2px 5px; border-radius:5px; }
-.message-body a { color:#c4b5fd; }
-.table-wrap { width:100%; overflow-x:auto; margin:14px 0; border:1px solid #3c3d40; border-radius:10px; }
-.message-body table { width:100%; border-collapse:collapse; font-size:13px; line-height:1.55; }
-.message-body th,.message-body td { padding:10px 12px; text-align:left; vertical-align:top; border-bottom:1px solid #3c3d40; }
-.message-body th { background:#28272e; color:#e2d8ff; font-weight:600; }
-.message-body tr:last-child td { border-bottom:0; }
-.message-body tr:nth-child(even) td { background:#191a1b; }
-.message-actions { display:flex; gap:8px; margin-top:5px; }
-.small-action { border:0; background:transparent; color:#a3a3aa; padding:6px 9px; border-radius:8px; cursor:pointer; font-size:12px; }
-.small-action:hover { background:#292a2c; color:var(--text); }
-.message-error { color:#ffb4ab; }
-.typing { display:flex; gap:5px; padding:8px 0; }
-.typing span { width:6px; height:6px; border-radius:50%; background:var(--accent); animation:pulse 1s infinite; }
-.typing span:nth-child(2) { animation-delay:.15s; }
-.typing span:nth-child(3) { animation-delay:.3s; }
-@keyframes pulse { 0%,60%,100% { opacity:.3; transform:translateY(0); } 30% { opacity:1; transform:translateY(-4px); } }
-
-/* Bottom composer: remains visible in an active conversation */
-.bottom-area { flex-shrink:0; padding:12px 22px 10px; background:var(--bg); }
-.bottom-inner { width:min(850px,100%); margin:0 auto; }
-.disclaimer { margin-top:10px; text-align:center; color:#85858b; font-size:11px; line-height:1.5; }
 .toast {
-  position:absolute; bottom:100px; left:50%; transform:translateX(-50%);
-  display:none; max-width:calc(100% - 30px); padding:12px 16px;
-  border:1px solid #494a4d; border-radius:12px; background:#303133;
-  box-shadow:0 5px 20px #0005; color:#eee; font-size:13px; z-index:100;
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+  display:none;max-width:calc(100% - 30px);padding:11px 15px;
+  border:1px solid #494a4d;border-radius:12px;
+  background:#303133;box-shadow:0 5px 20px #0005;
+  color:#eee;font-size:13px;z-index:100;
 }
 .toast.visible { display:block; }
+.mobile-overlay { display:none; }
 
 @media(max-width:760px) {
-  .sidebar { position:fixed; inset:0 auto 0 0; height:100dvh; transform:translateX(-105%); box-shadow:none; }
-  .sidebar.mobile-open { transform:translateX(0); box-shadow:15px 0 50px #0007; }
-  .sidebar.collapsed { width:260px; min-width:260px; }
-  .sidebar.collapsed .hide-collapsed,.sidebar.collapsed .brand-mark,.sidebar.collapsed .sidebar-label,.sidebar.collapsed .recent-list { display:initial; }
-  .sidebar.collapsed .sidebar-top { padding:0 8px; }
-  .sidebar.collapsed .new-chat { justify-content:flex-start; padding:0 17px; }
-  .mobile-overlay.visible { display:block; position:fixed; inset:0; background:#0008; z-index:19; }
-  .topbar { padding:0 14px; }
-  .welcome { width:calc(100% - 30px); padding-top:36px; }
+  .sidebar {
+    position:fixed;inset:0 auto 0 0;height:100dvh;
+    width:260px;min-width:260px;
+    transform:translateX(-105%);
+    box-shadow:none;transition:transform .2s;
+  }
+  .sidebar.mobile-open {
+    transform:translateX(0);box-shadow:15px 0 50px #0007;
+  }
+  .sidebar.collapsed { width:260px;min-width:260px; }
+  .sidebar.collapsed .hide-collapsed { display:initial; }
+  .sidebar.collapsed .sidebar-top { justify-content:flex-start;padding:0 3px; }
+  .sidebar.collapsed .new-chat { justify-content:flex-start;padding:0 13px; }
+  .sidebar.collapsed .sidebar-bottom { justify-content:flex-start; }
+  .mobile-overlay.visible {
+    display:block;position:fixed;inset:0;background:#0008;z-index:29;
+  }
+  .topbar { height:54px;min-height:54px;padding:0 12px; }
+  .mobile-menu { display:inline-flex!important; }
+  .welcome { width:calc(100% - 30px);padding-top:40px; }
   .greeting { letter-spacing:-1px; }
   .subtitle { font-size:14px; }
-  .suggestions { grid-template-columns:1fr; gap:9px; }
-  .suggestion { min-height:78px; flex-direction:row; align-items:center; }
+  .suggestions { grid-template-columns:1fr;gap:8px; }
+  .suggestion {
+    min-height:67px;flex-direction:row;align-items:center;
+    padding:12px 14px;
+  }
   .suggestion-icon { flex-shrink:0; }
-  .messages { width:calc(100% - 30px); }
-  .bottom-area { padding:10px 12px 8px; }
-  .composer { padding:12px 11px 9px; border-radius:23px; }
-  .dropdown-button { padding:0 7px; gap:5px; font-size:12px; }
+  .messages { width:calc(100% - 30px);padding-top:20px; }
+  .bottom-area { padding:7px 10px 7px; }
+  .composer { padding:10px 10px 8px;border-radius:20px; }
+  .composer textarea { min-height:32px;font-size:14px; }
+  .dropdown-button { padding:0 6px;gap:4px;font-size:11px; }
   .composer-options { gap:0; }
+  .send-button { width:36px;height:36px;min-width:36px; }
   .message-body table { font-size:12px; }
-  .message-body th,.message-body td { padding:8px; }
+  .message-body th,.message-body td { padding:7px; }
 }
 @media(max-width:390px) {
-  .dropdown-button { font-size:11px; padding:0 5px; }
-  .send-button { width:39px; height:39px; min-width:39px; }
+  .dropdown-button { font-size:10px;padding:0 4px; }
+  .dropdown-icon { display:none; }
+  .send-button { width:34px;height:34px;min-width:34px; }
+  .composer-options { max-width:calc(100% - 40px); }
 }
 @media(prefers-reduced-motion:reduce) {
-  *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; scroll-behavior:auto!important; }
+  *,*::before,*::after {
+    animation-duration:.01ms!important;
+    transition-duration:.01ms!important;
+    scroll-behavior:auto!important;
+  }
 }
 </style>
 </head>
@@ -258,18 +387,18 @@ button:disabled { opacity:.5; cursor:wait; }
 
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-top">
-      <button class="icon-button" id="sidebarToggle" aria-label="Toggle sidebar">☰</button>
+      <button class="icon-button" id="sidebarToggle" aria-label="Toggle sidebar" title="Toggle sidebar">☰</button>
       <span class="brand-mark" aria-label="Aster">✳</span>
     </div>
 
     <button class="new-chat" id="newChat">
-      <span style="font-size:22px">＋</span>
-      <span class="new-chat-text hide-collapsed">New chat</span>
+      <span class="new-chat-symbol">＋</span>
+      <span class="hide-collapsed">New chat</span>
     </button>
 
     <div class="sidebar-label hide-collapsed">Recent</div>
     <div class="recent-list hide-collapsed" id="recentList">
-      <div style="padding:12px;color:#898990;font-size:12px">Your recent chats will appear here.</div>
+      <div class="recent-empty">Your recent chats will appear here.</div>
     </div>
 
     <div class="sidebar-bottom">
@@ -281,8 +410,9 @@ button:disabled { opacity:.5; cursor:wait; }
   <main class="main">
     <header class="topbar">
       <div class="topbar-left">
-        <button class="icon-button" id="mobileMenu" aria-label="Open menu" style="display:none">☰</button>
-        <span class="model-name">Dew</span><span class="chevron">▾</span>
+        <button class="icon-button mobile-menu" id="mobileMenu" aria-label="Open menu">☰</button>
+        <span class="model-name">Dew</span>
+        <span class="chevron">▾</span>
       </div>
       <div class="status" aria-live="polite">
         <span class="status-dot" id="statusDot"></span>
@@ -294,8 +424,6 @@ button:disabled { opacity:.5; cursor:wait; }
       <div class="welcome" id="welcome">
         <h1 class="greeting" id="greeting">Where should we start?</h1>
         <p class="subtitle" id="subtitle">A little curiosity can lead somewhere interesting.</p>
-
-        <!-- The same composer moves to the bottom when a conversation starts. -->
         <div class="composer-slot" id="welcomeSlot"></div>
 
         <div class="suggestions" id="suggestions">
@@ -327,14 +455,16 @@ button:disabled { opacity:.5; cursor:wait; }
   </main>
 </div>
 
-<!-- One composer element, relocated by JavaScript -->
 <form class="composer" id="chatForm">
-  <textarea id="messageInput" rows="2" maxlength="1200" placeholder="Ask Dew anything" aria-label="Message Dew" required></textarea>
+  <textarea id="messageInput" rows="1" maxlength="1200"
+    placeholder="Ask Dew anything" aria-label="Message Dew" required></textarea>
   <div class="composer-bottom">
     <div class="composer-options">
       <div class="dropdown-wrap">
-        <button type="button" class="dropdown-button" id="modeButton" aria-haspopup="true" aria-expanded="false">
-          <span class="dropdown-icon">✳</span><span id="modeLabel">Dew Standard</span><span class="chevron">▾</span>
+        <button type="button" class="dropdown-button" id="modeButton"
+          aria-haspopup="true" aria-expanded="false">
+          <span class="dropdown-icon">✳</span>
+          <span id="modeLabel">Dew Standard</span><span class="chevron">▾</span>
         </button>
         <div class="dropdown-menu" id="modeMenu" role="menu">
           <div class="menu-heading">Choose Dew mode</div>
@@ -342,7 +472,7 @@ button:disabled { opacity:.5; cursor:wait; }
             <span><strong>Dew Standard</strong><span class="option-description">Everyday work, writing and coding</span></span><span class="option-check">✓</span>
           </button>
           <button type="button" class="menu-option" data-mode="Extended" role="menuitemradio" aria-checked="false">
-            <span><strong>Dew Extended</strong><span class="option-description">For more involved tasks</span></span><span class="option-check"></span>
+            <span><strong>Dew Extended</strong><span class="option-description">More involved tasks</span></span><span class="option-check"></span>
           </button>
           <button type="button" class="menu-option" data-mode="Search" role="menuitemradio" aria-checked="false">
             <span><strong>Dew Search</strong><span class="option-description">Web-oriented questions</span></span><span class="option-check"></span>
@@ -351,7 +481,8 @@ button:disabled { opacity:.5; cursor:wait; }
       </div>
 
       <div class="dropdown-wrap">
-        <button type="button" class="dropdown-button" id="thinkingButton" aria-haspopup="true" aria-expanded="false">
+        <button type="button" class="dropdown-button" id="thinkingButton"
+          aria-haspopup="true" aria-expanded="false">
           <span id="thinkingLabel">Medium</span><span class="chevron">▾</span>
         </button>
         <div class="dropdown-menu" id="thinkingMenu" role="menu">
@@ -375,10 +506,11 @@ button:disabled { opacity:.5; cursor:wait; }
 <script>
 "use strict";
 
-/* Update this if your temporary Cloudflare tunnel URL changes. */
+/* Same-origin Vercel API. No Colab tunnel is needed. */
 const DEW_API_URL = "/api/chat";
-
+const DEW_HEALTH_URL = "/api/health";
 const $ = id => document.getElementById(id);
+
 const sidebar = $("sidebar");
 const overlay = $("mobileOverlay");
 const conversation = $("conversation");
@@ -419,10 +551,9 @@ function showToast(text) {
   toast.textContent = text;
   toast.classList.add("visible");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove("visible"), 4000);
+  toastTimer = setTimeout(() => toast.classList.remove("visible"), 3500);
 }
 
-/* Move the existing composer, keeping its controls and listeners intact. */
 function moveComposerToBottom() {
   $("bottomSlot").appendChild(composer);
   $("suggestions").hidden = true;
@@ -457,27 +588,27 @@ function toggleDropdown(button, menu) {
   }
 }
 
-$("modeButton").addEventListener("click", e => {
-  e.stopPropagation();
+$("modeButton").addEventListener("click", event => {
+  event.stopPropagation();
   toggleDropdown($("modeButton"), $("modeMenu"));
 });
 
-$("thinkingButton").addEventListener("click", e => {
-  e.stopPropagation();
+$("thinkingButton").addEventListener("click", event => {
+  event.stopPropagation();
   toggleDropdown($("thinkingButton"), $("thinkingMenu"));
 });
 
-document.addEventListener("click", e => {
-  if (!e.target.closest(".dropdown-wrap")) closeDropdowns();
+document.addEventListener("click", event => {
+  if (!event.target.closest(".dropdown-wrap")) closeDropdowns();
 });
 
 function refreshOptions(attribute, selected, labelId, prefix = "") {
   document.querySelectorAll("[" + attribute + "]").forEach(button => {
-    const value = button.getAttribute(attribute);
-    const active = value === selected;
+    const active = button.getAttribute(attribute) === selected;
     button.classList.toggle("selected", active);
     button.setAttribute("aria-checked", String(active));
-    button.querySelector(".option-check").textContent = active ? "✓" : "";
+    const check = button.querySelector(".option-check");
+    if (check) check.textContent = active ? "✓" : "";
   });
   $(labelId).textContent = prefix + selected;
 }
@@ -498,14 +629,13 @@ document.querySelectorAll("[data-thinking]").forEach(button => {
   });
 });
 
-/* Sidebar */
+/* Sidebar and mobile navigation */
 function closeMobileSidebar() {
   sidebar.classList.remove("mobile-open");
   overlay.classList.remove("visible");
 }
 
 function updateMobileMenu() {
-  $("mobileMenu").style.display = innerWidth <= 760 ? "inline-flex" : "none";
   if (innerWidth > 760) closeMobileSidebar();
 }
 
@@ -522,12 +652,11 @@ $("mobileMenu").addEventListener("click", () => {
   sidebar.classList.add("mobile-open");
   overlay.classList.add("visible");
 });
+
 overlay.addEventListener("click", closeMobileSidebar);
 window.addEventListener("resize", updateMobileMenu);
-updateMobileMenu();
 
-/* Safe Markdown renderer.
-   Model output is escaped first. Only formatting tags created here become HTML. */
+/* Safe Markdown renderer: escape text before creating formatting. */
 function escapeHTML(value) {
   return String(value).replace(/[&<>"']/g, char => ({
     "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
@@ -535,27 +664,28 @@ function escapeHTML(value) {
 }
 
 function inlineMarkdown(value) {
-  let s = escapeHTML(value);
-
-  // Inline code first, so other formatting doesn't alter its contents.
+  let text = escapeHTML(value);
   const codeParts = [];
-  s = s.replace(/`([^`\n]+)`/g, (_, code) => {
+
+  text = text.replace(/`([^`\n]+)`/g, (_, code) => {
     const token = "%%CODE" + codeParts.length + "%%";
     codeParts.push("<code>" + code + "</code>");
     return token;
   });
 
-  s = s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-  s = s.replace(/__(.+?)__/g, "<strong>$1</strong>");
-  s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
-  s = s.replace(/~~(.+?)~~/g, "<del>$1</del>");
-  s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
-    '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
+    (_, label, url) => {
+      return '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + label + '</a>';
+    });
+  text = text.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  text = text.replace(/__(.+?)__/g, "<strong>$1</strong>");
+  text = text.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+  text = text.replace(/~~(.+?)~~/g, "<del>$1</del>");
 
-  codeParts.forEach((code, i) => {
-    s = s.replace("%%CODE" + i + "%%", code);
+  codeParts.forEach((code, index) => {
+    text = text.replace("%%CODE" + index + "%%", code);
   });
-  return s;
+  return text;
 }
 
 function splitTableRow(line) {
@@ -566,42 +696,38 @@ function splitTableRow(line) {
 }
 
 function isTableDivider(line) {
-  const cells = splitTableRow(line);
-  return cells.length > 0 && cells.every(cell => /^:?-{3,}:?$/.test(cell.replace(/\s/g, "")));
+  return splitTableRow(line).every(cell =>
+    /^:?-{3,}:?$/.test(cell.replace(/\s/g, ""))
+  );
 }
 
 function renderMarkdown(markdown) {
   const lines = String(markdown).replace(/\r\n?/g, "\n").split("\n");
-  const out = [];
+  const output = [];
   let i = 0;
 
   while (i < lines.length) {
     const line = lines[i];
-
     if (!line.trim()) { i++; continue; }
 
-    // Fenced code blocks
     if (/^\s*```/.test(line)) {
-      const language = line.trim().slice(3).trim();
       i++;
       const code = [];
       while (i < lines.length && !/^\s*```/.test(lines[i])) {
         code.push(lines[i++]);
       }
       if (i < lines.length) i++;
-      out.push("<pre><code>" + escapeHTML(code.join("\n")) + "</code></pre>");
+      output.push("<pre><code>" + escapeHTML(code.join("\n")) + "</code></pre>");
       continue;
     }
 
-    // Markdown tables, including Java feature tables
     if (i + 1 < lines.length && line.includes("|") && isTableDivider(lines[i + 1])) {
       const headers = splitTableRow(line);
       i += 2;
       const rows = [];
 
       while (i < lines.length && lines[i].trim() && lines[i].includes("|")) {
-        rows.push(splitTableRow(lines[i]));
-        i++;
+        rows.push(splitTableRow(lines[i++]));
       }
 
       let table = '<div class="table-wrap"><table><thead><tr>';
@@ -616,53 +742,46 @@ function renderMarkdown(markdown) {
         table += "</tr>";
       });
 
-      table += "</tbody></table></div>";
-      out.push(table);
+      output.push(table + "</tbody></table></div>");
       continue;
     }
 
-    // Headings
     const heading = line.match(/^\s*(#{1,3})\s+(.+)$/);
     if (heading) {
       const level = heading[1].length;
-      out.push("<h" + level + ">" + inlineMarkdown(heading[2]) + "</h" + level + ">");
+      output.push("<h" + level + ">" + inlineMarkdown(heading[2]) + "</h" + level + ">");
       i++;
       continue;
     }
 
-    // Horizontal rule
     if (/^\s*(---+|\*\*\*+|___+)\s*$/.test(line)) {
-      out.push("<hr>");
+      output.push("<hr>");
       i++;
       continue;
     }
 
-    // Blockquotes
     if (/^\s*>\s?/.test(line)) {
       const quote = [];
       while (i < lines.length && /^\s*>\s?/.test(lines[i])) {
         quote.push(lines[i++].replace(/^\s*>\s?/, ""));
       }
-      out.push("<blockquote>" + quote.map(v => inlineMarkdown(v)).join("<br>") + "</blockquote>");
+      output.push("<blockquote>" + quote.map(inlineMarkdown).join("<br>") + "</blockquote>");
       continue;
     }
 
-    // Ordered and unordered lists
     if (/^\s*([-*+]|\d+[.)])\s+/.test(line)) {
       const ordered = /^\s*\d+[.)]\s+/.test(line);
       const tag = ordered ? "ol" : "ul";
-      const items = [];
       const pattern = ordered ? /^\s*\d+[.)]\s+/ : /^\s*[-*+]\s+/;
+      const items = [];
 
       while (i < lines.length && pattern.test(lines[i])) {
-        items.push("<li>" + inlineMarkdown(lines[i].replace(pattern, "")) + "</li>");
-        i++;
+        items.push("<li>" + inlineMarkdown(lines[i++].replace(pattern, "")) + "</li>");
       }
-      out.push("<" + tag + ">" + items.join("") + "</" + tag + ">");
+      output.push("<" + tag + ">" + items.join("") + "</" + tag + ">");
       continue;
     }
 
-    // Paragraph
     const paragraph = [];
     while (
       i < lines.length &&
@@ -676,61 +795,108 @@ function renderMarkdown(markdown) {
     ) {
       paragraph.push(lines[i++]);
     }
-
-    out.push("<p>" + paragraph.map(inlineMarkdown).join("<br>") + "</p>");
+    output.push("<p>" + paragraph.map(inlineMarkdown).join("<br>") + "</p>");
   }
 
-  return out.join("\n");
+  return output.join("\n");
 }
 
 /* Chat history */
-function addRecentChat(chat) {
+function getCurrentChat() {
+  return chats.find(chat => chat.id === currentChatId) || null;
+}
+
+function refreshRecentList() {
   const list = $("recentList");
-  if (list.children.length === 1 && list.textContent.includes("Your recent chats")) {
-    list.replaceChildren();
+  list.replaceChildren();
+
+  if (!chats.length) {
+    const empty = document.createElement("div");
+    empty.className = "recent-empty";
+    empty.textContent = "Your recent chats will appear here.";
+    list.appendChild(empty);
+    return;
   }
 
-  const button = document.createElement("button");
-  button.className = "recent-item";
-  button.textContent = chat.title;
-  button.title = chat.title;
-  button.addEventListener("click", () => {
-    currentChatId = chat.id;
-    renderHistory(chat);
-    closeMobileSidebar();
+  chats.forEach(chat => {
+    const button = document.createElement("button");
+    button.className = "recent-item" + (chat.id === currentChatId ? " active" : "");
+    button.textContent = chat.title;
+    button.title = chat.title;
+    button.addEventListener("click", () => {
+      currentChatId = chat.id;
+      renderHistory(chat);
+      refreshRecentList();
+      closeMobileSidebar();
+    });
+    list.appendChild(button);
   });
-  list.prepend(button);
+}
+
+function ensureChat() {
+  let chat = getCurrentChat();
+  if (chat) return chat;
+
+  chat = {
+    id: Date.now() + Math.floor(Math.random() * 100000),
+    title: "New conversation",
+    messages: []
+  };
+  chats.unshift(chat);
+  currentChatId = chat.id;
+  return chat;
+}
+
+function saveMessage(role, text) {
+  const chat = ensureChat();
+  chat.messages.push({ role, text });
+
+  if (role === "user" && chat.messages.length === 1) {
+    chat.title = text.replace(/\s+/g, " ").slice(0, 42) || "New conversation";
+  }
+
+  refreshRecentList();
+  return chat.messages.length - 1;
 }
 
 function renderHistory(chat) {
   messages.replaceChildren();
-  chat.messages.forEach(item => renderMessage(item.role, item.text, false));
+
+  chat.messages.forEach((item, index) => {
+    renderMessage(item.role, item.text, false, index);
+  });
+
   welcome.hidden = true;
   messages.hidden = false;
   moveComposerToBottom();
   conversation.scrollTop = conversation.scrollHeight;
 }
 
-function ensureChat() {
-  if (currentChatId) return;
-  currentChatId = Date.now() + Math.floor(Math.random() * 1000);
-  const chat = { id: currentChatId, title: "New conversation", messages: [] };
-  chats.unshift(chat);
-  return chat;
-}
-
-function saveMessage(role, text) {
-  let chat = chats.find(item => item.id === currentChatId);
-  if (!chat) chat = ensureChat();
-
-  if (role === "user" && chat.messages.length === 0) {
-    chat.title = text.slice(0, 42);
-    addRecentChat(chat);
+async function copyText(text, what = "Message") {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const temporary = document.createElement("textarea");
+      temporary.value = text;
+      temporary.style.position = "fixed";
+      temporary.style.opacity = "0";
+      document.body.appendChild(temporary);
+      temporary.select();
+      const copied = document.execCommand("copy");
+      temporary.remove();
+      if (!copied) throw new Error("Copy unavailable");
+    }
+    showToast(what + " copied.");
+  } catch {
+    showToast("Copy failed. Your browser blocked clipboard access.");
   }
-  chat.messages.push({ role, text });
 }
 
-function renderMessage(role, text, save = true) {
+function renderMessage(role, text, save = true, historyIndex = -1) {
+  let index = historyIndex;
+  if (save) index = saveMessage(role, text);
+
   const wrapper = document.createElement("article");
   wrapper.className = "message " + (role === "user" ? "user" : "assistant");
 
@@ -754,80 +920,145 @@ function renderMessage(role, text, save = true) {
     const body = document.createElement("div");
     body.className = "message-body";
     body.innerHTML = renderMarkdown(text);
-
-    const actions = document.createElement("div");
-    actions.className = "message-actions";
-    const copy = document.createElement("button");
-    copy.className = "small-action";
-    copy.textContent = "Copy response";
-    copy.addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(text);
-        showToast("Response copied.");
-      } catch {
-        showToast("Clipboard access was blocked by your browser.");
-      }
-    });
-
-    actions.appendChild(copy);
-    wrapper.append(label, body, actions);
+    wrapper.append(label, body);
   }
 
+  const actions = document.createElement("div");
+  actions.className = "message-actions";
+
+  const copy = document.createElement("button");
+  copy.type = "button";
+  copy.className = "small-action";
+  copy.textContent = "Copy";
+  copy.addEventListener("click", () => copyText(text, role === "user" ? "Message" : "Response"));
+  actions.appendChild(copy);
+
+  if (role === "user") {
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.className = "small-action";
+    edit.textContent = "Edit";
+    edit.addEventListener("click", () => editMessage(index));
+    actions.appendChild(edit);
+  }
+
+  wrapper.appendChild(actions);
   messages.appendChild(wrapper);
-  if (save) saveMessage(role, text);
   conversation.scrollTop = conversation.scrollHeight;
   return wrapper;
+}
+
+/* Editing removes this message and all later messages before resubmission. */
+function editMessage(index) {
+  if (isSending) {
+    showToast("Wait for Dew to finish before editing.");
+    return;
+  }
+
+  const chat = getCurrentChat();
+  if (!chat || !chat.messages[index] || chat.messages[index].role !== "user") return;
+
+  const originalText = chat.messages[index].text;
+  chat.messages.splice(index);
+  renderHistory(chat);
+
+  input.value = originalText;
+  resizeInput();
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
+  showToast("Message ready to edit. Press Enter to resend.");
 }
 
 function addTyping() {
   const node = document.createElement("article");
   node.className = "message assistant";
   node.id = "typingIndicator";
-  node.innerHTML = '<div class="message-role"><span class="role-mark">✳</span><span>Dew is thinking</span></div><div class="typing"><span></span><span></span><span></span></div>';
+
+  const label = document.createElement("div");
+  label.className = "message-role";
+
+  const mark = document.createElement("span");
+  mark.className = "role-mark";
+  mark.textContent = "✳";
+
+  const name = document.createElement("span");
+  name.textContent = "Dew is thinking";
+  label.append(mark, name);
+
+  const dots = document.createElement("div");
+  dots.className = "typing";
+  for (let i = 0; i < 3; i++) dots.appendChild(document.createElement("span"));
+
+  node.append(label, dots);
   messages.appendChild(node);
   conversation.scrollTop = conversation.scrollHeight;
 }
 
-/* Dew API */
+/* Vercel/Gemini API */
 async function getDewReply(message) {
-  const payload = {
-    message,
-    mode: "Dew " + selectedMode,
-    thinking: selectedReasoning
-  };
-
   let response;
+
   try {
     response = await fetch(DEW_API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        message,
+        mode: "Dew " + selectedMode,
+        thinking: selectedReasoning
+      })
     });
   } catch (error) {
-    console.error("Dew connection error:", error);
-    throw new Error("Could not connect to Dew. Check that Colab is running and the Cloudflare tunnel URL is current.");
+    console.error("Dew network error:", error);
+    throw new Error("Aster could not reach its API. Check your Vercel deployment and try again.");
   }
 
   const raw = await response.text();
   let data;
+
   try {
     data = JSON.parse(raw);
   } catch {
-    console.error("Unreadable Dew response:", raw);
-    throw new Error("Dew returned an unreadable response (HTTP " + response.status + ").");
+    console.error("Non-JSON API response:", response.status, raw.slice(0, 500));
+    if (response.status === 404) {
+      throw new Error("The /api/chat endpoint was not found. Check that api/chat.js is deployed.");
+    }
+    throw new Error("The API returned an invalid response (HTTP " + response.status + ").");
   }
 
   if (!response.ok) {
-    const detail = typeof data.detail === "string" ? data.detail : "HTTP " + response.status;
-    throw new Error("Dew API error: " + detail);
+    console.error("Dew API error:", response.status, data);
+    const detail = data.error || data.detail || data.message;
+    throw new Error(typeof detail === "string" ? detail : "API request failed (HTTP " + response.status + ").");
   }
 
   if (typeof data.answer !== "string") {
-    console.error("Unexpected Dew response:", data);
-    throw new Error("The response did not contain an answer.");
+    console.error("Unexpected API response:", data);
+    throw new Error("The API responded, but no answer was returned. Check api/chat.js.");
   }
 
-  return data.answer;
+  return {
+    answer: data.answer,
+    sources: Array.isArray(data.sources) ? data.sources : []
+  };
+}
+
+function addSources(answer, sources) {
+  if (!sources.length) return answer;
+
+  const validSources = sources.filter(source =>
+    source &&
+    typeof source.title === "string" &&
+    typeof source.url === "string" &&
+    /^https?:\/\//i.test(source.url)
+  );
+
+  if (!validSources.length) return answer;
+
+  const unique = [...new Map(validSources.map(source => [source.url, source])).values()];
+  return answer + "\n\n**Sources**\n" + unique.map(source =>
+    "- [" + source.title.replace(/[\[\]]/g, "") + "](" + source.url + ")"
+  ).join("\n");
 }
 
 async function sendMessage(rawMessage) {
@@ -844,7 +1075,6 @@ async function sendMessage(rawMessage) {
   input.disabled = true;
   closeDropdowns();
 
-  // Switch from welcome layout to active chat layout.
   welcome.hidden = true;
   messages.hidden = false;
   moveComposerToBottom();
@@ -856,21 +1086,22 @@ async function sendMessage(rawMessage) {
   setStatus("busy", "Dew is responding");
 
   try {
-    const answer = await getDewReply(message);
+    const result = await getDewReply(message);
     $("typingIndicator")?.remove();
-    renderMessage("assistant", answer);
+
+    const answerWithSources = addSources(result.answer, result.sources);
+    renderMessage("assistant", answerWithSources);
     setStatus("online", "Connected");
   } catch (error) {
     $("typingIndicator")?.remove();
-    console.error(error);
-    const errorNode = renderMessage(
-      "assistant",
-      "I couldn't complete that request.\n\n" +
-      (error instanceof Error ? error.message : "Unexpected error."),
-      false
-    );
+    console.error("Dew request failed:", error);
+
+    const errorText = "I couldn't complete that request.\n\n" +
+      (error instanceof Error ? error.message : "An unexpected error occurred.");
+
+    const errorNode = renderMessage("assistant", errorText, false);
     errorNode.querySelector(".message-body")?.classList.add("message-error");
-    setStatus("", "Request failed");
+    setStatus("error", "Request failed");
   } finally {
     isSending = false;
     sendButton.disabled = false;
@@ -893,11 +1124,12 @@ input.addEventListener("keydown", event => {
 
 function resizeInput() {
   input.style.height = "auto";
-  input.style.height = Math.min(input.scrollHeight, 190) + "px";
+  input.style.height = Math.min(input.scrollHeight, 170) + "px";
 }
+
 input.addEventListener("input", resizeInput);
 
-/* Suggestions */
+/* Suggestion prompts */
 document.querySelectorAll("[data-prompt]").forEach(button => {
   button.addEventListener("click", () => {
     input.value = button.dataset.prompt;
@@ -906,8 +1138,13 @@ document.querySelectorAll("[data-prompt]").forEach(button => {
   });
 });
 
-/* Start a fresh conversation and return the composer to the welcome view. */
+/* New chat */
 $("newChat").addEventListener("click", () => {
+  if (isSending) {
+    showToast("Wait for Dew to finish before starting a new chat.");
+    return;
+  }
+
   currentChatId = null;
   messages.replaceChildren();
   messages.hidden = true;
@@ -918,27 +1155,43 @@ $("newChat").addEventListener("click", () => {
   setGreeting();
   closeDropdowns();
   closeMobileSidebar();
+  refreshRecentList();
   conversation.scrollTop = 0;
   input.focus();
 });
 
+/* Check the deployed health endpoint, not Colab. */
 async function checkConnection(showResult = false) {
   setStatus("", "Checking connection");
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
+  const timeout = setTimeout(() => controller.abort(), 8000);
 
   try {
-    const healthUrl = "/api/health";
-    const response = await fetch(healthUrl, { signal: controller.signal });
-    if (!response.ok) throw new Error("HTTP " + response.status);
+    const response = await fetch(DEW_HEALTH_URL, {
+      signal: controller.signal,
+      cache: "no-store"
+    });
+
+    if (!response.ok) {
+      throw new Error("Health endpoint returned HTTP " + response.status + ".");
+    }
+
     const data = await response.json();
-    if (data.status !== "ok") throw new Error("Unexpected health response");
-    setStatus("online", "Connected");
-    if (showResult) showToast("Dew API is reachable.");
+    if (data.status !== "ok") {
+      throw new Error("Unexpected health-check response.");
+    }
+
+    setStatus("online", "API reachable");
+    if (showResult) showToast("Aster API is reachable.");
   } catch (error) {
-    console.warn("Dew health check failed:", error);
-    setStatus("", "Connection unavailable");
-    if (showResult) showToast("Could not verify Dew. Check Colab and the Cloudflare tunnel.");
+    console.warn("Aster health check failed:", error);
+    setStatus("error", "API unavailable");
+
+    if (showResult) {
+      showToast(error.name === "AbortError"
+        ? "Health check timed out. Check the Vercel deployment."
+        : "Health check failed. Open /api/health to inspect the endpoint.");
+    }
   } finally {
     clearTimeout(timeout);
   }
@@ -951,6 +1204,7 @@ moveComposerToWelcome();
 setGreeting();
 refreshOptions("data-mode", selectedMode, "modeLabel", "Dew ");
 refreshOptions("data-thinking", selectedReasoning, "thinkingLabel");
+refreshRecentList();
 checkConnection();
 </script>
 </body>
