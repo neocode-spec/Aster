@@ -1197,6 +1197,32 @@ async function checkConnection(showResult = false) {
   }
 }
 
+const errorCode =
+  error instanceof Error ? error.message : "";
+
+const friendlyMessages = {
+  SEARCH_UNAVAILABLE:
+    "I can’t access web search right now. Please try again shortly.",
+  TEMPORARILY_UNAVAILABLE:
+    "Dew is temporarily busy right now. Please try again shortly.",
+  SERVICE_UNAVAILABLE:
+    "Dew is temporarily unavailable. Please try again later.",
+  EMPTY_MODEL_RESPONSE:
+    "Dew couldn't generate a response this time. Please try again.",
+  REQUEST_FAILED:
+    "I couldn't complete that request. Please try again shortly.",
+  INVALID_METHOD:
+    "That request couldn't be processed.",
+  EMPTY_MESSAGE:
+    "Please enter a message first.",
+  MESSAGE_TOO_LONG:
+    "That message is too long. Please shorten it."
+};
+
+const errorText =
+  friendlyMessages[errorCode] ||
+  "I couldn't complete that request. Please try again shortly.";
+
 $("connectionButton").addEventListener("click", () => checkConnection(true));
 
 /* Initial view */
