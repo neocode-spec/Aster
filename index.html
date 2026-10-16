@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,82 +29,73 @@ body {
 }
 button,textarea { font:inherit; }
 button { color:inherit; }
-button:focus-visible,textarea:focus-visible {
-  outline:2px solid var(--accent);outline-offset:2px;
-}
+button:focus-visible,textarea:focus-visible { outline:2px solid var(--accent);outline-offset:2px; }
 button:disabled { opacity:.55;cursor:wait; }
 [hidden] { display:none!important; }
 
 .app { display:flex;width:100%;height:100dvh; }
 
-/* Compact, collapsible sidebar */
+/* ---------- Sidebar (ChatGPT style) ---------- */
 .sidebar {
-  width:240px;min-width:240px;height:100%;
-  padding:13px 10px;background:var(--sidebar);
+  width:260px;min-width:260px;height:100%;
+  padding:10px 8px;background:var(--sidebar);
   display:flex;flex-direction:column;overflow:hidden;
   transition:width .2s,min-width .2s;
   position:relative;z-index:30;
 }
-.sidebar.collapsed { width:68px;min-width:68px; }
+.sidebar.collapsed { width:64px;min-width:64px; }
 .sidebar-top {
   height:46px;display:flex;align-items:center;
-  gap:10px;padding:0 3px;margin-bottom:18px;
+  justify-content:space-between;padding:0 4px;margin-bottom:8px;
 }
+.brand { display:flex;align-items:center;gap:9px;padding-left:6px; }
+.brand-mark { color:var(--accent);font-size:25px;line-height:1; }
+.brand-name { font-size:19px;font-weight:600; }
 .icon-button {
-  width:40px;height:40px;flex-shrink:0;
+  width:38px;height:38px;flex-shrink:0;
   display:inline-flex;align-items:center;justify-content:center;
-  border:0;border-radius:50%;background:transparent;
-  color:var(--muted);font-size:20px;cursor:pointer;
+  border:0;border-radius:10px;background:transparent;
+  color:var(--muted);font-size:19px;cursor:pointer;
 }
 .icon-button:hover { background:var(--hover);color:var(--text); }
-.brand-mark { color:var(--accent);font-size:27px; }
 .new-chat {
-  width:100%;min-height:42px;display:flex;
-  align-items:center;gap:10px;padding:0 13px;
-  border:0;border-radius:23px;background:#292a2c;
-  cursor:pointer;text-align:left;white-space:nowrap;
+  width:100%;min-height:40px;display:flex;
+  align-items:center;gap:11px;padding:0 10px;
+  border:0;border-radius:10px;background:transparent;
+  cursor:pointer;text-align:left;white-space:nowrap;font-size:14px;
 }
-.new-chat:hover { background:#343538; }
-.new-chat-symbol { font-size:22px;line-height:1; }
-.sidebar-label {
-  padding:21px 12px 8px;font-size:12px;color:var(--muted);
-}
-.recent-list {
-  flex:1;min-height:0;overflow-y:auto;
-  scrollbar-width:thin;
-}
+.new-chat:hover { background:var(--hover); }
+.new-chat-symbol { font-size:20px;line-height:1;width:22px;text-align:center;color:var(--text); }
+.sidebar-label { padding:22px 10px 8px;font-size:12px;color:var(--muted); }
+.recent-list { flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin; }
 .recent-item {
   width:100%;display:block;overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap;
-  text-align:left;padding:10px 12px;
-  border:0;border-radius:12px;
-  background:transparent;font-size:13px;cursor:pointer;
+  text-align:left;padding:9px 10px;
+  border:0;border-radius:10px;
+  background:transparent;font-size:14px;cursor:pointer;
 }
 .recent-item:hover,.recent-item.active { background:var(--hover); }
-.recent-empty { padding:12px;font-size:12px;color:#898990; }
+.recent-empty { padding:10px;font-size:12px;color:#898990; }
 .sidebar-bottom {
   display:flex;align-items:center;gap:8px;
-  padding-top:10px;border-top:1px solid #353638;
+  padding-top:8px;border-top:1px solid #353638;
 }
 .sidebar.collapsed .hide-collapsed { display:none; }
 .sidebar.collapsed .sidebar-top { justify-content:center;padding:0; }
 .sidebar.collapsed .new-chat { justify-content:center;padding:0; }
 .sidebar.collapsed .sidebar-bottom { justify-content:center; }
 
-/* Main area */
-.main {
-  flex:1;min-width:0;height:100%;
-  display:flex;flex-direction:column;
-}
+/* ---------- Main ---------- */
+.main { flex:1;min-width:0;height:100%;display:flex;flex-direction:column; }
 .topbar {
-  height:58px;min-height:58px;padding:0 24px;
-  display:flex;align-items:center;justify-content:space-between;
-  gap:12px;
+  height:60px;min-height:60px;padding:0 16px;
+  display:grid;grid-template-columns:1fr auto 1fr;
+  align-items:center;gap:12px;
 }
-.topbar-left { display:flex;align-items:center;gap:10px; }
-.model-name { font-size:16px;font-weight:550; }
+.topbar-left { display:flex;align-items:center; }
 .status {
-  display:flex;align-items:center;gap:7px;
+  display:flex;align-items:center;gap:7px;justify-content:flex-end;
   font-size:12px;color:var(--muted);
 }
 .status-dot { width:7px;height:7px;border-radius:50%;background:#888; }
@@ -114,42 +104,50 @@ button:disabled { opacity:.55;cursor:wait; }
 .status-dot.error { background:#ff8a80; }
 .mobile-menu { display:none!important; }
 
-/* Scrollable conversation */
-.conversation {
-  flex:1;min-height:0;overflow-y:auto;
-  scroll-behavior:smooth;
+/* Chat / Code switch */
+.switch {
+  display:flex;padding:4px;gap:2px;
+  background:var(--surface);border-radius:999px;
 }
+.switch-btn {
+  min-width:84px;padding:8px 20px;border:0;border-radius:999px;
+  background:transparent;color:var(--muted);
+  font-size:14px;font-weight:550;cursor:pointer;
+  transition:background .15s,color .15s;
+}
+.switch-btn:hover { color:var(--text); }
+.switch-btn.active { background:#33343a;color:var(--text); }
+.switch-btn .sw-icon { color:var(--accent);margin-right:5px; }
+
+/* Conversation */
+.conversation { flex:1;min-height:0;overflow-y:auto;scroll-behavior:smooth; }
 .welcome {
   width:min(760px,calc(100% - 40px));
-  margin:0 auto;padding:clamp(40px,9vh,100px) 0 30px;
+  margin:0 auto;min-height:100%;
+  display:flex;flex-direction:column;justify-content:center;
+  padding:0 0 12vh;
 }
 .greeting {
-  margin:0 0 13px;
-  font-size:clamp(34px,4.4vw,49px);
-  line-height:1.15;letter-spacing:-1.6px;font-weight:500;
+  margin:0 0 10px;text-align:center;
+  font-size:clamp(30px,4vw,40px);
+  line-height:1.2;letter-spacing:-1.2px;font-weight:500;
   background:linear-gradient(105deg,#c4b5fd,#e7dcff 45%,#d5d6e1);
   color:transparent;background-clip:text;-webkit-background-clip:text;
 }
-.subtitle {
-  margin:0 0 29px;color:var(--muted);
-  font-size:15px;line-height:1.6;
-}
+.subtitle { margin:0 0 26px;text-align:center;color:var(--muted);font-size:15px;line-height:1.6; }
 .suggestions {
-  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:10px;margin-top:19px;
+  display:flex;flex-wrap:wrap;justify-content:center;
+  gap:9px;margin-top:20px;
 }
 .suggestion {
-  min-height:112px;padding:14px;
-  display:flex;flex-direction:column;justify-content:space-between;
-  gap:10px;text-align:left;border:1px solid transparent;
-  border-radius:15px;background:var(--surface);
-  cursor:pointer;transition:background .15s,border-color .15s;
+  padding:10px 16px;display:flex;align-items:center;gap:8px;
+  border:1px solid var(--border);border-radius:999px;
+  background:transparent;cursor:pointer;
+  font-size:13px;transition:background .15s;
 }
-.suggestion:hover { background:#28292a;border-color:#424346; }
-.suggestion-text { font-size:13px;line-height:1.5; }
-.suggestion-icon { align-self:flex-end;color:var(--accent);font-size:18px; }
+.suggestion:hover { background:var(--surface); }
+.suggestion-icon { color:var(--accent);font-size:15px; }
 
-/* Conversation messages */
 .messages {
   width:min(760px,calc(100% - 40px));
   margin:0 auto;padding:24px 0 32px;
@@ -160,77 +158,37 @@ button:disabled { opacity:.55;cursor:wait; }
 .user-bubble {
   max-width:min(88%,600px);padding:12px 16px;
   background:#292a2c;border-radius:20px 20px 5px 20px;
-  white-space:pre-wrap;overflow-wrap:anywhere;
-  font-size:15px;line-height:1.65;
+  white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.65;
 }
-.message-role {
-  display:flex;align-items:center;gap:8px;
-  color:#b7b7bd;font-size:12px;font-weight:600;
-}
+.message-role { display:flex;align-items:center;gap:8px;color:#b7b7bd;font-size:12px;font-weight:600; }
 .role-mark { color:var(--accent);font-size:17px; }
-.message-body {
-  min-width:0;font-size:15px;line-height:1.8;
-  overflow-wrap:anywhere;
-}
+.message-body { min-width:0;font-size:15px;line-height:1.8;overflow-wrap:anywhere; }
 .message-body p { margin:0 0 13px; }
 .message-body p:last-child { margin-bottom:0; }
-.message-body h1,.message-body h2,.message-body h3 {
-  line-height:1.35;margin:21px 0 9px;
-}
+.message-body h1,.message-body h2,.message-body h3 { line-height:1.35;margin:21px 0 9px; }
 .message-body h1 { font-size:25px; }
 .message-body h2 { font-size:21px; }
 .message-body h3 { font-size:17px; }
 .message-body ul,.message-body ol { padding-left:24px;margin:8px 0 14px; }
 .message-body li { margin:5px 0; }
-.message-body blockquote {
-  margin:13px 0;padding-left:13px;
-  border-left:3px solid var(--accent);color:#c4c4cb;
-}
-.message-body pre {
-  max-width:100%;overflow:auto;padding:14px;
-  border:1px solid var(--border);border-radius:12px;
-  background:#191a1b;
-}
+.message-body blockquote { margin:13px 0;padding-left:13px;border-left:3px solid var(--accent);color:#c4c4cb; }
+.message-body pre { max-width:100%;overflow:auto;padding:14px;border:1px solid var(--border);border-radius:12px;background:#191a1b; }
 .message-body pre code { background:transparent;padding:0;white-space:pre; }
-.message-body code {
-  font-family:Consolas,monospace;font-size:.9em;
-  background:#303033;padding:2px 5px;border-radius:5px;
-}
+.message-body code { font-family:Consolas,monospace;font-size:.9em;background:#303033;padding:2px 5px;border-radius:5px; }
 .message-body a { color:#c4b5fd;text-decoration:underline; }
 .message-body a:hover { color:#e4d7ff; }
-.table-wrap {
-  max-width:100%;overflow-x:auto;margin:14px 0;
-  border:1px solid var(--border);border-radius:10px;
-}
+.table-wrap { max-width:100%;overflow-x:auto;margin:14px 0;border:1px solid var(--border);border-radius:10px; }
 .message-body table { width:100%;border-collapse:collapse;font-size:13px; }
-.message-body th,.message-body td {
-  padding:9px 11px;text-align:left;vertical-align:top;
-  border-bottom:1px solid var(--border);
-}
+.message-body th,.message-body td { padding:9px 11px;text-align:left;vertical-align:top;border-bottom:1px solid var(--border); }
 .message-body th { background:#28272e;color:#e2d8ff; }
 .message-body tr:last-child td { border-bottom:0; }
-.message-actions {
-  display:flex;align-items:center;gap:5px;
-  flex-wrap:wrap;min-height:26px;
-}
-.small-action {
-  padding:5px 8px;border:0;border-radius:8px;
-  background:transparent;color:#9999a1;
-  font-size:12px;cursor:pointer;
-}
+.message-actions { display:flex;align-items:center;gap:5px;flex-wrap:wrap;min-height:26px; }
+.small-action { padding:5px 8px;border:0;border-radius:8px;background:transparent;color:#9999a1;font-size:12px;cursor:pointer; }
 .small-action:hover { background:#292a2c;color:var(--text); }
 .message-error { color:#ffb4ab; }
-.sources {
-  margin-top:15px;padding-top:11px;border-top:1px solid var(--border);
-  font-size:12px;color:var(--muted);
-}
-.sources-title { margin-bottom:7px;font-weight:600; }
-.sources a { display:inline-block;margin:3px 10px 3px 0; }
+.sources { margin-top:15px;padding-top:11px;border-top:1px solid var(--border);font-size:12px;color:var(--muted); }
 .typing { display:flex;gap:5px;padding:8px 0; }
-.typing span {
-  width:6px;height:6px;border-radius:50%;background:var(--accent);
-  animation:pulse 1s infinite;
-}
+.typing span { width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1s infinite; }
 .typing span:nth-child(2) { animation-delay:.15s; }
 .typing span:nth-child(3) { animation-delay:.3s; }
 @keyframes pulse {
@@ -238,16 +196,14 @@ button:disabled { opacity:.55;cursor:wait; }
   30% { opacity:1;transform:translateY(-4px); }
 }
 
-/* Narrower centered composer */
-.bottom-area {
-  flex-shrink:0;padding:8px 20px 9px;background:var(--bg);
-}
+/* ---------- Composer (ChatGPT pill) ---------- */
+.bottom-area { flex-shrink:0;padding:8px 20px 10px;background:var(--bg); }
 .bottom-inner { width:min(760px,100%);margin:0 auto; }
 .composer-slot { width:100%; }
 .composer {
-  width:100%;padding:12px 14px 10px;
-  border:1px solid #3a3b3d;border-radius:23px;
-  background:#1e1f20;
+  width:100%;min-height:56px;padding:8px 8px 8px 10px;
+  display:flex;align-items:center;gap:4px;
+  border:1px solid #3a3b3d;border-radius:30px;background:#1e1f20;
   transition:border-color .2s,box-shadow .2s,background .2s;
 }
 .composer:focus-within {
@@ -256,42 +212,33 @@ button:disabled { opacity:.55;cursor:wait; }
   background:#222124;
 }
 .composer textarea {
-  display:block;width:100%;min-height:36px;max-height:170px;
-  padding:4px 2px;resize:none;outline:none;border:0;
-  background:transparent;color:var(--text);
-  font-size:15px;line-height:1.55;
+  display:block;flex:1;min-width:0;min-height:36px;max-height:170px;
+  padding:7px 8px;resize:none;outline:none;border:0;
+  background:transparent;color:var(--text);font-size:16px;line-height:1.5;
 }
 .composer textarea::placeholder { color:#a3a3aa; }
-.composer-bottom {
-  display:flex;align-items:center;justify-content:space-between;gap:7px;
-}
-.composer-options {
-  display:flex;flex-wrap:wrap;align-items:center;gap:3px;min-width:0;
-}
-.dropdown-wrap { position:relative; }
+.dropdown-wrap { position:relative;flex-shrink:0; }
 .dropdown-button {
-  min-height:34px;padding:0 9px;
+  min-height:36px;padding:0 10px;
   display:flex;align-items:center;gap:6px;
   border:1px solid transparent;border-radius:18px;
   background:transparent;color:#d8d8dc;
-  font-size:12px;white-space:nowrap;cursor:pointer;
+  font-size:13px;white-space:nowrap;cursor:pointer;
 }
-.dropdown-button:hover,.dropdown-button.active {
-  background:#303133;border-color:#444548;
-}
-.dropdown-icon { color:var(--accent);font-size:15px; }
+.dropdown-button:hover,.dropdown-button.active { background:#303133;border-color:#444548; }
+.dropdown-icon { color:var(--accent);font-size:17px; }
 .chevron { color:var(--muted);font-size:10px; }
 .dropdown-menu {
-  display:none;position:absolute;bottom:calc(100% + 9px);left:0;
-  width:235px;padding:7px;background:#252627;
-  border:1px solid #414244;border-radius:15px;
+  display:none;position:absolute;bottom:calc(100% + 12px);width:235px;padding:7px;
+  background:#252627;border:1px solid #414244;border-radius:15px;
   box-shadow:0 12px 35px #0008;z-index:50;
 }
+.mode-wrap .dropdown-menu { left:0; }
+.top-button { font-size:17px;font-weight:550;padding:0 12px;min-height:40px; }
+.top-wrap .dropdown-menu { left:0;bottom:auto;top:calc(100% + 8px); }
+.think-wrap .dropdown-menu { right:0; }
 .dropdown-menu.open { display:block; }
-.menu-heading {
-  padding:8px 10px;font-size:10px;color:#a0a0a6;
-  text-transform:uppercase;letter-spacing:.5px;
-}
+.menu-heading { padding:8px 10px;font-size:10px;color:#a0a0a6;text-transform:uppercase;letter-spacing:.5px; }
 .menu-option {
   width:100%;display:flex;align-items:center;justify-content:space-between;
   gap:10px;padding:10px;border:0;border-radius:10px;
@@ -299,29 +246,22 @@ button:disabled { opacity:.55;cursor:wait; }
 }
 .menu-option:hover { background:#343537; }
 .menu-option.selected { background:var(--accent-soft);color:#e3d9ff; }
-.option-description {
-  display:block;margin-top:3px;font-size:11px;
-  line-height:1.4;color:#a3a3aa;
-}
+.option-description { display:block;margin-top:3px;font-size:11px;line-height:1.4;color:#a3a3aa; }
 .option-check { color:var(--accent); }
 .send-button {
-  width:39px;height:39px;min-width:39px;
+  width:40px;height:40px;min-width:40px;margin-left:2px;
   display:flex;align-items:center;justify-content:center;
   border:0;border-radius:50%;background:#e4d7ff;color:#211a2c;
-  font-size:25px;cursor:pointer;transition:background .15s,transform .15s;
+  font-size:23px;cursor:pointer;transition:background .15s,transform .15s;
 }
 .send-button:hover:not(:disabled) { background:#f1eaff;transform:scale(1.04); }
 .send-button:disabled { background:#38383b;color:#85858c; }
-.disclaimer {
-  margin-top:8px;text-align:center;color:#85858b;
-  font-size:10px;line-height:1.4;
-}
+.disclaimer { margin-top:9px;text-align:center;color:#85858b;font-size:11px;line-height:1.4; }
 .toast {
   position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
   display:none;max-width:calc(100% - 30px);padding:11px 15px;
   border:1px solid #494a4d;border-radius:12px;
-  background:#303133;box-shadow:0 5px 20px #0005;
-  color:#eee;font-size:13px;z-index:100;
+  background:#303133;box-shadow:0 5px 20px #0005;color:#eee;font-size:13px;z-index:100;
 }
 .toast.visible { display:block; }
 .mobile-overlay { display:none; }
@@ -329,54 +269,32 @@ button:disabled { opacity:.55;cursor:wait; }
 @media(max-width:760px) {
   .sidebar {
     position:fixed;inset:0 auto 0 0;height:100dvh;
-    width:260px;min-width:260px;
-    transform:translateX(-105%);
-    box-shadow:none;transition:transform .2s;
+    width:270px;min-width:270px;transform:translateX(-105%);
+    transition:transform .2s;
   }
-  .sidebar.mobile-open {
-    transform:translateX(0);box-shadow:15px 0 50px #0007;
-  }
-  .sidebar.collapsed { width:260px;min-width:260px; }
+  .sidebar.mobile-open { transform:translateX(0);box-shadow:15px 0 50px #0007; }
+  .sidebar.collapsed { width:270px;min-width:270px; }
   .sidebar.collapsed .hide-collapsed { display:initial; }
-  .sidebar.collapsed .sidebar-top { justify-content:flex-start;padding:0 3px; }
-  .sidebar.collapsed .new-chat { justify-content:flex-start;padding:0 13px; }
+  .sidebar.collapsed .sidebar-top { justify-content:space-between;padding:0 4px; }
+  .sidebar.collapsed .new-chat { justify-content:flex-start;padding:0 10px; }
   .sidebar.collapsed .sidebar-bottom { justify-content:flex-start; }
-  .mobile-overlay.visible {
-    display:block;position:fixed;inset:0;background:#0008;z-index:29;
-  }
-  .topbar { height:54px;min-height:54px;padding:0 12px; }
+  .mobile-overlay.visible { display:block;position:fixed;inset:0;background:#0008;z-index:29; }
+  .topbar { height:54px;min-height:54px;padding:0 8px;gap:6px; }
   .mobile-menu { display:inline-flex!important; }
-  .welcome { width:calc(100% - 30px);padding-top:40px; }
-  .greeting { letter-spacing:-1px; }
-  .subtitle { font-size:14px; }
-  .suggestions { grid-template-columns:1fr;gap:8px; }
-  .suggestion {
-    min-height:67px;flex-direction:row;align-items:center;
-    padding:12px 14px;
-  }
-  .suggestion-icon { flex-shrink:0; }
+  .switch-btn { min-width:68px;padding:7px 14px;font-size:13px; }
+  .status span#statusText { display:none; }
+  .welcome { width:calc(100% - 28px); }
   .messages { width:calc(100% - 30px);padding-top:20px; }
-  .bottom-area { padding:7px 10px 7px; }
-  .composer { padding:10px 10px 8px;border-radius:20px; }
-  .composer textarea { min-height:32px;font-size:14px; }
-  .dropdown-button { padding:0 6px;gap:4px;font-size:11px; }
-  .composer-options { gap:0; }
-  .send-button { width:36px;height:36px;min-width:36px; }
+  .bottom-area { padding:7px 10px; }
+  .composer { border-radius:26px;padding:6px 6px 6px 8px; }
+  .composer textarea { font-size:15px; }
+  .dropdown-button { padding:0 7px;font-size:12px; }
+  .dropdown-icon + #modeLabel,.mode-wrap .chevron { display:none; }
   .message-body table { font-size:12px; }
   .message-body th,.message-body td { padding:7px; }
 }
-@media(max-width:390px) {
-  .dropdown-button { font-size:10px;padding:0 4px; }
-  .dropdown-icon { display:none; }
-  .send-button { width:34px;height:34px;min-width:34px; }
-  .composer-options { max-width:calc(100% - 40px); }
-}
 @media(prefers-reduced-motion:reduce) {
-  *,*::before,*::after {
-    animation-duration:.01ms!important;
-    transition-duration:.01ms!important;
-    scroll-behavior:auto!important;
-  }
+  *,*::before,*::after { animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important; }
 }
 </style>
 </head>
@@ -387,8 +305,11 @@ button:disabled { opacity:.55;cursor:wait; }
 
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-top">
+      <div class="brand hide-collapsed">
+        <span class="brand-mark" aria-hidden="true">✳</span>
+        <span class="brand-name">Aster</span>
+      </div>
       <button class="icon-button" id="sidebarToggle" aria-label="Toggle sidebar" title="Toggle sidebar">☰</button>
-      <span class="brand-mark" aria-label="Aster">✳</span>
     </div>
 
     <button class="new-chat" id="newChat">
@@ -396,7 +317,7 @@ button:disabled { opacity:.55;cursor:wait; }
       <span class="hide-collapsed">New chat</span>
     </button>
 
-    <div class="sidebar-label hide-collapsed">Recent</div>
+    <div class="sidebar-label hide-collapsed">Recents</div>
     <div class="recent-list hide-collapsed" id="recentList">
       <div class="recent-empty">Your recent chats will appear here.</div>
     </div>
@@ -411,9 +332,30 @@ button:disabled { opacity:.55;cursor:wait; }
     <header class="topbar">
       <div class="topbar-left">
         <button class="icon-button mobile-menu" id="mobileMenu" aria-label="Open menu">☰</button>
-        <span class="model-name">Dew</span>
-        <span class="chevron">▾</span>
+        <div class="dropdown-wrap top-wrap">
+          <button type="button" class="dropdown-button top-button" id="modeButton2" aria-haspopup="true" aria-expanded="false">
+            <span id="modeLabel2">Dew Standard</span><span class="chevron">▾</span>
+          </button>
+          <div class="dropdown-menu" id="modeMenu2" role="menu">
+            <div class="menu-heading">Choose Dew mode</div>
+            <button type="button" class="menu-option selected" data-mode="Standard" role="menuitemradio" aria-checked="true">
+              <span><strong>Dew Standard</strong><span class="option-description">Everyday work, writing and coding</span></span><span class="option-check">✓</span>
+            </button>
+            <button type="button" class="menu-option" data-mode="Extended" role="menuitemradio" aria-checked="false">
+              <span><strong>Dew Extended</strong><span class="option-description">More involved tasks</span></span><span class="option-check"></span>
+            </button>
+            <button type="button" class="menu-option" data-mode="Search" role="menuitemradio" aria-checked="false">
+              <span><strong>Dew Search</strong><span class="option-description">Web-oriented questions</span></span><span class="option-check"></span>
+            </button>
+          </div>
+        </div>
       </div>
+
+      <div class="switch" role="tablist" aria-label="Chat or Code">
+        <button class="switch-btn active" id="tabChat" data-tab="Chat" role="tab" aria-selected="true">Chat</button>
+        <button class="switch-btn" id="tabCode" data-tab="Code" role="tab" aria-selected="false"><span class="sw-icon">⌘</span>Code</button>
+      </div>
+
       <div class="status" aria-live="polite">
         <span class="status-dot" id="statusDot"></span>
         <span id="statusText">Checking connection</span>
@@ -428,16 +370,13 @@ button:disabled { opacity:.55;cursor:wait; }
 
         <div class="suggestions" id="suggestions">
           <button class="suggestion" data-prompt="Explain a difficult concept in a simple, interesting way.">
-            <span class="suggestion-text">Explain something complicated in simple terms</span>
-            <span class="suggestion-icon">✧</span>
+            <span class="suggestion-icon">✧</span><span>Explain something complicated</span>
           </button>
           <button class="suggestion" data-prompt="Help me brainstorm an original idea for a project.">
-            <span class="suggestion-text">Help me come up with an original idea</span>
-            <span class="suggestion-icon">✳</span>
+            <span class="suggestion-icon">✳</span><span>Come up with an original idea</span>
           </button>
           <button class="suggestion" data-prompt="Help me write clean, understandable code and explain how it works.">
-            <span class="suggestion-text">Build something with code</span>
-            <span class="suggestion-icon">⌘</span>
+            <span class="suggestion-icon">⌘</span><span>Build something with code</span>
           </button>
         </div>
       </div>
@@ -456,51 +395,47 @@ button:disabled { opacity:.55;cursor:wait; }
 </div>
 
 <form class="composer" id="chatForm">
+  <div class="dropdown-wrap mode-wrap">
+    <button type="button" class="dropdown-button" id="modeButton" aria-haspopup="true" aria-expanded="false">
+      <span class="dropdown-icon">✳</span>
+      <span id="modeLabel">Dew Standard</span><span class="chevron">▾</span>
+    </button>
+    <div class="dropdown-menu" id="modeMenu" role="menu">
+      <div class="menu-heading">Choose Dew mode</div>
+      <button type="button" class="menu-option selected" data-mode="Standard" role="menuitemradio" aria-checked="true">
+        <span><strong>Dew Standard</strong><span class="option-description">Everyday work, writing and coding</span></span><span class="option-check">✓</span>
+      </button>
+      <button type="button" class="menu-option" data-mode="Extended" role="menuitemradio" aria-checked="false">
+        <span><strong>Dew Extended</strong><span class="option-description">More involved tasks</span></span><span class="option-check"></span>
+      </button>
+      <button type="button" class="menu-option" data-mode="Search" role="menuitemradio" aria-checked="false">
+        <span><strong>Dew Search</strong><span class="option-description">Web-oriented questions</span></span><span class="option-check"></span>
+      </button>
+    </div>
+  </div>
+
   <textarea id="messageInput" rows="1" maxlength="1200"
     placeholder="Ask Dew anything" aria-label="Message Dew" required></textarea>
-  <div class="composer-bottom">
-    <div class="composer-options">
-      <div class="dropdown-wrap">
-        <button type="button" class="dropdown-button" id="modeButton"
-          aria-haspopup="true" aria-expanded="false">
-          <span class="dropdown-icon">✳</span>
-          <span id="modeLabel">Dew Standard</span><span class="chevron">▾</span>
-        </button>
-        <div class="dropdown-menu" id="modeMenu" role="menu">
-          <div class="menu-heading">Choose Dew mode</div>
-          <button type="button" class="menu-option selected" data-mode="Standard" role="menuitemradio" aria-checked="true">
-            <span><strong>Dew Standard</strong><span class="option-description">Everyday work, writing and coding</span></span><span class="option-check">✓</span>
-          </button>
-          <button type="button" class="menu-option" data-mode="Extended" role="menuitemradio" aria-checked="false">
-            <span><strong>Dew Extended</strong><span class="option-description">More involved tasks</span></span><span class="option-check"></span>
-          </button>
-          <button type="button" class="menu-option" data-mode="Search" role="menuitemradio" aria-checked="false">
-            <span><strong>Dew Search</strong><span class="option-description">Web-oriented questions</span></span><span class="option-check"></span>
-          </button>
-        </div>
-      </div>
 
-      <div class="dropdown-wrap">
-        <button type="button" class="dropdown-button" id="thinkingButton"
-          aria-haspopup="true" aria-expanded="false">
-          <span id="thinkingLabel">Medium</span><span class="chevron">▾</span>
-        </button>
-        <div class="dropdown-menu" id="thinkingMenu" role="menu">
-          <div class="menu-heading">Thinking level</div>
-          <button type="button" class="menu-option" data-thinking="Low" role="menuitemradio" aria-checked="false">
-            <span><strong>Low</strong><span class="option-description">Faster responses</span></span><span class="option-check"></span>
-          </button>
-          <button type="button" class="menu-option selected" data-thinking="Medium" role="menuitemradio" aria-checked="true">
-            <span><strong>Medium</strong><span class="option-description">Balanced reasoning</span></span><span class="option-check">✓</span>
-          </button>
-          <button type="button" class="menu-option" data-thinking="High" role="menuitemradio" aria-checked="false">
-            <span><strong>High</strong><span class="option-description">More deliberate reasoning</span></span><span class="option-check"></span>
-          </button>
-        </div>
-      </div>
+  <div class="dropdown-wrap think-wrap">
+    <button type="button" class="dropdown-button" id="thinkingButton" aria-haspopup="true" aria-expanded="false">
+      <span id="thinkingLabel">Medium</span><span class="chevron">▾</span>
+    </button>
+    <div class="dropdown-menu" id="thinkingMenu" role="menu">
+      <div class="menu-heading">Thinking level</div>
+      <button type="button" class="menu-option" data-thinking="Low" role="menuitemradio" aria-checked="false">
+        <span><strong>Low</strong><span class="option-description">Faster responses</span></span><span class="option-check"></span>
+      </button>
+      <button type="button" class="menu-option selected" data-thinking="Medium" role="menuitemradio" aria-checked="true">
+        <span><strong>Medium</strong><span class="option-description">Balanced reasoning</span></span><span class="option-check">✓</span>
+      </button>
+      <button type="button" class="menu-option" data-thinking="High" role="menuitemradio" aria-checked="false">
+        <span><strong>High</strong><span class="option-description">More deliberate reasoning</span></span><span class="option-check"></span>
+      </button>
     </div>
-    <button type="submit" class="send-button" id="sendButton" aria-label="Send message" title="Send message">↑</button>
   </div>
+
+  <button type="submit" class="send-button" id="sendButton" aria-label="Send message" title="Send message">↑</button>
 </form>
 
 <script>
@@ -522,6 +457,7 @@ const sendButton = $("sendButton");
 
 let selectedMode = "Standard";
 let selectedReasoning = "Medium";
+let selectedTab = "Chat";
 let isSending = false;
 let currentChatId = null;
 let chats = [];
@@ -535,10 +471,14 @@ const greetings = [
   ["What are we working on?", "Every interesting idea starts somewhere."]
 ];
 
+const codeGreeting = ["What should we build?", "Describe it and Dew will help you write the code."];
+
 function setGreeting() {
-  const greeting = greetings[Math.floor(Math.random() * greetings.length)];
-  $("greeting").textContent = greeting[0];
-  $("subtitle").textContent = greeting[1];
+  const g = selectedTab === "Code"
+    ? codeGreeting
+    : greetings[Math.floor(Math.random() * greetings.length)];
+  $("greeting").textContent = g[0];
+  $("subtitle").textContent = g[1];
 }
 
 function setStatus(state, text) {
@@ -564,8 +504,25 @@ function moveComposerToWelcome() {
   $("suggestions").hidden = false;
 }
 
+/* Chat / Code switch */
+function setTab(tab) {
+  selectedTab = tab;
+  document.querySelectorAll("[data-tab]").forEach(button => {
+    const active = button.dataset.tab === tab;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", String(active));
+  });
+  input.placeholder = tab === "Code" ? "Describe what you want to build" : "Ask Dew anything";
+  if (!welcome.hidden) setGreeting();
+}
+
+document.querySelectorAll("[data-tab]").forEach(button => {
+  button.addEventListener("click", () => setTab(button.dataset.tab));
+});
+
 /* Dropdowns */
 const dropdownPairs = [
+  [$("modeButton2"), $("modeMenu2")],
   [$("modeButton"), $("modeMenu")],
   [$("thinkingButton"), $("thinkingMenu")]
 ];
@@ -587,6 +544,11 @@ function toggleDropdown(button, menu) {
     button.setAttribute("aria-expanded", "true");
   }
 }
+
+$("modeButton2").addEventListener("click", event => {
+  event.stopPropagation();
+  toggleDropdown($("modeButton2"), $("modeMenu2"));
+});
 
 $("modeButton").addEventListener("click", event => {
   event.stopPropagation();
@@ -611,6 +573,7 @@ function refreshOptions(attribute, selected, labelId, prefix = "") {
     if (check) check.textContent = active ? "✓" : "";
   });
   $(labelId).textContent = prefix + selected;
+  if (labelId === "modeLabel") $("modeLabel2").textContent = prefix + selected;
 }
 
 document.querySelectorAll("[data-mode]").forEach(button => {
@@ -674,9 +637,7 @@ function inlineMarkdown(value) {
   });
 
   text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
-    (_, label, url) => {
-      return '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + label + '</a>';
-    });
+    (_, label, url) => '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + label + '</a>');
   text = text.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   text = text.replace(/__(.+?)__/g, "<strong>$1</strong>");
   text = text.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
@@ -1005,7 +966,8 @@ async function getDewReply(message) {
       body: JSON.stringify({
         message,
         mode: "Dew " + selectedMode,
-        thinking: selectedReasoning
+        thinking: selectedReasoning,
+        tab: selectedTab
       })
     });
   } catch (error) {
@@ -1061,6 +1023,18 @@ function addSources(answer, sources) {
   ).join("\n");
 }
 
+/* Friendly error messages (fixed: now used inside sendMessage) */
+const friendlyMessages = {
+  SEARCH_UNAVAILABLE: "I can’t access web search right now. Please try again shortly.",
+  TEMPORARILY_UNAVAILABLE: "Dew is temporarily busy right now. Please try again shortly.",
+  SERVICE_UNAVAILABLE: "Dew is temporarily unavailable. Please try again later.",
+  EMPTY_MODEL_RESPONSE: "Dew couldn't generate a response this time. Please try again.",
+  REQUEST_FAILED: "I couldn't complete that request. Please try again shortly.",
+  INVALID_METHOD: "That request couldn't be processed.",
+  EMPTY_MESSAGE: "Please enter a message first.",
+  MESSAGE_TOO_LONG: "That message is too long. Please shorten it."
+};
+
 async function sendMessage(rawMessage) {
   const message = rawMessage.trim();
   if (!message || isSending) return;
@@ -1096,8 +1070,9 @@ async function sendMessage(rawMessage) {
     $("typingIndicator")?.remove();
     console.error("Dew request failed:", error);
 
+    const code = error instanceof Error ? error.message : "";
     const errorText = "I couldn't complete that request.\n\n" +
-      (error instanceof Error ? error.message : "An unexpected error occurred.");
+      (friendlyMessages[code] || code || "An unexpected error occurred.");
 
     const errorNode = renderMessage("assistant", errorText, false);
     errorNode.querySelector(".message-body")?.classList.add("message-error");
@@ -1197,32 +1172,6 @@ async function checkConnection(showResult = false) {
   }
 }
 
-const errorCode =
-  error instanceof Error ? error.message : "";
-
-const friendlyMessages = {
-  SEARCH_UNAVAILABLE:
-    "I can’t access web search right now. Please try again shortly.",
-  TEMPORARILY_UNAVAILABLE:
-    "Dew is temporarily busy right now. Please try again shortly.",
-  SERVICE_UNAVAILABLE:
-    "Dew is temporarily unavailable. Please try again later.",
-  EMPTY_MODEL_RESPONSE:
-    "Dew couldn't generate a response this time. Please try again.",
-  REQUEST_FAILED:
-    "I couldn't complete that request. Please try again shortly.",
-  INVALID_METHOD:
-    "That request couldn't be processed.",
-  EMPTY_MESSAGE:
-    "Please enter a message first.",
-  MESSAGE_TOO_LONG:
-    "That message is too long. Please shorten it."
-};
-
-const errorText =
-  friendlyMessages[errorCode] ||
-  "I couldn't complete that request. Please try again shortly.";
-
 $("connectionButton").addEventListener("click", () => checkConnection(true));
 
 /* Initial view */
@@ -1233,7 +1182,7 @@ refreshOptions("data-thinking", selectedReasoning, "thinkingLabel");
 refreshRecentList();
 checkConnection();
 </script>
-  
+
 <script type="module" src="/firebase.js"></script>
 </body>
 </html>
