@@ -4,23 +4,25 @@ import { GoogleGenAI } from "@google/genai";
 const INSTRUCTIONS = {
   "Dew Standard": `
 You are Dew, the AI assistant inside Aster.
-Answer clearly, naturally, and accurately.
-Help with everyday questions, writing, coding, and problem-solving.
-Be honest when you are uncertain.
-Do not invent sources or claim to have searched when you have not.
+Handle greetings, everyday conversation, explanations, writing,
+coding, and problem-solving naturally using your existing knowledge.
+Do not use web search unless the user explicitly requests it.
+Be honest about uncertainty and never invent sources.
 `,
 
   "Dew Extended": `
-You are Dew Extended, the advanced mode inside Aster.
-Think carefully about complex questions.
-Give detailed, structured answers, verify important claims with web search,
-compare reliable sources, and explain uncertainty.
+You are Dew Extended, the reasoning-focused mode inside Aster.
+Think carefully about complex questions and give detailed,
+well-structured answers. Use your existing knowledge by default.
+Do not use web search unless the user explicitly requests it.
+Be honest about uncertainty and never invent sources.
 `,
 
   "Dew Search": `
 You are Dew Search, the web research mode inside Aster.
 Use Google Search to research the user's question.
-Synthesize reliable information, cite relevant sources, and explain uncertainty.
+Synthesize reliable information, cite relevant sources,
+and explain uncertainty. Never claim a search succeeded if it did not.
 `
 };
 
@@ -30,24 +32,25 @@ const THINKING_BUDGET = {
   High: 8192
 };
 
-const CURRENT_INFO_PATTERN =
-  /\b(latest|current|currently|today|yesterday|recent|news|weather|price|pricing|2025|2026|2027|search|research|sources|release date|who won|this week)\b/i;
+// Search in Standard or Extended only when explicitly requested.
+const EXPLICIT_SEARCH_PATTERN =
+  /\b(search (the )?web|search online|look (it|this|that|them) up|look online|google (it|this|that)|browse (the )?web|check online|find (online|on the web)|research (this|that|the topic|online)|use web search|look for sources online)\b/i;
+
+function sendError(res, status, code) {
+  return res.status(status).json({ error: code });
+}
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
-
-    return res.status(405).json({
-      error: "Please send a POST request."
-    });
+    return sendError(res, 405, "INVALID_METHOD");
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    return res.status(503).json({
-      error: "Gemini API key is missing. Configure GEMINI_API_KEY in Vercel."
-    });
+    console.error("Aster configuration error: GEMINI_API_KEY is missing.");
+    return sendError(res, 503, "SERVICE_UNAVAILABLE");
   }
 
   try {
@@ -70,23 +73,24 @@ export default async function handler(req, res) {
       : "Medium";
 
     if (!message) {
-      return res.status(400).json({
-        error: "Please enter a message."
-      });
+      return sendError(res, 400, "EMPTY_MESSAGE");
     }
 
     if (message.length > 1200) {
-      return res.status(400).json({
-        error: "Messages must be 1,200 characters or fewer."
-      });
+      return sendError(res, 400, "MESSAGE_TOO_LONG");
     }
 
+    const explicitlyRequestedSearch =
+      EXPLICIT_SEARCH_PATTERN.test(message);
+
+    // Standard never searches automatically.
+    // Extended never searches automatically.
+    // Dew Search always attempts web search.
     const useSearch =
       mode === "Dew Search" ||
-      mode === "Dew Extended" ||
       (
-        mode === "Dew Standard" &&
-        CURRENT_INFO_PATTERN.test(message)
+        (mode === "Dew Standard" || mode === "Dew Extended") &&
+        explicitlyRequestedSearch
       );
 
     const ai = new GoogleGenAI({ apiKey });
@@ -111,28 +115,21 @@ export default async function handler(req, res) {
     const answer = result.text?.trim();
 
     if (!answer) {
-      return res.status(502).json({
-        error: "Gemini returned an empty response. Please try again."
-      });
+      console.error("Aster received an empty model response.");
+      return sendError(res, 502, "EMPTY_MODEL_RESPONSE");
     }
 
-    const grounding =
-      result.candidates?.[0]?.groundingMetadata;
+    const grounding = result.candidates?.[0]?.groundingMetadata;
 
     const sources = (grounding?.groundingChunks || [])
       .map(chunk => chunk.web)
-      .filter(
-        web =>
-          web?.uri &&
-          /^https?:\/\//i.test(web.uri)
-      )
+      .filter(web => web?.uri && /^https?:\/\//i.test(web.uri))
       .map(web => ({
         title: web.title || web.uri,
         url: web.uri
       }))
-      .filter(
-        (source, index, all) =>
-          all.findIndex(item => item.url === source.url) === index
+      .filter((source, index, all) =>
+        all.findIndex(item => item.url === source.url) === index
       );
 
     return res.status(200).json({
@@ -142,16 +139,29 @@ export default async function handler(req, res) {
       searchUsed: Boolean(grounding),
       sources
     });
-  
   } catch (error) {
-    console.error("Aster Gemini API error:", error);
+    // Keep technical details in server logs, not the public chat.
+    console.error("Aster Gemini request failed:", error);
 
-    const message = String(error?.message || "Unknown server error");
+    const status = Number(error?.status || error?.code);
 
-    return res.status(500).json({
-      error: "Gemini request failed: " +
-        message.replace(/AIza[0-9A-Za-z_-]{20,}/g, "[REDACTED_API_KEY]")
-    });
+    if (
+      status === 503 ||
+      status === 429 ||
+      status === 502 ||
+      status === 504
+    ) {
+      return sendError(
+        res,
+        503,
+        "TEMPORARILY_UNAVAILABLE"
+      );
+    }
+
+    if (status === 401 || status === 403) {
+      return sendError(res, 503, "SERVICE_UNAVAILABLE");
+    }
+
+    return sendError(res, 500, "REQUEST_FAILED");
   }
 }
-
