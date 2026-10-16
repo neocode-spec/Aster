@@ -142,14 +142,16 @@ export default async function handler(req, res) {
       searchUsed: Boolean(grounding),
       sources
     });
+  
   } catch (error) {
-    console.error(
-      "Aster Gemini API error:",
-      error?.message || "Unknown error"
-    );
+    console.error("Aster Gemini API error:", error);
+
+    const message = String(error?.message || "Unknown server error");
 
     return res.status(500).json({
-      error: "Dew could not complete your request. Please try again."
+      error: "Gemini request failed: " +
+        message.replace(/AIza[0-9A-Za-z_-]{20,}/g, "[REDACTED_API_KEY]")
     });
   }
 }
+
