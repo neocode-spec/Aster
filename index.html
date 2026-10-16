@@ -928,7 +928,7 @@ async function checkConnection(showResult = false) {
   const timeout = setTimeout(() => controller.abort(), 10000);
 
   try {
-    const healthUrl = DEW_API_URL.replace(/\/api\/chat\/?$/, "/health");
+    const healthUrl = "/api/health";
     const response = await fetch(healthUrl, { signal: controller.signal });
     if (!response.ok) throw new Error("HTTP " + response.status);
     const data = await response.json();
