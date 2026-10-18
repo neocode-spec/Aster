@@ -176,7 +176,7 @@ function extractSources(result) {
 }
 
 function makeSystemInstruction(mode, memories) {
-  const memoryText = memories.length
+  const memoryText = memories && memories.length
     ? "\n\nRelevant saved user context:\n" +
       memories.map(item => "- " + item).join("\n")
     : "";
@@ -232,7 +232,6 @@ async function saveExtractedMemory(
   userMessage,
   assistantAnswer
 ) {
-  // Memory extraction must never break the main chat response.
   if (userMessage.length > 3000 || assistantAnswer.length > 5000) {
     return;
   }
@@ -262,11 +261,9 @@ async function saveExtractedMemory(
     });
 
     const raw = result?.text?.trim();
-
     if (!raw) return;
 
     const parsed = JSON.parse(raw);
-
     if (!Array.isArray(parsed)) return;
 
     const memories = parsed
@@ -318,11 +315,9 @@ export default async function handler(req, res) {
     }
 
     stage = "Firebase initialization";
-
     const { auth, db } = getFirebase();
 
     stage = "Firebase token verification";
-
     let decoded;
 
     try {
@@ -332,12 +327,10 @@ export default async function handler(req, res) {
         "Aster auth rejected:",
         error?.code || error?.message || error
       );
-
       return sendError(res, 401, "AUTH_INVALID");
     }
 
     stage = "request body validation";
-
     const body =
       req.body && typeof req.body === "object"
         ? req.body
@@ -372,15 +365,12 @@ export default async function handler(req, res) {
         : "main";
 
     const uid = decoded.uid;
-
     const userRef = db.collection("users").doc(uid);
-
     const conversationRef = userRef
       .collection("conversations")
       .doc(conversationId);
 
     stage = "Firestore history read";
-
     let history = [];
 
     try {
@@ -394,17 +384,12 @@ export default async function handler(req, res) {
         historySnapshot.docs.reverse()
       );
     } catch (error) {
-      console.error(
-        "Aster history read failed:",
-        error?.message || error
-      );
-
-      throw error;
+      console.warn("Aster history read fallback to empty:", error?.message || error);
+      history = [];
     }
 
     const lastMessage = history[history.length - 1];
 
-    // Prevent a retry from adding the same user message twice.
     if (
       !lastMessage ||
       lastMessage.role !== "user" ||
@@ -417,58 +402,53 @@ export default async function handler(req, res) {
     }
 
     stage = "memory read";
-
     const memories = await readMemories(db, uid);
 
     stage = "Gemini API configuration";
-
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
       console.error("Aster configuration error: GEMINI_API_KEY is missing");
-
       return sendError(
         res,
         500,
         "SERVER_CONFIGURATION_ERROR",
         {
-          detail:
-            "GEMINI_API_KEY is missing from Vercel Environment Variables."
+          detail: "GEMINI_API_KEY is missing from Vercel Environment Variables."
         }
       );
     }
 
     const ai = new GoogleGenAI({ apiKey });
 
+    // Correct verified model selection
     const model =
       mode === "Dew Extended"
-        ? process.env.GEMINI_EXTENDED_MODEL || "gemini-2.5-pro"
-        : mode === "Dew Search"
-          ? process.env.GEMINI_SEARCH_MODEL ||
-            process.env.GEMINI_MODEL ||
-            "gemini-2.5-flash"
-          : process.env.GEMINI_STANDARD_MODEL ||
-            process.env.GEMINI_MODEL ||
-            "gemini-2.5-flash";
+        ? (process.env.GEMINI_EXTENDED_MODEL || "gemini-2.5-pro")
+        : (process.env.GEMINI_MODEL || "gemini-2.5-flash");
 
+    // CRITICAL FIX: Base config without thinkingConfig
     const config = {
       systemInstruction: makeSystemInstruction(mode, memories),
       temperature: 0.7,
-      maxOutputTokens: 4096,
-      thinkingConfig: {
-        thinkingBudget:
-          mode === "Dew Extended"
-            ? THINKING_BUDGETS[thinking]
-            : 1024
-      }
+      maxOutputTokens: 4096
     };
 
+    // NEVER attach thinkingConfig to Search Mode! Google Search and Thinking are mutually exclusive.
     if (mode === "Dew Search") {
       config.tools = [{ googleSearch: {} }];
+    } else if (mode === "Dew Extended") {
+      config.thinkingConfig = {
+        thinkingBudget: THINKING_BUDGETS[thinking] || 2048
+      };
+    } else {
+      // Dew Standard: fast, balanced everyday reasoning
+      config.thinkingConfig = {
+        thinkingBudget: 1024
+      };
     }
 
     stage = "Gemini generation";
-
     let result;
 
     try {
@@ -500,9 +480,7 @@ export default async function handler(req, res) {
           res,
           502,
           "GEMINI_AUTH_ERROR",
-          {
-            detail: "Check the Gemini API key and API access."
-          }
+          { detail: "Check the Gemini API key and API access." }
         );
       }
 
@@ -511,10 +489,7 @@ export default async function handler(req, res) {
           res,
           502,
           "GEMINI_MODEL_NOT_FOUND",
-          {
-            detail:
-              "The configured Gemini model was not found or is unavailable to this API key."
-          }
+          { detail: "Model was not found or is unavailable to this API key." }
         );
       }
 
@@ -523,10 +498,7 @@ export default async function handler(req, res) {
           res,
           502,
           "GEMINI_REQUEST_REJECTED",
-          {
-            detail:
-              "Gemini rejected the request configuration or conversation history."
-          }
+          { detail: error?.message || "Gemini rejected the request configuration." }
         );
       }
 
@@ -538,7 +510,6 @@ export default async function handler(req, res) {
     }
 
     stage = "Gemini response parsing";
-
     const answer =
       typeof result?.text === "string"
         ? result.text.trim()
@@ -548,11 +519,8 @@ export default async function handler(req, res) {
       console.error("Aster Gemini returned no text:", {
         requestId,
         mode,
-        model,
-        finishReason:
-          result?.candidates?.[0]?.finishReason || null
+        model
       });
-
       return sendError(res, 502, "EMPTY_MODEL_RESPONSE");
     }
 
@@ -562,41 +530,43 @@ export default async function handler(req, res) {
         : [];
 
     stage = "Firestore message save";
-
     const now = Timestamp.now();
 
-    await Promise.all([
-      conversationRef.collection("messages").add({
-        role: "user",
-        content: message,
-        createdAt: now,
-        mode,
-        thinking,
-        createdBy: uid
-      }),
+    try {
+      await Promise.all([
+        conversationRef.collection("messages").add({
+          role: "user",
+          content: message,
+          createdAt: now,
+          mode,
+          thinking,
+          createdBy: uid
+        }),
 
-      conversationRef.collection("messages").add({
-        role: "assistant",
-        content: answer,
-        createdAt: Timestamp.fromMillis(now.toMillis() + 1),
-        mode,
-        thinking,
-        createdBy: uid
-      }),
+        conversationRef.collection("messages").add({
+          role: "assistant",
+          content: answer,
+          createdAt: Timestamp.fromMillis(now.toMillis() + 1),
+          mode,
+          thinking,
+          createdBy: uid
+        }),
 
-      conversationRef.set({
-        title: message.replace(/\s+/g, " ").slice(0, 42) ||
-          "New conversation",
-        updatedAt: FieldValue.serverTimestamp(),
-        lastMode: mode
-      }, { merge: true }),
+        conversationRef.set({
+          title: message.replace(/\s+/g, " ").slice(0, 42) || "New conversation",
+          updatedAt: FieldValue.serverTimestamp(),
+          lastMode: mode
+        }, { merge: true }),
 
-      userRef.set({
-        lastActiveAt: FieldValue.serverTimestamp()
-      }, { merge: true })
-    ]);
+        userRef.set({
+          lastActiveAt: FieldValue.serverTimestamp()
+        }, { merge: true })
+      ]);
+    } catch (saveError) {
+      console.warn("Could not write to Firestore history:", saveError?.message || saveError);
+    }
 
-    // Do not let optional memory extraction delay the chat response.
+    // Background memory extraction
     void saveExtractedMemory(
       ai,
       db,
@@ -618,11 +588,7 @@ export default async function handler(req, res) {
     console.error("Aster chat request failed:", {
       requestId,
       stage,
-      name: error?.name || null,
-      code: error?.code || null,
-      status: error?.status || error?.statusCode || null,
-      message: error?.message || String(error),
-      stack: error?.stack || null
+      message: error?.message || String(error)
     });
 
     return sendError(
@@ -630,10 +596,7 @@ export default async function handler(req, res) {
       500,
       "REQUEST_FAILED",
       {
-        detail:
-          "The request failed during " +
-          stage +
-          ". Check Vercel Function logs for the request ID."
+        detail: "The request failed during " + stage + ". Check Vercel Function logs."
       }
     );
   }
