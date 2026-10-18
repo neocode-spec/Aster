@@ -585,7 +585,6 @@ button:disabled { opacity:.55;cursor:wait; }
   *,*::before,*::after { animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important; }
 }
 </style>
-<base target="_blank">
 </head>
 
 <body>
@@ -1835,8 +1834,6 @@ setTimeout(() => {
 }, 8000);
 </script>
 
-<script type="module" src="/firebase.js"></script>
-
 <script type="module">
 import {
   auth,
@@ -1848,6 +1845,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
   sendPasswordResetEmail,
   signOut
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
@@ -1860,6 +1858,7 @@ const authEmail = el("authEmail");
 const authPassword = el("authPassword");
 const authError = el("authError");
 const authSubmit = el("authSubmit");
+const app = document.querySelector(".app");
 
 let authMode = "login";
 let authReady = false;
@@ -1914,7 +1913,10 @@ function firebaseErrorMessage(error) {
 }
 
 async function runAuth(action) {
-  if (!authReady) return;
+  if (!authReady) {
+    showAuthError("Sign-in is still loading. Please wait a moment and try again.");
+    return;
+  }
 
   authSubmit.disabled = true;
   el("googleAuth").disabled = true;
@@ -1963,26 +1965,38 @@ el("forgotPassword").addEventListener("click", () => {
   });
 });
 
+/* Google: popup first, redirect fallback for phones / blocked popups */
 el("googleAuth").addEventListener("click", () => {
-  runAuth(() => signInWithPopup(auth, googleProvider));
+  runAuth(async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      if (error?.code === "auth/popup-blocked" ||
+          error?.code === "auth/operation-not-supported-in-this-environment") {
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      }
+      throw error;
+    }
+  });
 });
 
-/* Keep the existing Aster interface behind the authentication gate.
+/* Keep the Aster interface behind the authentication gate.
    Both the app and the sign-in screen stay hidden until Firebase has reported
-   who is signed in, so neither flashes on screen. */
-const app = document.querySelector(".app");
-
+   who is signed in, so neither flashes on screen. As soon as a user is
+   signed in, the AI opens immediately. */
 onAuthStateChanged(auth, user => {
   authReady = true;
   window.asterAuthReady = true;
+  showAuthError("");   /* clears any old "could not reach" message */
 
   if (user) {
     hadUser = true;
     authPassword.value = "";
-    showAuthError("");
     authScreen.hidden = true;
     app.hidden = false;
     if (typeof window.resizeInput === "function") window.resizeInput();
+    document.getElementById("messageInput")?.focus();
   } else {
     /* Signed out (any route): reload so no previous chats stay in memory. */
     if (hadUser) {
@@ -1996,7 +2010,7 @@ onAuthStateChanged(auth, user => {
   }
 });
 
-/* Expose the current user's ID token to the existing chat script. */
+/* Expose the current user's ID token to the chat script. */
 window.asterGetIdToken = async () => {
   if (!auth.currentUser) {
     throw new Error("Please sign in to use Aster.");
