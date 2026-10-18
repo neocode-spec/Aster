@@ -623,6 +623,7 @@ let selectedMode = "Standard";
 let selectedReasoning = "Medium";
 let selectedTab = "Chat";
 let isSending = false;
+let messageQueue = [];
 let currentChatId = null;
 let chats = [];
 let toastTimer;
@@ -1117,28 +1118,16 @@ function appendSources(answer, sources) {
   ).join("\n");
 }
 
-async function sendMessage(rawMessage) {
-  const message = rawMessage.trim();
-  if (!message) return showToast("Enter a message first.");
-  if (message.length > 1200) return showToast("Messages must be 1,200 characters or fewer.");
-  if (isSending) return;
+async function processQueue() {
+  if (isSending || messageQueue.length === 0) return;
+  const nextMessage = messageQueue.shift();
 
   isSending = true;
-  sendButton.disabled = true;
-  input.disabled = true;
-  closeDropdowns();
-
-  welcome.hidden = true;
-  messages.hidden = false;
-  moveComposerToBottom();
-  renderMessage("user", message);
-  input.value = "";
-  resizeInput();
   addTyping();
   setStatus("busy", "Dew is responding");
 
   try {
-    const result = await getDewReply(message);
+    const result = await getDewReply(nextMessage);
     $("typingIndicator")?.remove();
     renderMessage("assistant", appendSources(result.answer, result.sources));
     setStatus("online", "API reachable");
@@ -1155,10 +1144,32 @@ async function sendMessage(rawMessage) {
     setStatus("error", "Request failed");
   } finally {
     isSending = false;
-    sendButton.disabled = false;
-    input.disabled = false;
-    input.focus();
+    if (messageQueue.length > 0) {
+      processQueue();
+    } else {
+      setStatus("online", "API reachable");
+    }
   }
+}
+
+async function sendMessage(rawMessage) {
+  const message = rawMessage.trim();
+  if (!message) return showToast("Enter a message first.");
+  if (message.length > 1200) return showToast("Messages must be 1,200 characters or fewer.");
+
+  closeDropdowns();
+  welcome.hidden = true;
+  messages.hidden = false;
+  moveComposerToBottom();
+  
+  // Render user message on screen immediately and clear input so chat bar stays free
+  renderMessage("user", message);
+  input.value = "";
+  resizeInput();
+  input.focus();
+
+  messageQueue.push(message);
+  processQueue();
 }
 
 composer.addEventListener("submit", event => {
@@ -1168,7 +1179,7 @@ composer.addEventListener("submit", event => {
 input.addEventListener("keydown", event => {
   if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
     event.preventDefault();
-    if (!isSending) composer.requestSubmit();
+    composer.requestSubmit();
   }
 });
 function resizeInput() {
@@ -1185,7 +1196,7 @@ document.querySelectorAll("[data-prompt]").forEach(button => {
   });
 });
 $("newChat").addEventListener("click", () => {
-  if (isSending) return showToast("Wait for Dew to finish before starting a new chat.");
+  if (isSending || messageQueue.length > 0) return showToast("Wait for Dew to finish before starting a new chat.");
   currentChatId = null;
   messages.replaceChildren();
   messages.hidden = true;
