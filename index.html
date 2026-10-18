@@ -3,27 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#131314">
+<meta name="theme-color" content="#05060c">
 <title>Aster</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23131314'/%3E%3Ctext x='32' y='49' text-anchor='middle' font-size='52' fill='%23c4b5fd'%3E%E2%9C%B3%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2305060c'/%3E%3Ctext x='32' y='49' text-anchor='middle' font-size='52' fill='%23c4b5fd'%3E%E2%9C%B3%3C/text%3E%3C/svg%3E">
 
 <style>
 :root {
   color-scheme:dark;
-  --bg:#131314;
-  --sidebar:#191a1b;
-  --surface:#202122;
-  --hover:#2b2c2e;
-  --border:#393a3d;
-  --text:#e3e3e3;
-  --muted:#a1a1a8;
-  --accent:#c4b5fd;
-  --accent-soft:#302745;
+  --bg:#05060c;              /* very dark midnight blue, almost black */
+  --bg-glow:#0b0d1a;
+  --sidebar:#080a12;
+  --surface:#10121e;
+  --hover:#181b2c;
+  --border:#232637;
+  --text:#e3e3e8;
+  --muted:#8f90a0;
+  --accent:#c4b5fd;          /* purple */
+  --silver:#d5d6e1;          /* silver */
+  --accent-soft:#241d3d;
 }
 * { box-sizing:border-box; }
 html,body { width:100%;height:100%;margin:0; }
 body {
-  background:var(--bg);color:var(--text);
+  background:
+    radial-gradient(1200px 600px at 50% -10%, #1a1430 0%, transparent 60%),
+    radial-gradient(900px 500px at 85% 110%, #101528 0%, transparent 55%),
+    var(--bg);
+  background-attachment:fixed;
+  color:var(--text);
   font-family:Inter,"Segoe UI",Arial,sans-serif;
   overflow:hidden;
 }
@@ -35,51 +42,55 @@ button:disabled { opacity:.55;cursor:wait; }
 
 .app { display:flex;width:100%;height:100dvh; }
 
-/* ---------- Sidebar (ChatGPT style) ---------- */
+/* ---------- Sidebar (ChatGPT style, collapses to icons) ---------- */
 .sidebar {
   width:260px;min-width:260px;height:100%;
   padding:10px 8px;background:var(--sidebar);
+  border-right:1px solid #141625;
   display:flex;flex-direction:column;overflow:hidden;
-  transition:width .2s,min-width .2s;
+  transition:width .2s ease,min-width .2s ease;
   position:relative;z-index:30;
 }
-.sidebar.collapsed { width:64px;min-width:64px; }
+.sidebar.collapsed { width:60px;min-width:60px; }
 .sidebar-top {
   height:46px;display:flex;align-items:center;
   justify-content:space-between;padding:0 4px;margin-bottom:8px;
 }
-.brand { display:flex;align-items:center;gap:9px;padding-left:6px; }
-.brand-mark { color:var(--accent);font-size:25px;line-height:1; }
-.brand-name { font-size:19px;font-weight:600; }
+.brand { display:flex;align-items:center;gap:9px;padding-left:6px;min-width:0; }
+.brand-mark {
+  color:var(--accent);font-size:25px;line-height:1;flex-shrink:0;
+  text-shadow:0 0 14px #a78bfa66;
+}
+.brand-name { font-size:19px;font-weight:600;color:var(--silver); }
 .icon-button {
   width:38px;height:38px;flex-shrink:0;
   display:inline-flex;align-items:center;justify-content:center;
   border:0;border-radius:10px;background:transparent;
-  color:var(--muted);font-size:19px;cursor:pointer;
+  color:var(--muted);font-size:18px;cursor:pointer;
 }
 .icon-button:hover { background:var(--hover);color:var(--text); }
 .new-chat {
   width:100%;min-height:40px;display:flex;
   align-items:center;gap:11px;padding:0 10px;
   border:0;border-radius:10px;background:transparent;
-  cursor:pointer;text-align:left;white-space:nowrap;font-size:14px;
+  cursor:pointer;text-align:left;white-space:nowrap;font-size:14px;color:var(--text);
 }
 .new-chat:hover { background:var(--hover); }
-.new-chat-symbol { font-size:20px;line-height:1;width:22px;text-align:center;color:var(--text); }
+.new-chat-symbol { font-size:18px;line-height:1;width:22px;text-align:center;color:var(--text);flex-shrink:0; }
 .sidebar-label { padding:22px 10px 8px;font-size:12px;color:var(--muted); }
 .recent-list { flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin; }
 .recent-item {
   width:100%;display:block;overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap;
   text-align:left;padding:9px 10px;
-  border:0;border-radius:10px;
+  border:0;border-radius:10px;color:var(--text);
   background:transparent;font-size:14px;cursor:pointer;
 }
 .recent-item:hover,.recent-item.active { background:var(--hover); }
-.recent-empty { padding:10px;font-size:12px;color:#898990; }
+.recent-empty { padding:10px;font-size:12px;color:#6e6f80; }
 .sidebar-bottom {
   display:flex;align-items:center;gap:8px;
-  padding-top:8px;border-top:1px solid #353638;
+  padding-top:8px;border-top:1px solid #161828;
 }
 .sidebar.collapsed .hide-collapsed { display:none; }
 .sidebar.collapsed .sidebar-top { justify-content:center;padding:0; }
@@ -93,48 +104,60 @@ button:disabled { opacity:.55;cursor:wait; }
   display:grid;grid-template-columns:1fr auto 1fr;
   align-items:center;gap:12px;
 }
-.topbar-left { display:flex;align-items:center; }
+.topbar-left { display:flex;align-items:center;gap:6px;min-width:0; }
 .status {
   display:flex;align-items:center;gap:7px;justify-content:flex-end;
   font-size:12px;color:var(--muted);
 }
-.status-dot { width:7px;height:7px;border-radius:50%;background:#888; }
-.status-dot.online { background:#81c995; }
-.status-dot.busy { background:#e6c27a; }
-.status-dot.error { background:#ff8a80; }
+.status-dot { width:7px;height:7px;border-radius:50%;background:#555;flex-shrink:0; }
+.status-dot.online { background:#81c995;box-shadow:0 0 8px #81c99588; }
+.status-dot.busy { background:#e6c27a;box-shadow:0 0 8px #e6c27a88; }
+.status-dot.error { background:#ff8a80;box-shadow:0 0 8px #ff8a8088; }
 .mobile-menu { display:none!important; }
 
-/* Chat / Code switch */
+/* Top pill (ChatGPT style) */
 .switch {
   display:flex;padding:4px;gap:2px;
-  background:var(--surface);border-radius:999px;
+  background:var(--surface);border:1px solid var(--border);border-radius:999px;
 }
 .switch-btn {
   min-width:84px;padding:8px 20px;border:0;border-radius:999px;
   background:transparent;color:var(--muted);
   font-size:14px;font-weight:550;cursor:pointer;
-  transition:background .15s,color .15s;
 }
-.switch-btn:hover { color:var(--text); }
-.switch-btn.active { background:#33343a;color:var(--text); }
-.switch-btn .sw-icon { color:var(--accent);margin-right:5px; }
+.switch-btn.active { background:#242636;color:var(--silver); }
+.switch-btn { display:inline-flex;align-items:center;justify-content:center;gap:6px; }
+.switch-btn:hover { color:var(--silver); }
+.switch-btn .sw-icon {
+  width:15px;height:15px;flex-shrink:0;color:var(--accent);
+  fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;
+}
 
 /* Conversation */
 .conversation { flex:1;min-height:0;overflow-y:auto;scroll-behavior:smooth; }
 .welcome {
-  width:min(760px,calc(100% - 40px));
+  width:min(720px,calc(100% - 40px));
   margin:0 auto;min-height:100%;
   display:flex;flex-direction:column;justify-content:center;
-  padding:0 0 12vh;
+  padding:0 0 10vh;
 }
 .greeting {
-  margin:0 0 10px;text-align:center;
-  font-size:clamp(30px,4vw,40px);
-  line-height:1.2;letter-spacing:-1.2px;font-weight:500;
-  background:linear-gradient(105deg,#c4b5fd,#e7dcff 45%,#d5d6e1);
+  margin:0 0 12px;text-align:center;
+  font-size:clamp(28px,4vw,38px);
+  line-height:1.25;letter-spacing:-1px;font-weight:500;
+  background:linear-gradient(105deg,#a78bfa 0%,#c4b5fd 30%,#e8e6f2 50%,#c4b5fd 70%,#a78bfa 100%);
+  background-size:200% auto;
   color:transparent;background-clip:text;-webkit-background-clip:text;
+  animation:sheen 9s linear infinite;
+  filter:drop-shadow(0 0 22px #a78bfa33);
 }
-.subtitle { margin:0 0 26px;text-align:center;color:var(--muted);font-size:15px;line-height:1.6; }
+@keyframes sheen {
+  0% { background-position:0% center; }
+  100% { background-position:200% center; }
+}
+.subtitle { margin:0 0 4px;text-align:center;color:var(--muted);font-size:15px;line-height:1.6; }
+
 .suggestions {
   display:flex;flex-wrap:wrap;justify-content:center;
   gap:9px;margin-top:20px;
@@ -142,14 +165,14 @@ button:disabled { opacity:.55;cursor:wait; }
 .suggestion {
   padding:10px 16px;display:flex;align-items:center;gap:8px;
   border:1px solid var(--border);border-radius:999px;
-  background:transparent;cursor:pointer;
-  font-size:13px;transition:background .15s;
+  background:rgba(16,18,30,.6);cursor:pointer;color:var(--text);
+  font-size:13px;transition:background .15s,border-color .15s;
 }
-.suggestion:hover { background:var(--surface); }
+.suggestion:hover { background:var(--hover);border-color:#333650; }
 .suggestion-icon { color:var(--accent);font-size:15px; }
 
 .messages {
-  width:min(760px,calc(100% - 40px));
+  width:min(720px,calc(100% - 40px));
   margin:0 auto;padding:24px 0 32px;
   display:flex;flex-direction:column;gap:25px;
 }
@@ -157,11 +180,20 @@ button:disabled { opacity:.55;cursor:wait; }
 .message.user { align-items:flex-end; }
 .user-bubble {
   max-width:min(88%,600px);padding:12px 16px;
-  background:#292a2c;border-radius:20px 20px 5px 20px;
+  background:#1a1c2c;border:1px solid #242842;border-radius:20px 20px 5px 20px;
   white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.65;
 }
-.message-role { display:flex;align-items:center;gap:8px;color:#b7b7bd;font-size:12px;font-weight:600; }
-.role-mark { color:var(--accent);font-size:17px; }
+.message-role { display:flex;align-items:center;gap:8px;color:#a7a7b8;font-size:12px;font-weight:600; }
+.role-mark { color:var(--accent);font-size:17px;line-height:1; }
+/* Glowing aster while Aster is answering */
+.role-mark.glowing {
+  color:#e4d7ff;
+  animation:asterGlow 1.1s ease-in-out infinite;
+}
+@keyframes asterGlow {
+  0%,100% { text-shadow:0 0 6px #c4b5fd66;transform:scale(1); }
+  50% { text-shadow:0 0 16px #c4b5fd,0 0 42px #a78bfa99;transform:scale(1.15); }
+}
 .message-body { min-width:0;font-size:15px;line-height:1.8;overflow-wrap:anywhere; }
 .message-body p { margin:0 0 13px; }
 .message-body p:last-child { margin-bottom:0; }
@@ -171,22 +203,22 @@ button:disabled { opacity:.55;cursor:wait; }
 .message-body h3 { font-size:17px; }
 .message-body ul,.message-body ol { padding-left:24px;margin:8px 0 14px; }
 .message-body li { margin:5px 0; }
-.message-body blockquote { margin:13px 0;padding-left:13px;border-left:3px solid var(--accent);color:#c4c4cb; }
-.message-body pre { max-width:100%;overflow:auto;padding:14px;border:1px solid var(--border);border-radius:12px;background:#191a1b; }
+.message-body blockquote { margin:13px 0;padding-left:13px;border-left:3px solid var(--accent);color:#b8b8c6; }
+.message-body pre { max-width:100%;overflow:auto;padding:14px;border:1px solid var(--border);border-radius:12px;background:#0a0c15; }
 .message-body pre code { background:transparent;padding:0;white-space:pre; }
-.message-body code { font-family:Consolas,monospace;font-size:.9em;background:#303033;padding:2px 5px;border-radius:5px; }
+.message-body code { font-family:Consolas,monospace;font-size:.9em;background:#1d2032;padding:2px 5px;border-radius:5px; }
 .message-body a { color:#c4b5fd;text-decoration:underline; }
 .message-body a:hover { color:#e4d7ff; }
+.message-body hr { border:0;border-top:1px solid var(--border);margin:15px 0; }
 .table-wrap { max-width:100%;overflow-x:auto;margin:14px 0;border:1px solid var(--border);border-radius:10px; }
 .message-body table { width:100%;border-collapse:collapse;font-size:13px; }
 .message-body th,.message-body td { padding:9px 11px;text-align:left;vertical-align:top;border-bottom:1px solid var(--border); }
-.message-body th { background:#28272e;color:#e2d8ff; }
+.message-body th { background:#171a2b;color:#dcd4ff; }
 .message-body tr:last-child td { border-bottom:0; }
 .message-actions { display:flex;align-items:center;gap:5px;flex-wrap:wrap;min-height:26px; }
-.small-action { padding:5px 8px;border:0;border-radius:8px;background:transparent;color:#9999a1;font-size:12px;cursor:pointer; }
-.small-action:hover { background:#292a2c;color:var(--text); }
+.small-action { padding:5px 8px;border:0;border-radius:8px;background:transparent;color:#8a8b9c;font-size:12px;cursor:pointer; }
+.small-action:hover { background:#1a1c2c;color:var(--text); }
 .message-error { color:#ffb4ab; }
-.sources { margin-top:15px;padding-top:11px;border-top:1px solid var(--border);font-size:12px;color:var(--muted); }
 .typing { display:flex;gap:5px;padding:8px 0; }
 .typing span { width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1s infinite; }
 .typing span:nth-child(2) { animation-delay:.15s; }
@@ -197,99 +229,159 @@ button:disabled { opacity:.55;cursor:wait; }
 }
 
 /* ---------- Composer (ChatGPT pill) ---------- */
-.bottom-area { flex-shrink:0;padding:8px 20px 10px;background:var(--bg); }
-.bottom-inner { width:min(760px,100%);margin:0 auto; }
+.bottom-area { flex-shrink:0;padding:8px 20px 12px;background:transparent; }
+.bottom-inner { width:min(720px,100%);margin:0 auto; }
 .composer-slot { width:100%; }
 .composer {
-  width:100%;min-height:56px;padding:8px 8px 8px 10px;
+  width:100%;min-height:56px;padding:7px 8px 7px 6px;
   display:flex;align-items:center;gap:4px;
-  border:1px solid #3a3b3d;border-radius:30px;background:#1e1f20;
+  border:1px solid #262941;border-radius:28px;background:#0d0f1b;
   transition:border-color .2s,box-shadow .2s,background .2s;
 }
 .composer:focus-within {
   border-color:#b5a0ff;
-  box-shadow:0 0 0 1px #b5a0ff33,0 0 20px #a78bfa12;
-  background:#222124;
+  box-shadow:0 0 0 1px #b5a0ff33,0 0 26px #a78bfa1f;
+  background:#101223;
 }
+.plus-button {
+  width:36px;height:36px;min-width:36px;margin-right:2px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:0;border-radius:50%;background:transparent;
+  color:var(--silver);font-size:21px;cursor:pointer;
+}
+.plus-button:hover { background:var(--hover); }
 .composer textarea {
   display:block;flex:1;min-width:0;min-height:36px;max-height:170px;
-  padding:7px 8px;resize:none;outline:none;border:0;
+  padding:7px 6px;resize:none;outline:none;border:0;
   background:transparent;color:var(--text);font-size:16px;line-height:1.5;
 }
-.composer textarea::placeholder { color:#a3a3aa; }
+.composer textarea::placeholder { color:#6f7082; }
+.composer textarea:disabled { opacity:.6; }
 .dropdown-wrap { position:relative;flex-shrink:0; }
 .dropdown-button {
   min-height:36px;padding:0 10px;
   display:flex;align-items:center;gap:6px;
   border:1px solid transparent;border-radius:18px;
-  background:transparent;color:#d8d8dc;
+  background:transparent;color:#c9c9d4;
   font-size:13px;white-space:nowrap;cursor:pointer;
 }
-.dropdown-button:hover,.dropdown-button.active { background:#303133;border-color:#444548; }
+.dropdown-button:hover,.dropdown-button.active { background:#1a1c2e;border-color:#2c3050; }
 .dropdown-icon { color:var(--accent);font-size:17px; }
 .chevron { color:var(--muted);font-size:10px; }
 .dropdown-menu {
   display:none;position:absolute;bottom:calc(100% + 12px);width:235px;padding:7px;
-  background:#252627;border:1px solid #414244;border-radius:15px;
-  box-shadow:0 12px 35px #0008;z-index:50;
+  background:#12141f;border:1px solid #2a2e48;border-radius:15px;
+  box-shadow:0 12px 35px #000a;z-index:50;
 }
 .mode-wrap .dropdown-menu { left:0; }
-.top-button { font-size:17px;font-weight:550;padding:0 12px;min-height:40px; }
+.top-button { font-size:16px;font-weight:550;padding:0 12px;min-height:40px;color:var(--silver); }
 .top-wrap .dropdown-menu { left:0;bottom:auto;top:calc(100% + 8px); }
 .think-wrap .dropdown-menu { right:0; }
 .dropdown-menu.open { display:block; }
-.menu-heading { padding:8px 10px;font-size:10px;color:#a0a0a6;text-transform:uppercase;letter-spacing:.5px; }
+.menu-heading { padding:8px 10px;font-size:10px;color:#83849a;text-transform:uppercase;letter-spacing:.5px; }
 .menu-option {
   width:100%;display:flex;align-items:center;justify-content:space-between;
-  gap:10px;padding:10px;border:0;border-radius:10px;
+  gap:10px;padding:10px;border:0;border-radius:10px;color:var(--text);
   background:transparent;text-align:left;cursor:pointer;font-size:12px;
 }
-.menu-option:hover { background:#343537; }
+.menu-option:hover { background:#1c1f33; }
 .menu-option.selected { background:var(--accent-soft);color:#e3d9ff; }
-.option-description { display:block;margin-top:3px;font-size:11px;line-height:1.4;color:#a3a3aa; }
+.option-description { display:block;margin-top:3px;font-size:11px;line-height:1.4;color:#83849a; }
 .option-check { color:var(--accent); }
-.send-button {
-  width:40px;height:40px;min-width:40px;margin-left:2px;
-  display:flex;align-items:center;justify-content:center;
-  border:0;border-radius:50%;background:#e4d7ff;color:#211a2c;
-  font-size:23px;cursor:pointer;transition:background .15s,transform .15s;
+
+/* Google-style "Search the web" pill inside the composer */
+.search-pill {
+  min-height:36px;padding:0 13px;flex-shrink:0;
+  display:flex;align-items:center;gap:7px;
+  border:1px solid #2c3050;border-radius:999px;
+  background:transparent;color:#c9c9d4;
+  font-size:13px;white-space:nowrap;cursor:pointer;
+  transition:background .15s,border-color .15s,color .15s,box-shadow .15s;
 }
-.send-button:hover:not(:disabled) { background:#f1eaff;transform:scale(1.04); }
-.send-button:disabled { background:#38383b;color:#85858c; }
-.disclaimer { margin-top:9px;text-align:center;color:#85858b;font-size:11px;line-height:1.4; }
+.search-pill:hover { background:#181b2e;border-color:#3a3f66; }
+.search-pill.active {
+  background:linear-gradient(120deg,#241d3d,#1a1430);
+  border-color:#8b7bd8;color:#e4d7ff;
+  box-shadow:0 0 14px #a78bfa33;
+}
+.search-pill .sparkle {
+  width:20px;height:20px;flex-shrink:0;color:var(--accent);
+  fill:none;stroke:currentColor;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+.search-pill .sparkle .spark { fill:currentColor;stroke-width:1; }
+
+.send-button {
+  width:38px;height:38px;min-width:38px;margin-left:4px;
+  display:flex;align-items:center;justify-content:center;
+  border:0;border-radius:50%;
+  background:linear-gradient(135deg,#e4d7ff,#c4b5fd);color:#14101f;
+  font-size:21px;cursor:pointer;transition:transform .15s,box-shadow .15s,opacity .15s;
+}
+.send-button:hover:not(:disabled) { transform:scale(1.06);box-shadow:0 0 18px #a78bfa55; }
+.send-button:disabled { background:#23242f;color:#717182;box-shadow:none; }
+.disclaimer { margin-top:10px;text-align:center;color:#63647a;font-size:11px;line-height:1.4; }
 .toast {
   position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
   display:none;max-width:calc(100% - 30px);padding:11px 15px;
-  border:1px solid #494a4d;border-radius:12px;
-  background:#303133;box-shadow:0 5px 20px #0005;color:#eee;font-size:13px;z-index:100;
+  border:1px solid #2e3150;border-radius:12px;
+  background:#191c2e;box-shadow:0 5px 20px #0008;color:#eee;font-size:13px;z-index:100;
 }
 .toast.visible { display:block; }
 .mobile-overlay { display:none; }
 
+/* ---------- Tablet ---------- */
+@media(max-width:1024px) {
+  .sidebar { width:230px;min-width:230px; }
+  .welcome,.messages,.bottom-inner { width:min(680px,calc(100% - 36px)); }
+}
+
+/* ---------- Mobile ---------- */
 @media(max-width:760px) {
   .sidebar {
     position:fixed;inset:0 auto 0 0;height:100dvh;
     width:270px;min-width:270px;transform:translateX(-105%);
     transition:transform .2s;
   }
-  .sidebar.mobile-open { transform:translateX(0);box-shadow:15px 0 50px #0007; }
+  .sidebar.mobile-open { transform:translateX(0);box-shadow:15px 0 50px #000a; }
   .sidebar.collapsed { width:270px;min-width:270px; }
   .sidebar.collapsed .hide-collapsed { display:initial; }
   .sidebar.collapsed .sidebar-top { justify-content:space-between;padding:0 4px; }
   .sidebar.collapsed .new-chat { justify-content:flex-start;padding:0 10px; }
   .sidebar.collapsed .sidebar-bottom { justify-content:flex-start; }
-  .mobile-overlay.visible { display:block;position:fixed;inset:0;background:#0008;z-index:29; }
-  .topbar { height:54px;min-height:54px;padding:0 8px;gap:6px; }
+  .mobile-overlay.visible { display:block;position:fixed;inset:0;background:#0009;z-index:29; }
+  .topbar { height:54px;min-height:54px;padding:0 10px;gap:6px; }
   .mobile-menu { display:inline-flex!important; }
-  .switch-btn { min-width:68px;padding:7px 14px;font-size:13px; }
+  .top-button { font-size:14px;min-height:36px;padding:0 8px; }
+  .switch { padding:3px; }
+  .switch-btn { min-width:64px;padding:6px 14px;font-size:13px; }
+  .switch-btn .sw-icon { width:13px;height:13px; }
+  .topbar { display:flex; }
+  .topbar-left { flex:1 1 0;min-width:0; }
+  .top-wrap { min-width:0; }
+  .top-button { max-width:100%;min-width:0; }
+  #modeLabel2 { overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+  .status { flex-shrink:0; }
   .status span#statusText { display:none; }
-  .welcome { width:calc(100% - 28px); }
+  .welcome { width:calc(100% - 28px);padding-bottom:6vh; }
+  .greeting { font-size:clamp(24px,7vw,30px); }
+  .subtitle { font-size:14px;padding:0 6px; }
   .messages { width:calc(100% - 30px);padding-top:20px; }
-  .bottom-area { padding:7px 10px; }
-  .composer { border-radius:26px;padding:6px 6px 6px 8px; }
-  .composer textarea { font-size:15px; }
+  .bottom-area { padding:7px 10px 10px; }
+  .composer { border-radius:24px;padding:5px 5px 5px 2px;gap:2px; }
+  .composer textarea { font-size:15px;padding:7px 4px; }
   .dropdown-button { padding:0 7px;font-size:12px; }
-  .dropdown-icon + #modeLabel,.mode-wrap .chevron { display:none; }
+  .mode-wrap .dropdown-icon + #modeLabel,
+  .mode-wrap .chevron,
+  .think-wrap .dropdown-button #thinkingLabel,
+  .think-wrap .chevron { display:none; }
+  .search-pill { padding:0 10px; }
+  .search-pill .search-pill-text { display:none; }
+  .search-pill { min-width:36px;justify-content:center; }
+  .plus-button { min-width:34px;width:34px;height:34px; }
+  .send-button { width:34px;height:34px;min-width:34px;font-size:19px;margin-left:2px; }
+  .suggestions { gap:7px;margin-top:16px; }
+  .suggestion { padding:9px 13px;font-size:12px; }
   .message-body table { font-size:12px; }
   .message-body th,.message-body td { padding:7px; }
 }
@@ -297,6 +389,7 @@ button:disabled { opacity:.55;cursor:wait; }
   *,*::before,*::after { animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important; }
 }
 </style>
+<base target="_blank">
 </head>
 
 <body>
@@ -312,8 +405,8 @@ button:disabled { opacity:.55;cursor:wait; }
       <button class="icon-button" id="sidebarToggle" aria-label="Toggle sidebar" title="Toggle sidebar">☰</button>
     </div>
 
-    <button class="new-chat" id="newChat">
-      <span class="new-chat-symbol">＋</span>
+    <button class="new-chat" id="newChat" title="New chat">
+      <span class="new-chat-symbol">✎</span>
       <span class="hide-collapsed">New chat</span>
     </button>
 
@@ -324,7 +417,7 @@ button:disabled { opacity:.55;cursor:wait; }
 
     <div class="sidebar-bottom">
       <button class="icon-button" id="connectionButton" title="Check Dew connection" aria-label="Check Dew connection">◉</button>
-      <span class="hide-collapsed" style="font-size:12px;color:#96969d">Dew connection</span>
+      <span class="hide-collapsed" style="font-size:12px;color:#83849a">Dew connection</span>
     </div>
   </aside>
 
@@ -352,8 +445,8 @@ button:disabled { opacity:.55;cursor:wait; }
       </div>
 
       <div class="switch" role="tablist" aria-label="Chat or Code">
-        <button class="switch-btn active" id="tabChat" data-tab="Chat" role="tab" aria-selected="true">Chat</button>
-        <button class="switch-btn" id="tabCode" data-tab="Code" role="tab" aria-selected="false"><span class="sw-icon">⌘</span>Code</button>
+        <button type="button" class="switch-btn active" id="tabChat" data-tab="Chat" role="tab" aria-selected="true">Chat</button>
+        <button type="button" class="switch-btn" id="tabCode" data-tab="Code" role="tab" aria-selected="false"><svg class="sw-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/></svg>Code</button>
       </div>
 
       <div class="status" aria-live="polite">
@@ -364,7 +457,7 @@ button:disabled { opacity:.55;cursor:wait; }
 
     <section class="conversation" id="conversation">
       <div class="welcome" id="welcome">
-        <h1 class="greeting" id="greeting">Where should we start?</h1>
+        <h1 class="greeting" id="greeting">Where should we begin?</h1>
         <p class="subtitle" id="subtitle">A little curiosity can lead somewhere interesting.</p>
         <div class="composer-slot" id="welcomeSlot"></div>
 
@@ -395,6 +488,8 @@ button:disabled { opacity:.55;cursor:wait; }
 </div>
 
 <form class="composer" id="chatForm">
+  <button type="button" class="plus-button" id="plusButton" aria-label="New line" title="Focus input">＋</button>
+
   <div class="dropdown-wrap mode-wrap">
     <button type="button" class="dropdown-button" id="modeButton" aria-haspopup="true" aria-expanded="false">
       <span class="dropdown-icon">✳</span>
@@ -415,7 +510,11 @@ button:disabled { opacity:.55;cursor:wait; }
   </div>
 
   <textarea id="messageInput" rows="1" maxlength="1200"
-    placeholder="Ask Dew anything" aria-label="Message Dew" required></textarea>
+    placeholder="Ask Dew anything" aria-label="Message Dew"></textarea>
+
+  <button type="button" class="search-pill" id="searchPill" aria-pressed="false" title="Search the web">
+    <svg class="sparkle" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.8"/><path d="M15.6 15.6l5.2 5.2"/><path class="spark" transform="translate(.8 -.6)" d="M10.5 6.9l.95 2.65 2.65.95-2.65.95-.95 2.65-.95-2.65-2.65-.95 2.65-.95z"/></svg><span class="search-pill-text">Search</span>
+  </button>
 
   <div class="dropdown-wrap think-wrap">
     <button type="button" class="dropdown-button" id="thinkingButton" aria-haspopup="true" aria-expanded="false">
@@ -454,31 +553,276 @@ const messages = $("messages");
 const input = $("messageInput");
 const composer = $("chatForm");
 const sendButton = $("sendButton");
+const searchPill = $("searchPill");
 
 let selectedMode = "Standard";
 let selectedReasoning = "Medium";
 let selectedTab = "Chat";
+let webSearchOn = false;
 let isSending = false;
 let currentChatId = null;
 let chats = [];
 let toastTimer;
 
-const greetings = [
-  ["Where should we start?", "A little curiosity can lead somewhere interesting."],
-  ["What's on your mind?", "Bring a question, a challenge, or a new idea."],
-  ["Let's explore something.", "From a quick question to a complicated problem."],
-  ["Ready when you are.", "Think it through, build it, or figure it out."],
-  ["What are we working on?", "Every interesting idea starts somewhere."]
+/* ---------- Time-aware greeting + a large pool of motivational lines ---------- */
+
+const motivationalLines = [
+"Your next breakthrough is closer than it feels.",
+"Start messy. Refine later. Just start.",
+"Today's effort is tomorrow's advantage.",
+"Ask the question you've been saving.",
+"Great things begin with a quiet decision.",
+"One focused hour can change a whole week.",
+"Let's turn the spark into something real.",
+"You're allowed to be a beginner at something brilliant.",
+"Clear thinking starts with a good question.",
+"Build it badly, then build it better.",
+"Momentum is made of tiny, honest steps.",
+"Whatever you're carrying, we can break it into pieces.",
+"Your idea deserves a real chance.",
+"Show up today. Your future self is watching.",
+"Bold plans begin as small experiments.",
+"Let curiosity set the pace.",
+"The hardest part is showing up, and you're here.",
+"Take the thought out of your head and into the world.",
+"Every skill you have began as a first attempt.",
+"Trade someday for right now.",
+"There is a version of this problem that's easy. Let's find it.",
+"Make something you'd be proud to show someone.",
+"Confidence is built by doing, not waiting.",
+"Slow progress is still progress.",
+"You don't have to see the whole road to take the next step.",
+"Let's make the complicated feel simple.",
+"Good ideas get better when they're said out loud.",
+"Fear is just excitement without a plan. Let's make a plan.",
+"What would you try if you knew you couldn't fail?",
+"Think freely first. Edit later.",
+"Another day, another chance to get a little better.",
+"The work you do when no one's watching builds the life people notice.",
+"Your pace is your own. Keep moving.",
+"Today can be the day it clicks.",
+"Not sure where to begin? Begin anywhere.",
+"Ideas grow when you feed them attention.",
+"Let's find the next small win.",
+"You're closer to clarity than you think.",
+"Reach a little further than feels comfortable.",
+"The world is still waiting for what only you can make.",
+"Persistence is a quiet superpower.",
+"Trust the process, then trust yourself.",
+"Mistakes are just the first draft of wisdom.",
+"Be curious before you're certain.",
+"Turn today's questions into tomorrow's answers.",
+"The best ideas often start as the strangest ones.",
+"Keep the goal big and the steps small.",
+"Lead with curiosity and the rest will follow.",
+"A single honest effort beats a hundred perfect plans.",
+"Some days you push. Some days you plan. Both count.",
+"Let's make progress you can actually feel.",
+"Your story is still being written. Add a good line.",
+"Pick one thing. Do it well. Then pick the next.",
+"You bring the vision. I'll help with the details.",
+"Stay patient with the process and stubborn about the goal.",
+"Even the longest journey is just steps in a row.",
+"Discipline today buys freedom tomorrow.",
+"Let's give that idea a shape.",
+"When it feels hard, it usually means you're growing.",
+"Think of it as a puzzle, not a problem.",
+"The right question can save you a month.",
+"There's no wrong place to start.",
+"Nothing great was built by waiting for perfect.",
+"Make a little room for something new.",
+"Ask big. Break it down. Move forward.",
+"Your curiosity is already a head start.",
+"Do the thing your future self will thank you for.",
+"Let's take that rough idea and sharpen it.",
+"Stay open. The best answers surprise you.",
+"Courage is just starting while you're still a little scared.",
+"Today's challenge is tomorrow's story.",
+"Learn it once, use it for a lifetime.",
+"Your focus is your most valuable tool. Aim it well.",
+"Small habits, big outcomes.",
+"Don't wait for inspiration. Build the habit and it will come.",
+"Think deeply, move decisively.",
+"You're not behind. You're on your own path.",
+"Let's make today a little more productive than yesterday.",
+"A good plan today beats a perfect plan never.",
+"Clarity is one conversation away.",
+"Whatever it is, it's easier once it's started.",
+"Let's get your thoughts in order.",
+"Go further than you did yesterday, even by an inch.",
+"A fresh question can unlock a stuck idea.",
+"The ones who ask more, learn more.",
+"Keep your standards high and your first drafts loose.",
+"Ready to turn effort into results?",
+"Let's make the next hour count.",
+"Progress isn't loud. It just keeps showing up.",
+"Find the one thing that moves everything else.",
+"Chase understanding, and the results will follow.",
+"Make today's version better than the last.",
+"Your goals are waiting. Let's go meet them.",
+"Be kind to yourself and relentless with your goals.",
+"Where you are is a fine place to start.",
+"It only takes one idea to change direction.",
+"Bring your toughest question. We'll take it apart.",
+"Craft something that outlasts the day.",
+"Let's build momentum, one message at a time.",
+"The path gets clearer once you move.",
+"Every finished thing was once a half-written note.",
+"Take the first step, then take another.",
+"Turn your curiosity loose.",
+"Let your questions lead you somewhere new.",
+"A little courage goes a long way.",
+"You're capable of more than your to-do list suggests.",
+"Stay steady. Stay curious. Stay building.",
+"Sharpen the idea, then ship it.",
+"Make room for the version of you that finishes.",
+"Meaningful work starts with a single sentence.",
+"What's one thing you could finish today?",
+"Great answers start with honest questions.",
+"Let's make it clear, then make it great.",
+"Your effort adds up even when you can't see it.",
+"Think wide, then narrow down.",
+"Break the big thing into a first small thing.",
+"Let's make something worth remembering.",
+"Possibility lives wherever you decide to look.",
+"Rest when you need to, then come back stronger.",
+"No pressure. Just progress.",
+"You've already done the hardest part: you started.",
+"Treat today like a blank canvas and a good pencil.",
+"The best time to learn something new is whenever you're curious.",
+"Make a plan you can actually follow.",
+"Reach for the idea that scares you a little.",
+"Every step you take narrows the gap.",
+"Let's get unstuck.",
+"The simplest next step is usually the right one.",
+"Doing something imperfect beats doing nothing perfectly.",
+"Dream with your eyes open.",
+"You've got the curiosity. Let's add the momentum.",
+"Ready when you are, whatever it is.",
+"Invest a little attention in your biggest idea.",
+"Keep climbing. The view keeps getting better.",
+"Let's turn thinking into doing.",
+"What are you building toward?",
+"Grow a little every single day.",
+"Start small enough to begin, big enough to matter.",
+"You don't need permission to start.",
+"Today has room for one great thing."
 ];
 
-const codeGreeting = ["What should we build?", "Describe it and Dew will help you write the code."];
+const codeLines = [
+"Every great app started as a blinking cursor.",
+"Write code your future self will thank you for.",
+"Ship small, ship often, learn fast.",
+"Bugs are just lessons wearing a disguise.",
+"Make it work, make it right, make it fast.",
+"Break the problem down until each piece is easy.",
+"A clear function name saves a hundred comments.",
+"Start with the simplest thing that could work.",
+"Debugging is detective work. Follow the clues.",
+"Describe what you want. We'll shape it into code.",
+"Great software is built one small commit at a time.",
+"Read the error. It's usually trying to help.",
+"Prototype first, polish later.",
+"Good code is clear before it's clever.",
+"Turn the idea in your head into something that runs.",
+"Stuck? Explain the problem out loud, step by step.",
+"The best refactor is the one that makes tomorrow easier.",
+"Test early. Sleep better.",
+"Build the tool you wish existed.",
+"Small scripts can solve big problems.",
+"Think in systems, build in steps.",
+"Naming things is hard. Let's make it easier.",
+"Paste the error, share the goal, and we'll fix it together.",
+"Ready to turn logic into something people love?",
+"Keep it simple. Complexity can wait.",
+"One working feature beats ten half-finished ones.",
+"Syntax is learnable. Curiosity is the real skill.",
+"Every expert dev has fixed a thousand silly bugs.",
+"What should we build first?",
+"A tidy codebase is a gift to your future self.",
+"Describe it in plain words. Code comes next.",
+"Let's get your project from idea to running.",
+"Edge cases are where good software earns its name.",
+"Version your work, trust your tests, ship with confidence.",
+"Even great engineers read the docs.",
+"Make the first version ugly. Make it work.",
+"Your next commit could be your best yet.",
+"Layout, logic, polish. In that order.",
+"Let's turn requirements into working code.",
+"Ask how it works, not just what to type.",
+"Slow is smooth, smooth is fast.",
+"Today's side project might become tomorrow's product."
+];
+
+function pick(array) {
+  return array[Math.floor(Math.random() * array.length)];
+}
+
+function greetingForTime() {
+  const h = new Date().getHours();
+
+  if (h >= 5 && h < 12) {
+    return pick([
+      "Good morning.",
+      "Rise and shine.",
+      "A fresh morning, a fresh start.",
+      "Morning — ready when you are.",
+      "The day is young. So is the idea."
+    ]);
+  }
+  if (h >= 12 && h < 17) {
+    return pick([
+      "Good afternoon.",
+      "Afternoon — let's get to it.",
+      "Midday momentum.",
+      "The day is moving. Keep it moving.",
+      "Halfway through, fully capable."
+    ]);
+  }
+  if (h >= 17 && h < 21) {
+    return pick([
+      "Good evening.",
+      "Evening — time to build.",
+      "The sun is down. The ideas are up.",
+      "Winding down, or leveling up?",
+      "A quiet evening for loud ideas."
+    ]);
+  }
+  if (h >= 21 && h < 24) {
+    return pick([
+      "Good night — still creating?",
+      "Night mode: on.",
+      "The quiet hours are powerful.",
+      "Late light, bright mind.",
+      "Stars out. Ideas out."
+    ]);
+  }
+  /* Midnight to dawn */
+  return pick([
+    "Up with the moon?",
+    "Midnight oil, burning bright.",
+    "The stars are out. So are you.",
+    "Dawn is near — start now.",
+    "The quietest hours make the loudest ideas."
+  ]);
+}
+
+let lastSubtitle = "";
+
+/* Subtitle under the greeting: general lines in Chat, code-themed lines in Code. */
+function setSubtitle() {
+  const pool = selectedTab === "Code" ? codeLines : motivationalLines;
+  let line = pick(pool);
+  for (let attempt = 0; attempt < 6 && line === lastSubtitle; attempt++) {
+    line = pick(pool);
+  }
+  lastSubtitle = line;
+  $("subtitle").textContent = line;
+}
 
 function setGreeting() {
-  const g = selectedTab === "Code"
-    ? codeGreeting
-    : greetings[Math.floor(Math.random() * greetings.length)];
-  $("greeting").textContent = g[0];
-  $("subtitle").textContent = g[1];
+  $("greeting").textContent = greetingForTime();
+  setSubtitle();
 }
 
 function setStatus(state, text) {
@@ -503,22 +847,6 @@ function moveComposerToWelcome() {
   $("welcomeSlot").appendChild(composer);
   $("suggestions").hidden = false;
 }
-
-/* Chat / Code switch */
-function setTab(tab) {
-  selectedTab = tab;
-  document.querySelectorAll("[data-tab]").forEach(button => {
-    const active = button.dataset.tab === tab;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-selected", String(active));
-  });
-  input.placeholder = tab === "Code" ? "Describe what you want to build" : "Ask Dew anything";
-  if (!welcome.hidden) setGreeting();
-}
-
-document.querySelectorAll("[data-tab]").forEach(button => {
-  button.addEventListener("click", () => setTab(button.dataset.tab));
-});
 
 /* Dropdowns */
 const dropdownPairs = [
@@ -576,10 +904,22 @@ function refreshOptions(attribute, selected, labelId, prefix = "") {
   if (labelId === "modeLabel") $("modeLabel2").textContent = prefix + selected;
 }
 
+function syncSearchPill() {
+  searchPill.classList.toggle("active", webSearchOn);
+  searchPill.setAttribute("aria-pressed", String(webSearchOn));
+}
+
+function setMode(mode, fromPill = false) {
+  selectedMode = mode;
+  webSearchOn = mode === "Search";
+  refreshOptions("data-mode", selectedMode, "modeLabel", "Dew ");
+  syncSearchPill();
+  if (fromPill) showToast(webSearchOn ? "Web search on." : "Web search off.");
+}
+
 document.querySelectorAll("[data-mode]").forEach(button => {
   button.addEventListener("click", () => {
-    selectedMode = button.dataset.mode;
-    refreshOptions("data-mode", selectedMode, "modeLabel", "Dew ");
+    setMode(button.dataset.mode);
     closeDropdowns();
   });
 });
@@ -591,6 +931,40 @@ document.querySelectorAll("[data-thinking]").forEach(button => {
     closeDropdowns();
   });
 });
+
+/* Google-style search pill: toggles Dew Search mode */
+searchPill.addEventListener("click", event => {
+  event.stopPropagation();
+  setMode(webSearchOn ? "Standard" : "Search", true);
+  input.focus();
+});
+
+/* Chat / Code pill */
+function updatePlaceholder() {
+  input.placeholder = selectedTab === "Code"
+    ? "Describe what to build"
+    : "Ask Dew anything";
+}
+
+function setTab(tab) {
+  if (tab === selectedTab) return;
+  selectedTab = tab;
+  document.querySelectorAll("[data-tab]").forEach(button => {
+    const active = button.dataset.tab === tab;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", String(active));
+  });
+  updatePlaceholder();
+  if (!welcome.hidden) setSubtitle();   /* main greeting stays; only the subtitle changes */
+  input.focus();
+}
+
+document.querySelectorAll("[data-tab]").forEach(button => {
+  button.addEventListener("click", () => setTab(button.dataset.tab));
+});
+
+/* Plus button focuses the input (ChatGPT-style attach slot) */
+$("plusButton").addEventListener("click", () => input.focus());
 
 /* Sidebar and mobile navigation */
 function closeMobileSidebar() {
@@ -939,7 +1313,7 @@ function addTyping() {
   label.className = "message-role";
 
   const mark = document.createElement("span");
-  mark.className = "role-mark";
+  mark.className = "role-mark glowing";   /* glowing while answering */
   mark.textContent = "✳";
 
   const name = document.createElement("span");
@@ -1023,7 +1397,7 @@ function addSources(answer, sources) {
   ).join("\n");
 }
 
-/* Friendly error messages (fixed: now used inside sendMessage) */
+/* Friendly error messages */
 const friendlyMessages = {
   SEARCH_UNAVAILABLE: "I can’t access web search right now. Please try again shortly.",
   TEMPORARILY_UNAVAILABLE: "Dew is temporarily busy right now. Please try again shortly.",
@@ -1037,7 +1411,11 @@ const friendlyMessages = {
 
 async function sendMessage(rawMessage) {
   const message = rawMessage.trim();
-  if (!message || isSending) return;
+  if (!message) {
+    showToast("Please enter a message first.");
+    return;
+  }
+  if (isSending) return;
 
   if (message.length > 1200) {
     showToast("Messages must be 1,200 characters or fewer.");
@@ -1065,7 +1443,7 @@ async function sendMessage(rawMessage) {
 
     const answerWithSources = addSources(result.answer, result.sources);
     renderMessage("assistant", answerWithSources);
-    setStatus("online", "Connected");
+    setStatus("online", "API reachable");
   } catch (error) {
     $("typingIndicator")?.remove();
     console.error("Dew request failed:", error);
@@ -1127,7 +1505,7 @@ $("newChat").addEventListener("click", () => {
   moveComposerToWelcome();
   input.value = "";
   resizeInput();
-  setGreeting();
+  setGreeting();   /* brand-new time-based greeting every new chat */
   closeDropdowns();
   closeMobileSidebar();
   refreshRecentList();
@@ -1135,7 +1513,7 @@ $("newChat").addEventListener("click", () => {
   input.focus();
 });
 
-/* Check the deployed health endpoint, not Colab. */
+/* Check the deployed health endpoint. */
 async function checkConnection(showResult = false) {
   setStatus("", "Checking connection");
   const controller = new AbortController();
@@ -1179,6 +1557,8 @@ moveComposerToWelcome();
 setGreeting();
 refreshOptions("data-mode", selectedMode, "modeLabel", "Dew ");
 refreshOptions("data-thinking", selectedReasoning, "thinkingLabel");
+syncSearchPill();
+updatePlaceholder();
 refreshRecentList();
 checkConnection();
 </script>
