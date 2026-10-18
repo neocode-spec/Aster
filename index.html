@@ -273,10 +273,36 @@ button:disabled { opacity:.55;cursor:wait; }
   background:#12141f;border:1px solid #2a2e48;border-radius:15px;
   box-shadow:0 12px 35px #000a;z-index:50;
 }
-.mode-wrap .dropdown-menu { left:0; }
 .top-button { font-size:16px;font-weight:550;padding:0 12px;min-height:40px;color:var(--silver); }
 .top-wrap .dropdown-menu { left:0;bottom:auto;top:calc(100% + 8px); }
-.think-wrap .dropdown-menu { right:0; }
+/* Thinking level (Low / Medium / High): opens as a sheet pinned to the bottom of the screen */
+.sheet-backdrop {
+  display:none;position:fixed;inset:0;z-index:49;
+  background:rgba(1,2,8,.62);
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+}
+.sheet-backdrop.visible { display:block; }
+.think-wrap .dropdown-menu {
+  position:fixed;left:50%;right:auto;top:auto;
+  bottom:calc(18px + env(safe-area-inset-bottom));
+  width:min(520px,calc(100vw - 24px));
+  padding:10px;border-radius:20px;
+  transform:translateX(-50%);
+  z-index:50;
+  box-shadow:0 -10px 50px #000b,0 0 34px #a78bfa22;
+}
+.think-wrap .dropdown-menu.open { animation:sheetUp .22s ease both; }
+@keyframes sheetUp {
+  from { opacity:0;transform:translateX(-50%) translateY(26px); }
+  to { opacity:1;transform:translateX(-50%) translateY(0); }
+}
+@keyframes sheetUpMobile {
+  from { transform:translateY(100%); }
+  to { transform:translateY(0); }
+}
+.think-wrap .menu-heading { font-size:12px;padding:8px 12px 10px; }
+.think-wrap .menu-option { padding:14px 12px;font-size:15px; }
+.think-wrap .option-description { font-size:12.5px; }
 .dropdown-menu.open { display:block; }
 .menu-heading { padding:8px 10px;font-size:10px;color:#83849a;text-transform:uppercase;letter-spacing:.5px; }
 .menu-option {
@@ -371,8 +397,6 @@ button:disabled { opacity:.55;cursor:wait; }
   .composer { border-radius:24px;padding:5px 5px 5px 2px;gap:2px; }
   .composer textarea { font-size:15px;padding:7px 4px; }
   .dropdown-button { padding:0 7px;font-size:12px; }
-  .mode-wrap .dropdown-icon + #modeLabel,
-  .mode-wrap .chevron,
   .think-wrap .dropdown-button #thinkingLabel,
   .think-wrap .chevron { display:none; }
   .search-pill { padding:0 10px; }
@@ -385,6 +409,22 @@ button:disabled { opacity:.55;cursor:wait; }
   .message-body table { font-size:12px; }
   .message-body th,.message-body td { padding:7px; }
 }
+/* Phones: the sheet spans the full width of the screen and the backdrop covers everything */
+@media(max-width:760px) {
+  .think-wrap .dropdown-menu {
+    left:0;right:0;bottom:0;width:auto;transform:none;
+    border-radius:24px 24px 0 0;border-width:1px 0 0;
+    padding:10px 14px calc(20px + env(safe-area-inset-bottom));
+  }
+  .think-wrap .dropdown-menu.open { animation:sheetUpMobile .26s ease both; }
+  .think-wrap .dropdown-menu::before {
+    content:"";display:block;width:40px;height:4px;border-radius:4px;
+    background:#3a3e5c;margin:2px auto 8px;
+  }
+  .think-wrap .menu-heading { font-size:12px;padding:6px 8px 10px; }
+  .think-wrap .menu-option { padding:17px 14px;font-size:16px;border-radius:14px; }
+  .think-wrap .option-description { font-size:13px; }
+}
 @media(prefers-reduced-motion:reduce) {
   *,*::before,*::after { animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important; }
 }
@@ -395,6 +435,7 @@ button:disabled { opacity:.55;cursor:wait; }
 <body>
 <div class="app">
   <div class="mobile-overlay" id="mobileOverlay"></div>
+  <div class="sheet-backdrop" id="sheetBackdrop"></div>
 
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-top">
@@ -489,25 +530,6 @@ button:disabled { opacity:.55;cursor:wait; }
 
 <form class="composer" id="chatForm">
   <button type="button" class="plus-button" id="plusButton" aria-label="New line" title="Focus input">＋</button>
-
-  <div class="dropdown-wrap mode-wrap">
-    <button type="button" class="dropdown-button" id="modeButton" aria-haspopup="true" aria-expanded="false">
-      <span class="dropdown-icon">✳</span>
-      <span id="modeLabel">Dew Standard</span><span class="chevron">▾</span>
-    </button>
-    <div class="dropdown-menu" id="modeMenu" role="menu">
-      <div class="menu-heading">Choose Dew mode</div>
-      <button type="button" class="menu-option selected" data-mode="Standard" role="menuitemradio" aria-checked="true">
-        <span><strong>Dew Standard</strong><span class="option-description">Everyday work, writing and coding</span></span><span class="option-check">✓</span>
-      </button>
-      <button type="button" class="menu-option" data-mode="Extended" role="menuitemradio" aria-checked="false">
-        <span><strong>Dew Extended</strong><span class="option-description">More involved tasks</span></span><span class="option-check"></span>
-      </button>
-      <button type="button" class="menu-option" data-mode="Search" role="menuitemradio" aria-checked="false">
-        <span><strong>Dew Search</strong><span class="option-description">Web-oriented questions</span></span><span class="option-check"></span>
-      </button>
-    </div>
-  </div>
 
   <textarea id="messageInput" rows="1" maxlength="1200"
     placeholder="Ask Dew anything" aria-label="Message Dew"></textarea>
@@ -851,11 +873,13 @@ function moveComposerToWelcome() {
 /* Dropdowns */
 const dropdownPairs = [
   [$("modeButton2"), $("modeMenu2")],
-  [$("modeButton"), $("modeMenu")],
   [$("thinkingButton"), $("thinkingMenu")]
 ];
 
+const sheetBackdrop = $("sheetBackdrop");
+
 function closeDropdowns() {
+  sheetBackdrop.classList.remove("visible");
   dropdownPairs.forEach(([button, menu]) => {
     menu.classList.remove("open");
     button.classList.remove("active");
@@ -870,17 +894,13 @@ function toggleDropdown(button, menu) {
     menu.classList.add("open");
     button.classList.add("active");
     button.setAttribute("aria-expanded", "true");
+    sheetBackdrop.classList.toggle("visible", menu === $("thinkingMenu"));
   }
 }
 
 $("modeButton2").addEventListener("click", event => {
   event.stopPropagation();
   toggleDropdown($("modeButton2"), $("modeMenu2"));
-});
-
-$("modeButton").addEventListener("click", event => {
-  event.stopPropagation();
-  toggleDropdown($("modeButton"), $("modeMenu"));
 });
 
 $("thinkingButton").addEventListener("click", event => {
@@ -892,6 +912,10 @@ document.addEventListener("click", event => {
   if (!event.target.closest(".dropdown-wrap")) closeDropdowns();
 });
 
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") closeDropdowns();
+});
+
 function refreshOptions(attribute, selected, labelId, prefix = "") {
   document.querySelectorAll("[" + attribute + "]").forEach(button => {
     const active = button.getAttribute(attribute) === selected;
@@ -901,7 +925,6 @@ function refreshOptions(attribute, selected, labelId, prefix = "") {
     if (check) check.textContent = active ? "✓" : "";
   });
   $(labelId).textContent = prefix + selected;
-  if (labelId === "modeLabel") $("modeLabel2").textContent = prefix + selected;
 }
 
 function syncSearchPill() {
@@ -912,7 +935,7 @@ function syncSearchPill() {
 function setMode(mode, fromPill = false) {
   selectedMode = mode;
   webSearchOn = mode === "Search";
-  refreshOptions("data-mode", selectedMode, "modeLabel", "Dew ");
+  refreshOptions("data-mode", selectedMode, "modeLabel2", "Dew ");
   syncSearchPill();
   if (fromPill) showToast(webSearchOn ? "Web search on." : "Web search off.");
 }
@@ -1555,7 +1578,7 @@ $("connectionButton").addEventListener("click", () => checkConnection(true));
 /* Initial view */
 moveComposerToWelcome();
 setGreeting();
-refreshOptions("data-mode", selectedMode, "modeLabel", "Dew ");
+refreshOptions("data-mode", selectedMode, "modeLabel2", "Dew ");
 refreshOptions("data-thinking", selectedReasoning, "thinkingLabel");
 syncSearchPill();
 updatePlaceholder();
