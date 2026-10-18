@@ -425,6 +425,162 @@ button:disabled { opacity:.55;cursor:wait; }
   .think-wrap .menu-option { padding:17px 14px;font-size:16px;border-radius:14px; }
   .think-wrap .option-description { font-size:13px; }
 }
+/* ---------- Aster Authentication ---------- */
+.auth-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background:
+    radial-gradient(ellipse at 50% 0%, #21163e 0%, transparent 55%),
+    #05060c;
+  overflow-y: auto;
+}
+
+.auth-card {
+  width: min(420px, 100%);
+  padding: 30px;
+  border: 1px solid #29263e;
+  border-radius: 24px;
+  background: rgba(12, 13, 25, .96);
+  box-shadow: 0 0 60px #a78bfa12;
+}
+
+.auth-logo {
+  text-align: center;
+  color: #c4b5fd;
+  font-size: 38px;
+  text-shadow: 0 0 24px #a78bfa66;
+}
+
+.auth-card h1 {
+  margin: 12px 0 8px;
+  text-align: center;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.auth-description {
+  margin: 0 0 24px;
+  color: #9999ad;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.auth-form {
+  display: grid;
+  gap: 13px;
+}
+
+.auth-input {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 14px;
+  color: #eeeef5;
+  background: #090b16;
+  border: 1px solid #292c43;
+  border-radius: 12px;
+  outline: none;
+}
+
+.auth-input:focus {
+  border-color: #a78bfa;
+  box-shadow: 0 0 0 3px #a78bfa18;
+}
+
+.auth-primary,
+.auth-google {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.auth-primary {
+  border: 1px solid #c4b5fd;
+  background: linear-gradient(120deg, #e4d7ff, #b9a5fa);
+  color: #151020;
+}
+
+.auth-google {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  background: #111321;
+  border: 1px solid #303249;
+  color: #eeeef5;
+}
+
+.auth-primary:hover,
+.auth-google:hover {
+  filter: brightness(1.12);
+}
+
+.auth-links {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 17px;
+  font-size: 13px;
+}
+
+.auth-links button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #c4b5fd;
+  cursor: pointer;
+}
+
+.auth-error {
+  color: #ffaaa5;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  color: #77788c;
+  font-size: 12px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: #292c40;
+}
+
+.auth-screen button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+/* 16px inputs stop iPhones zooming in on focus */
+.auth-input { font-family: inherit; font-size: 16px; }
+.auth-input::placeholder { color: #6f7082; }
+@media (max-width: 480px) {
+  .auth-screen { padding: 14px; }
+  .auth-card { padding: 24px 20px; }
+}
+
+/* Log-out button in the sidebar footer */
+#logoutButton { margin-left: auto; }
+@media(min-width:761px) {
+  .sidebar.collapsed .sidebar-bottom { flex-direction: column; }
+  .sidebar.collapsed #logoutButton { margin-left: 0; }
+}
+
 @media(prefers-reduced-motion:reduce) {
   *,*::before,*::after { animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important; }
 }
@@ -433,7 +589,7 @@ button:disabled { opacity:.55;cursor:wait; }
 </head>
 
 <body>
-<div class="app">
+<div class="app" hidden>
   <div class="mobile-overlay" id="mobileOverlay"></div>
   <div class="sheet-backdrop" id="sheetBackdrop"></div>
 
@@ -459,6 +615,7 @@ button:disabled { opacity:.55;cursor:wait; }
     <div class="sidebar-bottom">
       <button class="icon-button" id="connectionButton" title="Check Dew connection" aria-label="Check Dew connection">◉</button>
       <span class="hide-collapsed" style="font-size:12px;color:#83849a">Dew connection</span>
+      <button class="icon-button" id="logoutButton" title="Log out" aria-label="Log out"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 4.5H6.5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2H9"/><path d="M15 8l4 4-4 4M19 12H9"/></svg></button>
     </div>
   </aside>
 
@@ -558,6 +715,56 @@ button:disabled { opacity:.55;cursor:wait; }
 
   <button type="submit" class="send-button" id="sendButton" aria-label="Send message" title="Send message">↑</button>
 </form>
+
+<section class="auth-screen" id="authScreen" hidden>
+  <div class="auth-card">
+    <div class="auth-logo" aria-hidden="true">✳</div>
+
+    <h1 id="authTitle">Welcome back</h1>
+    <p class="auth-description" id="authDescription">
+      Sign in to continue to your personal AI workspace.
+    </p>
+
+    <form class="auth-form" id="authForm">
+      <input
+        class="auth-input"
+        id="authEmail"
+        type="email"
+        placeholder="Email address"
+        autocomplete="email"
+        required
+      >
+
+      <input
+        class="auth-input"
+        id="authPassword"
+        type="password"
+        placeholder="Password"
+        autocomplete="current-password"
+        minlength="6"
+        required
+      >
+
+      <div class="auth-error" id="authError" role="alert" hidden></div>
+
+      <button class="auth-primary" id="authSubmit" type="submit">
+        Log in
+      </button>
+    </form>
+
+    <div class="auth-divider">or</div>
+
+    <button class="auth-google" id="googleAuth" type="button">
+      <span aria-hidden="true">G</span>
+      Continue with Google
+    </button>
+
+    <div class="auth-links">
+      <button id="authSwitch" type="button">Create account</button>
+      <button id="forgotPassword" type="button">Forgot password?</button>
+    </div>
+  </div>
+</section>
 
 <script>
 "use strict";
@@ -1356,10 +1563,22 @@ function addTyping() {
 async function getDewReply(message) {
   let response;
 
+  const headers = { "Content-Type": "application/json" };
+
+  /* Attach the signed-in user's Firebase ID token (provided by the auth module). */
+  if (typeof window.asterGetIdToken === "function") {
+    try {
+      headers.Authorization = "Bearer " + await window.asterGetIdToken();
+    } catch (error) {
+      console.error("Aster auth token error:", error);
+      throw new Error("Please sign in to use Aster.");
+    }
+  }
+
   try {
     response = await fetch(DEW_API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({
         message,
         mode: "Dew " + selectedMode,
@@ -1575,6 +1794,26 @@ async function checkConnection(showResult = false) {
 
 $("connectionButton").addEventListener("click", () => checkConnection(true));
 
+/* Log out (the auth module reloads the page once Firebase confirms the sign-out). */
+$("logoutButton").addEventListener("click", async () => {
+  if (isSending) {
+    showToast("Wait for Dew to finish before logging out.");
+    return;
+  }
+
+  if (typeof window.asterSignOut !== "function") {
+    showToast("Sign-in service is not ready yet.");
+    return;
+  }
+
+  try {
+    await window.asterSignOut();
+  } catch (error) {
+    console.error("Aster sign-out error:", error);
+    showToast("Could not log out. Please try again.");
+  }
+});
+
 /* Initial view */
 moveComposerToWelcome();
 setGreeting();
@@ -1584,8 +1823,189 @@ syncSearchPill();
 updatePlaceholder();
 refreshRecentList();
 checkConnection();
+
+/* Sign-in gate failsafe: never leave a blank page if the auth module cannot load. */
+setTimeout(() => {
+  if (window.asterAuthReady) return;
+  const screen = $("authScreen");
+  const error = $("authError");
+  screen.hidden = false;
+  error.textContent = "Could not reach the sign-in service. Check your connection and reload the page.";
+  error.hidden = false;
+}, 8000);
 </script>
 
 <script type="module" src="/firebase.js"></script>
+
+<script type="module">
+import {
+  auth,
+  googleProvider
+} from "/firebase.js";
+
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  sendPasswordResetEmail,
+  signOut
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+
+const el = id => document.getElementById(id);
+
+const authScreen = el("authScreen");
+const authForm = el("authForm");
+const authEmail = el("authEmail");
+const authPassword = el("authPassword");
+const authError = el("authError");
+const authSubmit = el("authSubmit");
+
+let authMode = "login";
+let authReady = false;
+let hadUser = false;
+
+function showAuthError(message) {
+  authError.textContent = message;
+  authError.hidden = !message;
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+
+  const creating = mode === "signup";
+
+  el("authTitle").textContent =
+    creating ? "Create your account" : "Welcome back";
+
+  el("authDescription").textContent = creating
+    ? "Create an account to access your Aster workspace."
+    : "Sign in to continue to your personal AI workspace.";
+
+  authSubmit.textContent = creating ? "Create account" : "Log in";
+  el("authSwitch").textContent =
+    creating ? "Already have an account? Log in" : "Create account";
+
+  el("forgotPassword").hidden = creating;
+  authPassword.autocomplete =
+    creating ? "new-password" : "current-password";
+
+  showAuthError("");
+}
+
+function firebaseErrorMessage(error) {
+  const messages = {
+    "auth/invalid-email": "Enter a valid email address.",
+    "auth/user-not-found": "No account was found for that email.",
+    "auth/wrong-password": "Incorrect email or password.",
+    "auth/invalid-credential": "Email or password is incorrect.",
+    "auth/email-already-in-use": "An account already exists for this email.",
+    "auth/weak-password": "Choose a stronger password with at least six characters.",
+    "auth/popup-closed-by-user": "Google sign-in was cancelled.",
+    "auth/popup-blocked": "Your browser blocked the Google sign-in window.",
+    "auth/too-many-requests": "Too many attempts. Try again later.",
+    "auth/network-request-failed": "Network error. Check your connection.",
+    "auth/operation-not-allowed": "This sign-in method is not enabled in Firebase.",
+    "auth/unauthorized-domain": "This website domain is not authorized in Firebase."
+  };
+
+  return messages[error?.code] ||
+    "Authentication failed. Please check your details and try again.";
+}
+
+async function runAuth(action) {
+  if (!authReady) return;
+
+  authSubmit.disabled = true;
+  el("googleAuth").disabled = true;
+  showAuthError("");
+
+  try {
+    await action();
+  } catch (error) {
+    console.error("Aster authentication error:", error);
+    showAuthError(firebaseErrorMessage(error));
+  } finally {
+    authSubmit.disabled = false;
+    el("googleAuth").disabled = false;
+  }
+}
+
+authForm.addEventListener("submit", event => {
+  event.preventDefault();
+
+  const email = authEmail.value.trim();
+  const password = authPassword.value;
+
+  runAuth(() => authMode === "signup"
+    ? createUserWithEmailAndPassword(auth, email, password)
+    : signInWithEmailAndPassword(auth, email, password)
+  );
+});
+
+el("authSwitch").addEventListener("click", () => {
+  setAuthMode(authMode === "login" ? "signup" : "login");
+});
+
+el("forgotPassword").addEventListener("click", () => {
+  const email = authEmail.value.trim();
+
+  if (!email) {
+    showAuthError("Enter your email address first.");
+    authEmail.focus();
+    return;
+  }
+
+  runAuth(async () => {
+    await sendPasswordResetEmail(auth, email);
+    showAuthError("");
+    alert("If the address is registered, a password reset email can be sent. Check your inbox.");
+  });
+});
+
+el("googleAuth").addEventListener("click", () => {
+  runAuth(() => signInWithPopup(auth, googleProvider));
+});
+
+/* Keep the existing Aster interface behind the authentication gate.
+   Both the app and the sign-in screen stay hidden until Firebase has reported
+   who is signed in, so neither flashes on screen. */
+const app = document.querySelector(".app");
+
+onAuthStateChanged(auth, user => {
+  authReady = true;
+  window.asterAuthReady = true;
+
+  if (user) {
+    hadUser = true;
+    authPassword.value = "";
+    showAuthError("");
+    authScreen.hidden = true;
+    app.hidden = false;
+    if (typeof window.resizeInput === "function") window.resizeInput();
+  } else {
+    /* Signed out (any route): reload so no previous chats stay in memory. */
+    if (hadUser) {
+      window.location.reload();
+      return;
+    }
+
+    app.hidden = true;
+    authScreen.hidden = false;
+    setAuthMode("login");
+  }
+});
+
+/* Expose the current user's ID token to the existing chat script. */
+window.asterGetIdToken = async () => {
+  if (!auth.currentUser) {
+    throw new Error("Please sign in to use Aster.");
+  }
+
+  return auth.currentUser.getIdToken();
+};
+
+window.asterSignOut = () => signOut(auth);
+</script>
 </body>
 </html>
