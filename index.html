@@ -631,6 +631,31 @@ let authInstance = null;
 let googleProviderInstance = null;
 let authInitialized = false;
 
+// Helpers to store and restore persistent chats for the active user account
+function getStorageKey() {
+  const uid = window.asterCurrentUser?.uid;
+  return uid ? "aster_chats_" + uid : "aster_chats_guest";
+}
+
+function loadPersistedChats() {
+  try {
+    const raw = localStorage.getItem(getStorageKey());
+    chats = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(chats)) chats = [];
+  } catch (err) {
+    console.warn("Could not load chats from storage:", err);
+    chats = [];
+  }
+}
+
+function persistChats() {
+  try {
+    localStorage.setItem(getStorageKey(), JSON.stringify(chats));
+  } catch (err) {
+    console.warn("Could not save chats to storage:", err);
+  }
+}
+
 function showToast(message) {
   const toast = $("toast");
   toast.textContent = message;
@@ -911,18 +936,19 @@ function renderMarkdown(markdown) {
 }
 
 function getCurrentChat() {
-  return chats.find(chat => chat.id === currentChatId) || null;
+  return chats.find(chat => String(chat.id) === String(currentChatId)) || null;
 }
 function ensureChat() {
   let chat = getCurrentChat();
   if (chat) return chat;
   chat = {
-    id: Date.now() + Math.floor(Math.random() * 100000),
+    id: "chat_" + Date.now() + "_" + Math.floor(Math.random() * 10000),
     title: "New conversation",
     messages: []
   };
   chats.unshift(chat);
   currentChatId = chat.id;
+  persistChats();
   return chat;
 }
 function refreshRecentList() {
@@ -940,7 +966,7 @@ function refreshRecentList() {
   chats.forEach(chat => {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "recent-item" + (chat.id === currentChatId ? " active" : "");
+    button.className = "recent-item" + (String(chat.id) === String(currentChatId) ? " active" : "");
     button.textContent = chat.title;
     button.title = chat.title;
     button.addEventListener("click", () => {
@@ -959,6 +985,7 @@ function saveMessage(role, text) {
   if (role === "user" && chat.messages.length === 1) {
     chat.title = text.replace(/\s+/g, " ").slice(0, 42) || "New conversation";
   }
+  persistChats();
   refreshRecentList();
   return chat.messages.length - 1;
 }
@@ -1032,6 +1059,7 @@ function editMessage(index) {
   if (!chat || !chat.messages[index] || chat.messages[index].role !== "user") return;
   input.value = chat.messages[index].text;
   chat.messages.splice(index);
+  persistChats();
   renderHistory(chat);
   resizeInput();
   input.focus();
@@ -1069,6 +1097,7 @@ async function getDewReply(message) {
       },
       body: JSON.stringify({
         message,
+        conversationId: String(currentChatId || "main"),
         mode: "Dew " + selectedMode,
         thinking: selectedReasoning,
         tab: selectedTab
@@ -1291,8 +1320,25 @@ function showAuthenticated(user) {
     $("accountEmail").textContent = user.displayName || user.email || "Signed in";
     setStatus("", "Checking connection");
     checkConnection();
+
+    // Load persisted chats for this logged in account and restore recent view
+    loadPersistedChats();
+    refreshRecentList();
+    if (chats.length > 0) {
+      currentChatId = chats[0].id;
+      renderHistory(chats[0]);
+    } else {
+      currentChatId = null;
+      messages.replaceChildren();
+      messages.hidden = true;
+      welcome.hidden = false;
+      moveComposerToWelcome();
+    }
   } else {
     setAuthMode("login");
+    chats = [];
+    currentChatId = null;
+    refreshRecentList();
   }
 }
 
@@ -1381,6 +1427,7 @@ $("signOutButton").addEventListener("click", async () => {
 });
 
 function initApp() {
+  loadPersistedChats();
   moveComposerToWelcome();
   setGreeting();
   syncSearchButton();
@@ -1424,18 +1471,7 @@ try {
     window.asterCurrentUser = user || null;
     window.asterAuthInitialized = true;
 
-    const app = document.getElementById("app");
-    const authScreen = document.getElementById("authScreen");
-    app.hidden = !user;
-    authScreen.hidden = Boolean(user);
-    document.body.classList.toggle("authenticated", Boolean(user));
-
-    if (user) {
-      document.getElementById("accountEmail").textContent =
-        user.displayName || user.email || "Signed in";
-      document.getElementById("statusText").textContent = "Checking connection";
-      document.getElementById("connectionButton").click();
-    }
+    showAuthenticated(user);
   }, error => {
     console.error("Firebase auth state error:", error);
     document.getElementById("authStatus").textContent =
