@@ -1,1522 +1,1510 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#05060c">
-<title>Aster</title>
-<!-- Page icon (Aster Logo) -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23080a12'/><text x='16' y='24' font-size='22' text-anchor='middle' fill='%23c4b5fd' font-family='sans-serif'>✳</text></svg>">
-<style>
-:root {
-  color-scheme: dark;
-  --bg: #05060c;
-  --panel: #0c0e19;
-  --surface: #111321;
-  --hover: #1b1d30;
-  --border: #292c43;
-  --text: #e7e6ef;
-  --muted: #9293a8;
-  --purple: #c4b5fd;
-  --silver: #dedee9;
-}
-* { box-sizing: border-box; }
-[hidden] { display: none !important; }
-html, body { margin: 0; width: 100%; height: 100%; }
-body {
-  color: var(--text);
-  background:
-    radial-gradient(ellipse at 50% -15%, #211638 0%, transparent 55%),
-    radial-gradient(ellipse at 90% 100%, #10172b 0%, transparent 50%),
-    var(--bg);
-  background-attachment: fixed;
-  font-family: Inter, "Segoe UI", Arial, sans-serif;
-}
-button, input, textarea { font: inherit; }
-button { color: inherit; cursor: pointer; }
-button:disabled { opacity: .55; cursor: wait; }
-button:focus-visible, input:focus-visible, textarea:focus-visible {
-  outline: 2px solid var(--purple);
-  outline-offset: 3px;
-}
-.app { display: flex; width: 100%; height: 100dvh; }
-.sidebar {
-  width: 250px; min-width: 250px; padding: 12px 9px;
-  background: #080a12; border-right: 1px solid #191a2a;
-  display: flex; flex-direction: column; gap: 9px;
-  transition: width .25s ease, min-width .25s ease, padding .25s ease, border-color .25s ease;
-  z-index: 30;
-  overflow: hidden;
-  white-space: nowrap;
-}
-/* When collapsed, sidebar smoothly enters inside completely (no mini strip) */
-.sidebar.collapsed {
-  width: 0 !important;
-  min-width: 0 !important;
-  padding: 0 !important;
-  border-right: 0 !important;
-  visibility: hidden;
-  pointer-events: none;
-}
-.brand {
-  height: 44px; display: flex; align-items: center;
-  gap: 10px; padding: 0 8px; font-size: 19px;
-}
-.brand-mark {
-  color: var(--purple); font-size: 27px;
-  text-shadow: 0 0 20px #a78bfa88;
-}
-.brand-name { color: var(--silver); }
-.icon-button, .new-chat, .recent-item {
-  border: 0; background: transparent; border-radius: 10px;
-}
-.icon-button {
-  width: 38px; height: 38px; flex-shrink: 0;
-  display: inline-grid; place-items: center;
-  color: var(--muted); font-size: 20px;
-}
-.icon-button:hover, .new-chat:hover, .recent-item:hover {
-  background: var(--hover); color: var(--text);
-}
-.sidebar-top {
-  display: flex; align-items: center; justify-content: space-between;
-}
-.new-chat {
-  display: flex; align-items: center; gap: 10px;
-  padding: 11px; text-align: left; white-space: nowrap;
-}
-.sidebar-label {
-  padding: 20px 10px 5px; color: var(--muted); font-size: 12px;
-}
-.recent-list { flex: 1; min-height: 0; overflow-y: auto; }
-.recent-item {
-  display: block; width: 100%; padding: 10px;
-  text-align: left; overflow: hidden; white-space: nowrap;
-  text-overflow: ellipsis; font-size: 13px;
-}
-.recent-item.active { background: var(--hover); }
-.recent-empty { padding: 10px; color: var(--muted); font-size: 12px; }
-.sidebar-bottom {
-  border-top: 1px solid #202135; padding-top: 9px;
-  display: flex; align-items: center; gap: 8px;
-}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#05060c">
+  <title>Aster</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%2305060c%22/><text x=%2216%22 y=%2225%22 text-anchor=%22middle%22 font-size=%2225%22 fill=%22%23c4b5fd%22>✳</text></svg>">
 
-.main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.topbar {
-  height: 62px; flex-shrink: 0; padding: 0 16px;
-  display: grid; grid-template-columns: 1fr auto 1fr;
-  align-items: center; gap: 12px;
-}
-.topbar-left { display: flex; align-items: center; gap: 9px; }
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #05060c;
+      --panel: #0b0d17;
+      --surface: #111321;
+      --border: #292c43;
+      --text: #e7e6ef;
+      --muted: #9293a8;
+      --purple: #c4b5fd;
+      --silver: #dedee9;
+    }
 
-/* Aster logo button in topbar - shows when sidebar collapses */
-.topbar-brand {
-  display: none;
-  align-items: center;
-  gap: 9px;
-  background: transparent;
-  border: 0;
-  padding: 6px 10px;
-  border-radius: 10px;
-  cursor: pointer;
-  color: var(--text);
-  transition: background .2s, opacity .2s;
-  animation: fadeIn .25s ease;
-}
-.topbar-brand:hover { background: var(--hover); }
-.topbar-brand .topbar-brand-icon {
-  color: var(--muted);
-  font-size: 18px;
-}
-.topbar-brand .brand-mark {
-  color: var(--purple);
-  font-size: 24px;
-  line-height: 1;
-  text-shadow: 0 0 16px #a78bfa88;
-}
-.topbar-brand .brand-name {
-  color: var(--silver);
-  font-size: 17px;
-  font-weight: 500;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateX(-6px); }
-  to { opacity: 1; transform: translateX(0); }
-}
+    * { box-sizing: border-box; }
 
-.mode-wrap { position: relative; }
-.mode-button {
-  min-height: 39px; max-width: 230px; padding: 0 13px;
-  border: 1px solid var(--border); border-radius: 22px;
-  background: #111321; color: var(--silver);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.dropdown-menu {
-  display: none; position: absolute; z-index: 60;
-  top: calc(100% + 9px); left: 0; width: 245px;
-  padding: 7px; border: 1px solid var(--border);
-  border-radius: 15px; background: #111321;
-  box-shadow: 0 15px 45px #000b;
-}
-.dropdown-menu.open { display: block; }
-.menu-heading {
-  padding: 8px 10px; color: var(--muted);
-  text-transform: uppercase; font-size: 10px; letter-spacing: .6px;
-}
-.menu-option {
-  width: 100%; padding: 10px; border: 0;
-  border-radius: 10px; display: flex;
-  justify-content: space-between; gap: 10px;
-  background: transparent; text-align: left; font-size: 13px;
-}
-.menu-option:hover { background: var(--hover); }
-.menu-option.selected { background: #29213f; color: #e6dcff; }
-.option-description {
-  display: block; margin-top: 4px;
-  color: var(--muted); font-size: 11px; line-height: 1.4;
-}
-.option-check { color: var(--purple); }
-.switch {
-  display: flex; gap: 3px; padding: 4px;
-  border: 1px solid var(--border); border-radius: 30px;
-  background: #10121f;
-}
-.switch-btn {
-  min-width: 75px; padding: 8px 17px;
-  border: 0; border-radius: 25px;
-  background: transparent; color: var(--muted);
-}
-.switch-btn.active { background: #27293b; color: var(--silver); }
-.status {
-  justify-self: end; display: flex; align-items: center;
-  gap: 7px; color: var(--muted); font-size: 11px;
-}
-.status-dot { width: 7px; height: 7px; border-radius: 50%; background: #555; }
-.status-dot.online { background: #81c995; box-shadow: 0 0 8px #81c99588; }
-.status-dot.busy { background: #e6c27a; }
-.status-dot.error { background: #ff8a80; }
-.conversation { flex: 1; min-height: 0; overflow-y: auto; scroll-behavior: smooth; }
-.welcome {
-  width: min(720px, calc(100% - 32px)); min-height: 100%;
-  margin: auto; padding: 0 0 8vh;
-  display: flex; flex-direction: column; justify-content: center;
-}
-.greeting {
-  margin: 0 0 13px; text-align: center;
-  font-size: clamp(27px, 4vw, 39px); font-weight: 500;
-  letter-spacing: -1px; line-height: 1.25;
-  background: linear-gradient(100deg, #a78bfa, #e8e6f2, #c4b5fd, #a78bfa);
-  background-size: 200% auto; color: transparent;
-  background-clip: text; -webkit-background-clip: text;
-  animation: sheen 8s linear infinite;
-  filter: drop-shadow(0 0 20px #a78bfa33);
-}
-@keyframes sheen { to { background-position: 200% center; } }
-.subtitle {
-  margin: 0 0 18px; text-align: center;
-  color: var(--muted); font-size: 14px; line-height: 1.7;
-}
-.suggestions {
-  display: flex; justify-content: center;
-  flex-wrap: wrap; gap: 9px; margin-top: 18px;
-}
-.suggestion {
-  padding: 10px 14px; border: 1px solid var(--border);
-  border-radius: 25px; background: #10121e;
-  color: var(--text); font-size: 12px;
-}
-.suggestion:hover { background: var(--hover); }
-.suggestion span { color: var(--purple); margin-right: 5px; }
+    [hidden] { display: none !important; }
 
-.messages {
-  width: min(720px, calc(100% - 32px)); margin: auto;
-  padding: 24px 0 30px; display: flex;
-  flex-direction: column; gap: 25px;
-}
-.message { display: flex; min-width: 0; flex-direction: column; gap: 8px; }
-.message.user { align-items: flex-end; }
-.user-bubble {
-  max-width: 90%; padding: 12px 16px;
-  border: 1px solid #292c46; border-radius: 19px 19px 5px 19px;
-  background: #191b2b; white-space: pre-wrap;
-  overflow-wrap: anywhere; font-size: 15px; line-height: 1.7;
-}
-.message-role {
-  display: flex; align-items: center; gap: 8px;
-  color: #b4b3c5; font-size: 12px; font-weight: 600;
-}
-.role-mark { color: var(--purple); font-size: 18px; }
-.role-mark.glowing { animation: glow 1.1s ease-in-out infinite; }
-@keyframes glow {
-  50% { text-shadow: 0 0 14px #c4b5fd, 0 0 35px #a78bfa; }
-}
-.message-body { font-size: 15px; line-height: 1.8; overflow-wrap: anywhere; }
-.message-body p { margin: 0 0 13px; }
-.message-body h1, .message-body h2, .message-body h3 { line-height: 1.4; }
-.message-body pre {
-  padding: 14px; max-width: 100%; overflow: auto;
-  background: #090b13; border: 1px solid var(--border); border-radius: 12px;
-}
-.message-body code {
-  padding: 2px 5px; border-radius: 5px;
-  background: #202237; font-family: Consolas, monospace; font-size: .9em;
-}
-.message-body pre code { background: transparent; padding: 0; }
-.message-body a { color: var(--purple); }
-.message-body blockquote {
-  border-left: 3px solid var(--purple); padding-left: 12px;
-  color: #b8b8c8; margin-left: 0;
-}
-.message-body table { border-collapse: collapse; width: 100%; font-size: 13px; }
-.message-body th, .message-body td {
-  padding: 8px; text-align: left; border-bottom: 1px solid var(--border);
-}
-.message-body th { background: #191b2b; }
-.table-wrap { overflow-x: auto; }
-.message-actions { display: flex; gap: 6px; }
-.small-action {
-  padding: 5px 8px; border: 0; border-radius: 7px;
-  background: transparent; color: var(--muted); font-size: 11px;
-}
-.small-action:hover { background: var(--hover); }
-.message-error { color: #ffb4ab; }
-.typing { display: flex; gap: 5px; padding: 8px 0; }
-.typing span {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--purple); animation: pulse 1s infinite;
-}
-.typing span:nth-child(2) { animation-delay: .15s; }
-.typing span:nth-child(3) { animation-delay: .3s; }
-@keyframes pulse {
-  30% { opacity: 1; transform: translateY(-4px); }
-  0%, 60%, 100% { opacity: .3; transform: none; }
-}
-.bottom-area { flex-shrink: 0; padding: 8px 18px 12px; }
-.bottom-inner { width: min(720px, 100%); margin: auto; }
-.composer-slot { width: 100%; }
-.composer {
-  display: flex; align-items: center; gap: 4px;
-  width: 100%; min-height: 57px; padding: 7px;
-  border: 1px solid #30334d; border-radius: 30px;
-  background: #0c0e19;
-  transition: box-shadow .2s, border-color .2s;
-}
-.composer:focus-within {
-  border-color: #b5a0ff;
-  box-shadow: 0 0 0 1px #b5a0ff33, 0 0 26px #a78bfa24;
-}
-.plus-button, .send-button {
-  width: 36px; height: 36px; min-width: 36px;
-  display: grid; place-items: center; border: 0; border-radius: 50%;
-}
-.plus-button { background: transparent; color: var(--silver); font-size: 21px; }
-.composer textarea {
-  flex: 1; min-width: 0; min-height: 36px; max-height: 160px;
-  resize: none; padding: 8px 5px; border: 0; outline: none;
-  background: transparent; color: var(--text); line-height: 1.5;
-}
-.composer textarea:focus-visible { outline: none; }
-.composer textarea::placeholder { color: #77798d; }
-.dropdown-button, .search-pill {
-  min-height: 36px; padding: 0 10px; flex-shrink: 0;
-  border: 1px solid transparent; border-radius: 20px;
-  background: transparent; color: #d0cfdd; font-size: 12px;
-  white-space: nowrap;
-}
-.dropdown-button:hover, .search-pill:hover { background: var(--hover); }
-.search-pill { display: flex; align-items: center; gap: 6px; }
-.search-pill.active {
-  border-color: #8b7bd8; background: #241d3d;
-  color: #e4d7ff; box-shadow: 0 0 15px #a78bfa22;
-}
-.search-pill svg { width: 19px; height: 19px; stroke: var(--purple); fill: none; }
-.send-button {
-  margin-left: 2px; background: linear-gradient(135deg, #e4d7ff, #b7a4ff);
-  color: #15101f; font-size: 21px;
-}
-.send-button:disabled { background: #282938; color: #777; }
-.disclaimer { margin-top: 9px; color: #707187; text-align: center; font-size: 10px; }
-.toast {
-  display: none; position: fixed; z-index: 150;
-  left: 50%; bottom: 90px; transform: translateX(-50%);
-  max-width: calc(100% - 30px); padding: 11px 15px;
-  background: #191c2e; border: 1px solid var(--border);
-  border-radius: 12px; box-shadow: 0 5px 20px #0008; font-size: 13px;
-}
-.toast.visible { display: block; }
-.sheet-backdrop {
-  display: none; position: fixed; inset: 0; z-index: 49;
-  background: #010208a8; backdrop-filter: blur(3px);
-}
-.sheet-backdrop.visible { display: block; }
-.think-wrap .dropdown-menu {
-  position: fixed; left: 50%; top: auto; bottom: 18px;
-  width: min(500px, calc(100vw - 24px)); transform: translateX(-50%);
-  z-index: 50; border-radius: 20px;
-}
-.think-wrap .menu-option { padding: 13px; }
-.auth-screen {
-  position: fixed; inset: 0; z-index: 1000;
-  display: flex; align-items: center; justify-content: center;
-  overflow-y: auto; padding: 22px;
-  background: radial-gradient(ellipse at 50% 0%, #21183b, transparent 55%), #05060c;
-}
-.auth-card {
-  width: min(430px, 100%); padding: 32px 28px 25px;
-  border: 1px solid #30304c; border-radius: 23px;
-  background: #0c0e19f5; box-shadow: 0 24px 90px #0009;
-}
-.auth-brand { text-align: center; margin-bottom: 25px; }
-.auth-brand .spark { color: var(--purple); font-size: 39px; }
-.auth-brand h1 { margin: 8px 0; font-size: 26px; font-weight: 600; }
-.auth-brand p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
-.auth-field { display: block; margin: 15px 0; }
-.auth-field span { display: block; margin-bottom: 7px; font-size: 12px; color: #c9c8d8; }
-.auth-field input {
-  width: 100%; padding: 13px 12px; border-radius: 11px;
-  border: 1px solid #30334b; background: #090b14; color: var(--text);
-}
-.auth-primary, .auth-google {
-  width: 100%; min-height: 45px; border-radius: 12px; font-size: 13px;
-}
-.auth-primary {
-  margin-top: 7px; border: 0; color: #171021;
-  background: linear-gradient(120deg, #e1d5ff, #b9a4ff);
-  font-weight: 650;
-}
-.auth-google {
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-  margin-top: 12px; background: #151724; border: 1px solid #35374e;
-}
-.auth-google .g { color: #e7e7ee; font-size: 17px; font-weight: 700; }
-.auth-divider {
-  display: flex; align-items: center; gap: 12px;
-  margin: 17px 0; color: #77798e; font-size: 11px;
-}
-.auth-divider::before, .auth-divider::after { content: ""; height: 1px; flex: 1; background: #292b40; }
-.auth-links {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 10px; margin-top: 16px; flex-wrap: wrap;
-}
-.auth-link { border: 0; background: transparent; color: #c9baff; font-size: 12px; }
-.auth-status { min-height: 18px; margin-top: 13px; color: #ffb4ab; font-size: 12px; line-height: 1.5; }
-.auth-status.success { color: #a6e3b5; }
-.auth-account { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      width: 100%;
+    }
 
-@media (max-width: 760px) {
-  .sidebar {
-    position: fixed; inset: 0 auto 0 0; height: 100dvh;
-    width: 270px; min-width: 270px;
-    transform: translateX(-105%); transition: transform .25s ease;
-  }
-  .sidebar.mobile-open { transform: translateX(0); box-shadow: 15px 0 50px #000a; }
-  .sidebar.collapsed { width: 270px !important; min-width: 270px !important; visibility: visible; }
-  .mobile-overlay.visible { display: block; position: fixed; inset: 0; background: #0009; z-index: 29; }
-  .topbar { height: 55px; display: flex; padding: 0 8px; gap: 5px; }
-  .topbar-left { flex: 1; min-width: 0; }
-  .topbar-brand { display: inline-flex !important; }
-  .mode-button { max-width: 155px; padding: 0 8px; font-size: 12px; }
-  .switch-btn { min-width: 54px; padding: 7px 10px; font-size: 12px; }
-  .status span:last-child { display: none; }
-  .welcome { width: calc(100% - 26px); padding-bottom: 5vh; }
-  .greeting { font-size: clamp(25px, 7vw, 32px); }
-  .subtitle { font-size: 13px; }
-  .messages { width: calc(100% - 28px); padding-top: 18px; }
-  .bottom-area { padding: 7px 8px 10px; }
-  .composer { gap: 2px; padding: 5px 4px; }
-  .composer textarea { font-size: 14px; padding: 7px 3px; }
-  .dropdown-button { padding: 0 7px; font-size: 11px; }
-  #thinkingLabel, .think-wrap .chevron { display: none; }
-  .search-pill { width: 35px; min-width: 35px; justify-content: center; padding: 0; }
-  .search-pill-text { display: none; }
-  .plus-button, .send-button { width: 33px; height: 33px; min-width: 33px; }
-  .think-wrap .dropdown-menu {
-    left: 0; right: 0; bottom: 0; width: 100%;
-    transform: none; border-radius: 22px 22px 0 0;
-    padding: 13px 14px calc(18px + env(safe-area-inset-bottom));
-  }
-  .think-wrap .menu-option { padding: 16px 12px; font-size: 14px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
-}
-</style>
+    body {
+      background:
+        radial-gradient(ellipse at 50% -20%, #25183b 0%, transparent 55%),
+        radial-gradient(ellipse at 100% 100%, #101a30 0%, transparent 45%),
+        var(--bg);
+      background-attachment: fixed;
+      color: var(--text);
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+    }
+
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; color: inherit; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+
+    button:focus-visible, input:focus-visible, textarea:focus-visible {
+      outline: 2px solid var(--purple);
+      outline-offset: 3px;
+    }
+
+    .app {
+      display: flex;
+      min-height: 100dvh;
+      width: 100%;
+    }
+
+    .sidebar {
+      width: 245px;
+      flex: 0 0 245px;
+      padding: 14px 10px;
+      background: #080a12;
+      border-right: 1px solid #1b1c2a;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      font-size: 18px;
+    }
+
+    .sparkle {
+      color: var(--purple);
+      font-size: 26px;
+      text-shadow: 0 0 18px #a78bfa88;
+    }
+
+    .new-chat, .side-button {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      background: transparent;
+      text-align: left;
+      color: var(--muted);
+    }
+
+    .new-chat:hover, .side-button:hover {
+      background: #171827;
+      color: var(--text);
+    }
+
+    .side-label {
+      margin: 12px 10px 4px;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      padding-top: 12px;
+      border-top: 1px solid #222335;
+    }
+
+    .main {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+      min-height: 100dvh;
+      flex-direction: column;
+    }
+
+    .topbar {
+      min-height: 65px;
+      padding: 12px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid #ffffff08;
+    }
+
+    .topbar-left, .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon-button {
+      width: 39px;
+      height: 39px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      color: var(--silver);
+    }
+
+    .icon-button:hover {
+      border-color: var(--purple);
+      box-shadow: 0 0 18px #a78bfa22;
+    }
+
+    .mode-wrap { position: relative; }
+
+    .mode-button {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: var(--surface);
+      color: var(--silver);
+    }
+
+    .mode-button:hover {
+      border-color: #8e79c8;
+    }
+
+    .dropdown {
+      position: absolute;
+      z-index: 20;
+      top: calc(100% + 8px);
+      left: 0;
+      width: 235px;
+      padding: 7px;
+      background: #111321;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      box-shadow: 0 16px 45px #000b;
+    }
+
+    .dropdown button {
+      display: block;
+      width: 100%;
+      padding: 11px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      text-align: left;
+    }
+
+    .dropdown button:hover,
+    .dropdown button.selected {
+      background: #29213f;
+      color: #e6dcff;
+    }
+
+    .dropdown small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #777;
+    }
+
+    .status-dot.online {
+      background: #81c995;
+      box-shadow: 0 0 8px #81c99588;
+    }
+
+    .status-dot.busy { background: #e6c27a; }
+    .status-dot.error { background: #ff8a80; }
+
+    .conversation {
+      flex: 1;
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 28px 22px 12px;
+    }
+
+    .welcome {
+      min-height: 55vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 0;
+    }
+
+    .greeting {
+      margin: 0 0 12px;
+      text-align: center;
+      font-size: clamp(29px, 4vw, 43px);
+      font-weight: 500;
+      letter-spacing: -1px;
+      background: linear-gradient(100deg, #a78bfa, #f0eef9, #c4b5fd);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 0 20px #a78bfa30);
+    }
+
+    .subtitle {
+      margin: 0 0 26px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .suggestions {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      max-width: 620px;
+    }
+
+    .suggestion {
+      padding: 16px;
+      min-height: 82px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: #10121fbb;
+      color: var(--silver);
+      text-align: left;
+      transition: border-color .2s, box-shadow .2s, transform .2s;
+    }
+
+    .suggestion:hover {
+      border-color: #9a83d7;
+      box-shadow: 0 0 22px #a78bfa20;
+      transform: translateY(-2px);
+    }
+
+    .suggestion small {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .messages {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      padding: 12px 0 32px;
+    }
+
+    .message {
+      max-width: 100%;
+      line-height: 1.75;
+      overflow-wrap: anywhere;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      max-width: 82%;
+      padding: 13px 17px;
+      border: 1px solid #8b78c533;
+      border-radius: 19px 19px 5px 19px;
+      background: #171526;
+      white-space: pre-wrap;
+    }
+
+    .message.assistant {
+      align-self: stretch;
+      padding: 4px 0;
+    }
+
+    .message-role {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      color: var(--silver);
+      font-size: 12px;
+    }
+
+    .message-role .sparkle { font-size: 18px; }
+
+    .message-content { white-space: pre-wrap; }
+
+    .message-content a {
+      color: var(--purple);
+      overflow-wrap: anywhere;
+    }
+
+    .composer-area {
+      width: 100%;
+      max-width: 850px;
+      margin: 0 auto;
+      padding: 12px 22px 22px;
+    }
+
+    .composer {
+      position: relative;
+      padding: 14px 14px 10px;
+      border: 1px solid #77748c;
+      border-radius: 25px;
+      background: #0d0e19;
+      box-shadow:
+        0 0 0 1px #ffffff05,
+        0 0 28px #a78bfa12;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .composer:focus-within {
+      border-color: #bdb2e7;
+      box-shadow:
+        0 0 0 1px #c4b5fd33,
+        0 0 34px #a78bfa30;
+    }
+
+    .composer textarea {
+      display: block;
+      width: 100%;
+      min-height: 48px;
+      max-height: 180px;
+      resize: none;
+      border: 0;
+      outline: none;
+      background: transparent;
+      color: var(--text);
+      padding: 5px 7px 12px;
+      line-height: 1.6;
+    }
+
+    .composer textarea:focus-visible { outline: none; }
+
+    .composer-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .composer-hint {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .composer-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .search-toggle {
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      background: #151626;
+      color: var(--silver);
+      font-size: 19px;
+    }
+
+    .search-toggle.active {
+      color: #fff;
+      border-color: var(--purple);
+      background: #34274d;
+      box-shadow: 0 0 19px #a78bfa55;
+    }
+
+    .send-button {
+      width: 40px;
+      height: 40px;
+      border: 0;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ddd6fe, #9b8bd1);
+      color: #11101a;
+      font-size: 19px;
+      font-weight: 700;
+    }
+
+    .send-button:hover { filter: brightness(1.1); }
+
+    .footer-note {
+      padding-top: 9px;
+      color: #77788d;
+      font-size: 10px;
+      text-align: center;
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 100;
+      bottom: 24px;
+      left: 50%;
+      max-width: calc(100% - 30px);
+      transform: translateX(-50%) translateY(10px);
+      opacity: 0;
+      pointer-events: none;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #171827;
+      color: var(--text);
+      transition: opacity .2s, transform .2s;
+    }
+
+    .toast.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Authentication */
+
+    .auth-screen {
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 420px;
+      padding: 30px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: #0b0d17ed;
+      box-shadow: 0 20px 80px #0008, 0 0 35px #a78bfa0b;
+    }
+
+    .auth-logo {
+      text-align: center;
+      font-size: 37px;
+      color: var(--purple);
+      text-shadow: 0 0 22px #a78bfa66;
+    }
+
+    .auth-title {
+      margin: 8px 0;
+      text-align: center;
+      font-size: 25px;
+      font-weight: 500;
+    }
+
+    .auth-description {
+      margin: 0 0 24px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      padding: 4px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      background: #151624;
+    }
+
+    .auth-tab {
+      padding: 10px;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .auth-tab.active {
+      background: #29213f;
+      color: var(--silver);
+    }
+
+    .auth-label {
+      display: block;
+      margin: 13px 0 7px;
+      color: #c7c5d4;
+      font-size: 12px;
+    }
+
+    .auth-input {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      background: #080a12;
+      color: var(--text);
+    }
+
+    .auth-input:focus {
+      border-color: var(--purple);
+      outline: none;
+    }
+
+    .auth-primary, .google-button {
+      width: 100%;
+      min-height: 45px;
+      margin-top: 16px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    .auth-primary {
+      border: 0;
+      background: linear-gradient(110deg, #ddd6fe, #a99adf);
+      color: #12101b;
+    }
+
+    .google-button {
+      border: 1px solid var(--border);
+      background: #141521;
+      color: var(--silver);
+    }
+
+    .google-button:hover { border-color: #9d8bd8; }
+
+    .forgot-button {
+      display: block;
+      margin: 13px auto 0;
+      border: 0;
+      background: transparent;
+      color: var(--purple);
+      font-size: 12px;
+    }
+
+    .auth-status {
+      min-height: 20px;
+      margin: 12px 0 0;
+      color: #ffaaa5;
+      font-size: 12px;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    .auth-status.success { color: #a5d6a7; }
+
+    .account-button {
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 720px) {
+      .sidebar { display: none; }
+      .topbar { padding: 10px 12px; }
+      .topbar-right .status { display: none; }
+      .mode-button { padding: 9px 10px; font-size: 12px; }
+      .conversation { padding: 14px 15px; }
+      .composer-area { padding: 8px 12px 14px; }
+      .suggestions { grid-template-columns: 1fr; }
+      .welcome { min-height: 48vh; }
+      .message.user { max-width: 92%; }
+      .auth-card { padding: 24px 20px; }
+    }
+  </style>
 </head>
+
 <body>
+  <!-- Authentication screen -->
+  <section id="authScreen" class="auth-screen">
+    <div class="auth-card">
+      <div class="auth-logo">✳</div>
+      <h1 class="auth-title" id="authHeading">Welcome to Aster</h1>
+      <p class="auth-description">
+        Your personal AI workspace, powered by Dew.
+      </p>
 
-<div class="auth-screen" id="authScreen">
-  <section class="auth-card">
-    <div class="auth-brand">
-      <div class="spark">✳</div>
-      <h1 id="authTitle">Welcome back</h1>
-      <p id="authSubtitle">Sign in to continue to your personal workspace.</p>
-    </div>
-
-    <form id="authForm">
-      <label class="auth-field" id="authNameWrap" hidden>
-        <span>Your name</span>
-        <input id="authName" type="text" autocomplete="name" maxlength="80" placeholder="Your name">
-      </label>
-      <label class="auth-field">
-        <span>Email address</span>
-        <input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com">
-      </label>
-      <label class="auth-field">
-        <span>Password</span>
-        <input id="authPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="At least 6 characters">
-      </label>
-      <button class="auth-primary" id="authSubmitButton" type="submit">Sign in with email</button>
-    </form>
-
-    <div class="auth-divider">OR</div>
-    <button class="auth-google" id="googleAuthButton" type="button">
-      <span class="g">G</span><span id="googleButtonText">Continue with Google</span>
-    </button>
-
-    <div class="auth-links">
-      <button class="auth-link" id="switchAuthButton" type="button">Create an account</button>
-      <button class="auth-link" id="forgotPasswordButton" type="button">Forgot password?</button>
-    </div>
-    <div class="auth-status" id="authStatus" role="status" aria-live="polite"></div>
-  </section>
-</div>
-
-<div class="mobile-overlay" id="mobileOverlay"></div>
-
-<div class="app" id="app" hidden>
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-top">
-      <div class="brand">
-        <span class="brand-mark">✳</span>
-        <span class="brand-name">Aster</span>
-      </div>
-      <button class="icon-button" id="sidebarToggle" type="button" title="Close sidebar" aria-label="Close sidebar">☰</button>
-    </div>
-    <button class="new-chat" id="newChat" type="button">
-      <span>＋</span><span>New chat</span>
-    </button>
-    <div class="sidebar-label">Recent conversations</div>
-    <div class="recent-list" id="recentList"></div>
-    <div class="sidebar-bottom">
-      <button class="icon-button" id="connectionButton" type="button" title="Check connection">↻</button>
-      <div style="min-width:0;flex:1">
-        <div class="auth-account" id="accountEmail"></div>
-        <button class="auth-link" id="signOutButton" type="button">Sign out</button>
-      </div>
-    </div>
-  </aside>
-
-  <main class="main">
-    <header class="topbar">
-      <div class="topbar-left">
-        <!-- Aster logo toggle button: shows when sidebar is collapsed -->
-        <button class="topbar-brand" id="topbarBrand" type="button" title="Open sidebar" aria-label="Open sidebar">
-          <span class="topbar-brand-icon">☰</span>
-          <span class="brand-mark">✳</span>
-          <span class="brand-name">Aster</span>
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" id="loginTab">
+          Log in
         </button>
+        <button type="button" class="auth-tab" id="signupTab">
+          Create account
+        </button>
+      </div>
 
-        <div class="mode-wrap">
-          <button class="mode-button" id="modeButton" type="button" aria-haspopup="true" aria-expanded="false">
-            <span id="modeLabel">Dew Standard</span> ▾
-          </button>
-          <div class="dropdown-menu" id="modeMenu" role="menu">
-            <div class="menu-heading">Choose a Dew mode</div>
-            <button class="menu-option selected" data-mode="Standard" role="menuitemradio" aria-checked="true" type="button">
-              <span><strong>Dew Standard</strong><span class="option-description">Everyday work, writing and coding</span></span><span class="option-check">✓</span>
+      <form id="authForm">
+        <label class="auth-label" for="authName" id="nameLabel" hidden>
+          Your name
+        </label>
+        <input
+          class="auth-input"
+          id="authName"
+          type="text"
+          autocomplete="name"
+          placeholder="Your name"
+          hidden
+        >
+
+        <label class="auth-label" for="authEmail">Email address</label>
+        <input
+          class="auth-input"
+          id="authEmail"
+          type="email"
+          autocomplete="email"
+          placeholder="you@example.com"
+          required
+        >
+
+        <label class="auth-label" for="authPassword">Password</label>
+        <input
+          class="auth-input"
+          id="authPassword"
+          type="password"
+          autocomplete="current-password"
+          placeholder="Enter your password"
+          minlength="6"
+          required
+        >
+
+        <button class="auth-primary" id="authSubmit" type="submit">
+          Log in
+        </button>
+      </form>
+
+      <button type="button" class="forgot-button" id="forgotButton">
+        Forgot your password?
+      </button>
+
+      <button type="button" class="google-button" id="googleButton">
+        Continue with Google
+      </button>
+
+      <p id="authStatus" class="auth-status" role="status"></p>
+    </div>
+  </section>
+
+  <!-- Main Aster app -->
+  <div id="app" class="app" hidden>
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="sparkle">✳</span>
+        <span>Aster</span>
+      </div>
+
+      <button type="button" class="new-chat" id="newChatButton">
+        ＋ New chat
+      </button>
+
+      <div class="side-label">Workspace</div>
+      <button type="button" class="side-button" id="chatTabButton">
+        ◇ Chat
+      </button>
+      <button type="button" class="side-button" id="codeTabButton">
+        &lt;/&gt; Code
+      </button>
+
+      <div class="sidebar-bottom">
+        <div class="side-label">Account</div>
+        <button type="button" class="side-button" id="accountButton">
+          Signed in
+        </button>
+        <button type="button" class="side-button" id="signOutButton">
+          ↪ Sign out
+        </button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <span class="sparkle">✳</span>
+
+          <div class="mode-wrap">
+            <button
+              type="button"
+              class="mode-button"
+              id="modeButton"
+              aria-expanded="false"
+            >
+              Dew Standard ▾
             </button>
-            <button class="menu-option" data-mode="Extended" role="menuitemradio" aria-checked="false" type="button">
-              <span><strong>Dew Extended</strong><span class="option-description">More involved tasks</span></span><span class="option-check"></span>
+
+            <div class="dropdown" id="modeDropdown" hidden>
+              <button type="button" data-mode="Standard">
+                Dew Standard
+                <small>Everyday tasks, writing and coding</small>
+              </button>
+              <button type="button" data-mode="Search">
+                Dew Search
+                <small>Search the web for current information</small>
+              </button>
+              <button type="button" data-mode="Extended">
+                Dew Extended
+                <small>Extra reasoning for complex tasks</small>
+              </button>
+            </div>
+          </div>
+
+          <div class="mode-wrap">
+            <button
+              type="button"
+              class="mode-button"
+              id="reasoningButton"
+              aria-expanded="false"
+            >
+              Medium ▾
             </button>
-            <button class="menu-option" data-mode="Search" role="menuitemradio" aria-checked="false" type="button">
-              <span><strong>Dew Search</strong><span class="option-description">Search-oriented answers from the web</span></span><span class="option-check"></span>
+
+            <div class="dropdown" id="reasoningDropdown" hidden>
+              <button type="button" data-reasoning="Low">Low</button>
+              <button type="button" data-reasoning="Medium">Medium</button>
+              <button type="button" data-reasoning="High">High</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <div class="status">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Connecting</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="conversation" id="conversation">
+        <div class="welcome" id="welcome">
+          <h1 class="greeting" id="greeting">Let's build something.</h1>
+          <p class="subtitle" id="subtitle">
+            Your next breakthrough can start with one question.
+          </p>
+
+          <div class="suggestions">
+            <button
+              type="button"
+              class="suggestion"
+              data-prompt="Help me plan and build a website from scratch."
+            >
+              Build something
+              <small>Turn an idea into a working website.</small>
+            </button>
+
+            <button
+              type="button"
+              class="suggestion"
+              data-prompt="Explain a difficult concept to me clearly, step by step."
+            >
+              Learn something
+              <small>Make a complicated topic easier to understand.</small>
+            </button>
+
+            <button
+              type="button"
+              class="suggestion"
+              data-prompt="Help me debug some code. Explain the cause and give me the corrected code."
+            >
+              Fix some code
+              <small>Debug errors and improve your implementation.</small>
+            </button>
+
+            <button
+              type="button"
+              class="suggestion"
+              data-prompt="Research the latest developments in AI and include sources."
+            >
+              Research a topic
+              <small>Find useful information and reliable sources.</small>
             </button>
           </div>
         </div>
-      </div>
 
-      <div class="switch" role="tablist" aria-label="Chat or Code">
-        <button class="switch-btn active" data-tab="Chat" role="tab" aria-selected="true" type="button">Chat</button>
-        <button class="switch-btn" data-tab="Code" role="tab" aria-selected="false" type="button">⌘ Code</button>
-      </div>
+        <div id="messages" class="messages" aria-live="polite" hidden></div>
+      </section>
 
-      <div class="status" aria-live="polite">
-        <span class="status-dot" id="statusDot"></span>
-        <span id="statusText">Checking connection</span>
-      </div>
-    </header>
+      <section class="composer-area">
+        <form id="chatForm" class="composer">
+          <textarea
+            id="messageInput"
+            rows="1"
+            maxlength="12000"
+            placeholder="Ask Dew anything"
+            aria-label="Message Dew"
+            required
+          ></textarea>
 
-    <section class="conversation" id="conversation">
-      <div class="welcome" id="welcome">
-        <h1 class="greeting" id="greeting">Where should we begin?</h1>
-        <p class="subtitle" id="subtitle">A little curiosity can lead somewhere interesting.</p>
-        <div class="composer-slot" id="welcomeSlot"></div>
-        <div class="suggestions" id="suggestions">
-          <button class="suggestion" data-prompt="Explain a difficult concept in a simple, interesting way." type="button"><span>✧</span>Explain something complicated</button>
-          <button class="suggestion" data-prompt="Help me brainstorm an original idea for a project." type="button"><span>✳</span>Come up with an idea</button>
-          <button class="suggestion" data-prompt="Help me write clean code and explain how it works." type="button"><span>⌘</span>Build something with code</button>
+          <div class="composer-bottom">
+            <span class="composer-hint" id="composerHint">
+              Dew Standard · Medium
+            </span>
+
+            <div class="composer-actions">
+              <button
+                type="button"
+                class="search-toggle"
+                id="searchToggle"
+                title="Switch to Dew Search"
+                aria-label="Toggle Dew Search"
+                aria-pressed="false"
+              >✳</button>
+
+              <button
+                type="submit"
+                class="send-button"
+                id="sendButton"
+                aria-label="Send message"
+              >↑</button>
+            </div>
+          </div>
+        </form>
+
+        <div class="footer-note">
+          Dew can make mistakes. Check important information.
         </div>
-      </div>
-      <div class="messages" id="messages" hidden></div>
-    </section>
-
-    <footer class="bottom-area">
-      <div class="bottom-inner">
-        <div class="composer-slot" id="bottomSlot"></div>
-        <div class="disclaimer">Dew can make mistakes. Check important information.</div>
-      </div>
-    </footer>
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  </main>
-</div>
-
-<form class="composer" id="chatForm">
-  <button class="plus-button" id="plusButton" type="button" aria-label="Focus message input">＋</button>
-  <textarea id="messageInput" rows="1" maxlength="1200" aria-label="Message Dew" placeholder="Ask Dew anything"></textarea>
-  <button class="search-pill" id="searchPill" type="button" aria-pressed="false" title="Toggle Dew Search">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.8"/><path d="m15.5 15.5 5 5"/></svg>
-    <span class="search-pill-text">Search</span>
-  </button>
-  <div class="mode-wrap think-wrap">
-    <button class="dropdown-button" id="thinkingButton" type="button" aria-haspopup="true" aria-expanded="false">
-      <span id="thinkingLabel">Medium</span><span class="chevron">▾</span>
-    </button>
-    <div class="dropdown-menu" id="thinkingMenu" role="menu">
-      <div class="menu-heading">Thinking level</div>
-      <button class="menu-option" data-thinking="Low" role="menuitemradio" aria-checked="false" type="button">
-        <span><strong>Low</strong><span class="option-description">Faster responses</span></span><span class="option-check"></span>
-      </button>
-      <button class="menu-option selected" data-thinking="Medium" role="menuitemradio" aria-checked="true" type="button">
-        <span><strong>Medium</strong><span class="option-description">Balanced reasoning</span></span><span class="option-check">✓</span>
-      </button>
-      <button class="menu-option" data-thinking="High" role="menuitemradio" aria-checked="false" type="button">
-        <span><strong>High</strong><span class="option-description">More deliberate reasoning</span></span><span class="option-check"></span>
-      </button>
-    </div>
+      </section>
+    </main>
   </div>
-  <button class="send-button" id="sendButton" type="submit" aria-label="Send message">↑</button>
-</form>
-<div class="sheet-backdrop" id="sheetBackdrop"></div>
 
-<script>
-"use strict";
+  <div id="toast" class="toast" role="status"></div>
 
-const API_URL = "/api/chat";
-const HEALTH_URL = "/api/health";
-const $ = id => document.getElementById(id);
+  <script type="module">
+    import { auth, googleProvider } from "/firebase.js";
 
-const app = $("app");
-const authScreen = $("authScreen");
-const sidebar = $("sidebar");
-const overlay = $("mobileOverlay");
-const conversation = $("conversation");
-const welcome = $("welcome");
-const messages = $("messages");
-const input = $("messageInput");
-const composer = $("chatForm");
-const sendButton = $("sendButton");
-const searchPill = $("searchPill");
-const sheetBackdrop = $("sheetBackdrop");
-const topbarBrand = $("topbarBrand");
+    import {
+      onAuthStateChanged,
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
+      updateProfile,
+      sendPasswordResetEmail,
+      signInWithPopup,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 
-let selectedMode = "Standard";
-let selectedReasoning = "Medium";
-let selectedTab = "Chat";
-let isSending = false;
-let messageQueue = [];
-let currentChatId = null;
-let chats = [];
-let toastTimer;
-let authInstance = null;
-let googleProviderInstance = null;
-let authInitialized = false;
+    const $ = id => document.getElementById(id);
 
-// Safe local storage persistence for chats
-function getStorageKey() {
-  const uid = window.asterCurrentUser?.uid;
-  return uid ? "aster_chats_" + uid : "aster_chats_guest";
-}
+    let authMode = "login";
+    let selectedMode = "Standard";
+    let selectedReasoning = "Medium";
+    let selectedTab = "Chat";
+    let sending = false;
+    let currentChatId = createChatId();
+    let toastTimeout;
 
-function loadPersistedChats() {
-  try {
-    const raw = localStorage.getItem(getStorageKey());
-    chats = raw ? JSON.parse(raw) : [];
-    if (!Array.isArray(chats)) chats = [];
-  } catch (err) {
-    console.warn("Could not load chats from storage:", err);
-    chats = [];
-  }
-}
-
-function persistChats() {
-  try {
-    localStorage.setItem(getStorageKey(), JSON.stringify(chats));
-  } catch (err) {
-    console.warn("Could not save chats to storage:", err);
-  }
-}
-
-function showToast(message) {
-  const toast = $("toast");
-  toast.textContent = message;
-  toast.classList.add("visible");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove("visible"), 3500);
-}
-
-function setStatus(state, message) {
-  $("statusDot").className = "status-dot" + (state ? " " + state : "");
-  $("statusText").textContent = message;
-}
-
-function pick(items) {
-  return items[Math.floor(Math.random() * items.length)];
-}
-
-function setGreeting() {
-  const hour = new Date().getHours();
-  let greetings;
-
-  if (hour >= 5 && hour < 12) {
-    greetings = ["Good morning.", "A fresh morning, a fresh start.", "Morning. Ready when you are."];
-  } else if (hour >= 12 && hour < 17) {
-    greetings = ["Good afternoon.", "Midday momentum.", "Let's make the afternoon count."];
-  } else if (hour >= 17 && hour < 21) {
-    greetings = ["Good evening.", "Evening. Time to build.", "A quiet evening for big ideas."];
-  } else {
-    greetings = ["Night mode: on.", "The stars are out. So are you.", "Up with the moon?"];
-  }
-
-  $("greeting").textContent = pick(greetings);
-  setSubtitle();
-}
-
-function setSubtitle() {
-  const general = [
-    "Your next breakthrough can start with one question.",
-    "Start simple. Refine as you go.",
-    "Let's turn that idea into something real.",
-    "Clear thinking starts with a good question.",
-    "Big ideas become manageable one step at a time.",
-    "Bring the rough idea. We can work on the details."
-  ];
-  const code = [
-    "Every great app started as a blinking cursor.",
-    "Build small, test early, learn fast.",
-    "Good code is clear before it is clever.",
-    "Let's turn requirements into working code.",
-    "Even great engineers read the docs."
-  ];
-  $("subtitle").textContent = pick(selectedTab === "Code" ? code : general);
-}
-
-function moveComposerToWelcome() {
-  $("welcomeSlot").appendChild(composer);
-  $("suggestions").hidden = false;
-}
-
-function moveComposerToBottom() {
-  $("bottomSlot").appendChild(composer);
-  $("suggestions").hidden = true;
-}
-
-function closeDropdowns() {
-  $("modeMenu").classList.remove("open");
-  $("thinkingMenu").classList.remove("open");
-  $("modeButton").setAttribute("aria-expanded", "false");
-  $("thinkingButton").setAttribute("aria-expanded", "false");
-  sheetBackdrop.classList.remove("visible");
-}
-
-function toggleDropdown(button, menu, isThinking = false) {
-  const opening = !menu.classList.contains("open");
-  closeDropdowns();
-  if (!opening) return;
-  menu.classList.add("open");
-  button.setAttribute("aria-expanded", "true");
-  if (isThinking) sheetBackdrop.classList.add("visible");
-}
-
-$("modeButton").addEventListener("click", event => {
-  event.stopPropagation();
-  toggleDropdown($("modeButton"), $("modeMenu"));
-});
-$("thinkingButton").addEventListener("click", event => {
-  event.stopPropagation();
-  toggleDropdown($("thinkingButton"), $("thinkingMenu"), true);
-});
-sheetBackdrop.addEventListener("click", closeDropdowns);
-document.addEventListener("click", event => {
-  if (!event.target.closest(".mode-wrap")) closeDropdowns();
-});
-document.addEventListener("keydown", event => {
-  if (event.key === "Escape") closeDropdowns();
-});
-
-function updateMode(mode) {
-  selectedMode = mode;
-  $("modeLabel").textContent = "Dew " + mode;
-  document.querySelectorAll("[data-mode]").forEach(button => {
-    const active = button.dataset.mode === mode;
-    button.classList.toggle("selected", active);
-    button.setAttribute("aria-checked", String(active));
-    button.querySelector(".option-check").textContent = active ? "✓" : "";
-  });
-  syncSearchButton();
-}
-
-document.querySelectorAll("[data-mode]").forEach(button => {
-  button.addEventListener("click", () => {
-    updateMode(button.dataset.mode);
-    closeDropdowns();
-  });
-});
-
-document.querySelectorAll("[data-thinking]").forEach(button => {
-  button.addEventListener("click", () => {
-    selectedReasoning = button.dataset.thinking;
-    $("thinkingLabel").textContent = selectedReasoning;
-    document.querySelectorAll("[data-thinking]").forEach(option => {
-      const active = option.dataset.thinking === selectedReasoning;
-      option.classList.toggle("selected", active);
-      option.setAttribute("aria-checked", String(active));
-      option.querySelector(".option-check").textContent = active ? "✓" : "";
-    });
-    closeDropdowns();
-  });
-});
-
-function syncSearchButton() {
-  const active = selectedMode === "Search";
-  searchPill.classList.toggle("active", active);
-  searchPill.setAttribute("aria-pressed", String(active));
-}
-searchPill.addEventListener("click", () => {
-  updateMode(selectedMode === "Search" ? "Standard" : "Search");
-  input.focus();
-});
-
-function setTab(tab) {
-  selectedTab = tab;
-  document.querySelectorAll("[data-tab]").forEach(button => {
-    const active = button.dataset.tab === tab;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-selected", String(active));
-  });
-  input.placeholder = tab === "Code" ? "Describe what to build" : "Ask Dew anything";
-  if (!welcome.hidden) setSubtitle();
-  input.focus();
-}
-document.querySelectorAll("[data-tab]").forEach(button => {
-  button.addEventListener("click", () => setTab(button.dataset.tab));
-});
-$("plusButton").addEventListener("click", () => input.focus());
-
-function updateSidebarBrandState() {
-  if (innerWidth > 760) {
-    const isCollapsed = sidebar.classList.contains("collapsed");
-    topbarBrand.style.display = isCollapsed ? "inline-flex" : "none";
-  } else {
-    topbarBrand.style.display = "inline-flex";
-  }
-}
-
-function closeMobileSidebar() {
-  sidebar.classList.remove("mobile-open");
-  overlay.classList.remove("visible");
-}
-
-function toggleSidebar() {
-  if (innerWidth <= 760) {
-    sidebar.classList.toggle("mobile-open");
-    overlay.classList.toggle("visible");
-  } else {
-    sidebar.classList.toggle("collapsed");
-    updateSidebarBrandState();
-  }
-}
-
-$("sidebarToggle").addEventListener("click", toggleSidebar);
-topbarBrand.addEventListener("click", toggleSidebar);
-overlay.addEventListener("click", closeMobileSidebar);
-window.addEventListener("resize", () => {
-  if (innerWidth > 760) closeMobileSidebar();
-  updateSidebarBrandState();
-});
-
-function escapeHTML(value) {
-  return String(value).replace(/[&<>"']/g, char => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-  })[char]);
-}
-
-function inlineMarkdown(value) {
-  let text = escapeHTML(value);
-  const code = [];
-  text = text.replace(/`([^`\n]+)`/g, (_, content) => {
-    const token = "%%CODE" + code.length + "%%";
-    code.push("<code>" + content + "</code>");
-    return token;
-  });
-  text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
-    (_, label, url) => '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + label + "</a>");
-  text = text.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-  text = text.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
-  text = text.replace(/~~(.+?)~~/g, "<del>$1</del>");
-  code.forEach((item, index) => {
-    text = text.replace("%%CODE" + index + "%%", item);
-  });
-  return text;
-}
-
-function renderMarkdown(markdown) {
-  const lines = String(markdown).replace(/\r\n?/g, "\n").split("\n");
-  const output = [];
-  let i = 0;
-
-  while (i < lines.length) {
-    const line = lines[i];
-    if (!line.trim()) { i++; continue; }
-
-    if (/^\s*```/.test(line)) {
-      i++;
-      const code = [];
-      while (i < lines.length && !/^\s*```/.test(lines[i])) code.push(lines[i++]);
-      if (i < lines.length) i++;
-      output.push("<pre><code>" + escapeHTML(code.join("\n")) + "</code></pre>");
-      continue;
-    }
-
-    const heading = line.match(/^\s*(#{1,3})\s+(.+)$/);
-    if (heading) {
-      const level = heading[1].length;
-      output.push("<h" + level + ">" + inlineMarkdown(heading[2]) + "</h" + level + ">");
-      i++;
-      continue;
-    }
-
-    if (/^\s*(---+|\*\*\*+|___+)\s*$/.test(line)) {
-      output.push("<hr>"); i++; continue;
-    }
-
-    if (/^\s*>\s?/.test(line)) {
-      const quote = [];
-      while (i < lines.length && /^\s*>\s?/.test(lines[i])) {
-        quote.push(lines[i++].replace(/^\s*>\s?/, ""));
+    function createChatId() {
+      if (globalThis.crypto?.randomUUID) {
+        return globalThis.crypto.randomUUID().replace(/-/g, "");
       }
-      output.push("<blockquote>" + quote.map(inlineMarkdown).join("<br>") + "</blockquote>");
-      continue;
+
+      return "chat_" + Date.now() + "_" +
+        Math.random().toString(36).slice(2, 12);
     }
 
-    if (/^\s*([-*+])\s+/.test(line) || /^\s*\d+[.)]\s+/.test(line)) {
-      const ordered = /^\s*\d+[.)]\s+/.test(line);
-      const tag = ordered ? "ol" : "ul";
-      const pattern = ordered ? /^\s*\d+[.)]\s+/ : /^\s*[-*+]\s+/;
-      const items = [];
-      while (i < lines.length && pattern.test(lines[i])) {
-        items.push("<li>" + inlineMarkdown(lines[i++].replace(pattern, "")) + "</li>");
-      }
-      output.push("<" + tag + ">" + items.join("") + "</" + tag + ">");
-      continue;
+    function setAuthStatus(message, success = false) {
+      const node = $("authStatus");
+      node.textContent = message;
+      node.classList.toggle("success", success);
     }
 
-    const paragraph = [];
-    while (i < lines.length && lines[i].trim() &&
-      !/^\s*```/.test(lines[i]) &&
-      !/^\s*#{1,3}\s+/.test(lines[i]) &&
-      !/^\s*(---+|\*\*\*+|___+)\s*$/.test(lines[i]) &&
-      !/^\s*>\s?/.test(lines[i]) &&
-      !/^\s*([-*+])\s+/.test(lines[i]) &&
-      !/^\s*\d+[.)]\s+/.test(lines[i])) {
-      paragraph.push(lines[i++]);
+    function setAuthBusy(busy) {
+      $("authSubmit").disabled = busy;
+      $("googleButton").disabled = busy;
+      $("forgotButton").disabled = busy;
+      $("authSubmit").textContent = busy
+        ? "Please wait…"
+        : authMode === "login"
+          ? "Log in"
+          : "Create account";
     }
-    output.push("<p>" + paragraph.map(inlineMarkdown).join("<br>") + "</p>");
-  }
-  return output.join("\n");
-}
 
-function getCurrentChat() {
-  return chats.find(chat => String(chat.id) === String(currentChatId)) || null;
-}
-function ensureChat() {
-  let chat = getCurrentChat();
-  if (chat) return chat;
-  chat = {
-    id: "chat_" + Date.now() + "_" + Math.floor(Math.random() * 10000),
-    title: "New conversation",
-    messages: []
-  };
-  chats.unshift(chat);
-  currentChatId = chat.id;
-  persistChats();
-  return chat;
-}
-function refreshRecentList() {
-  const list = $("recentList");
-  list.replaceChildren();
+    function setAuthMode(mode) {
+      authMode = mode;
+      const isSignup = mode === "signup";
 
-  if (!chats.length) {
-    const empty = document.createElement("div");
-    empty.className = "recent-empty";
-    empty.textContent = "Your recent chats will appear here.";
-    list.appendChild(empty);
-    return;
-  }
+      $("loginTab").classList.toggle("active", !isSignup);
+      $("signupTab").classList.toggle("active", isSignup);
+      $("authHeading").textContent = isSignup
+        ? "Create your account"
+        : "Welcome to Aster";
 
-  chats.forEach(chat => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "recent-item" + (String(chat.id) === String(currentChatId) ? " active" : "");
-    button.textContent = chat.title;
-    button.title = chat.title;
-    button.addEventListener("click", () => {
-      if (isSending) return showToast("Wait for Dew to finish first.");
-      currentChatId = chat.id;
-      renderHistory(chat);
-      refreshRecentList();
-      closeMobileSidebar();
-    });
-    list.appendChild(button);
-  });
-}
-function saveMessage(role, text) {
-  const chat = ensureChat();
-  chat.messages.push({ role, text });
-  if (role === "user" && chat.messages.length === 1) {
-    chat.title = text.replace(/\s+/g, " ").slice(0, 42) || "New conversation";
-  }
-  persistChats();
-  refreshRecentList();
-  return chat.messages.length - 1;
-}
-function renderHistory(chat) {
-  messages.replaceChildren();
-  chat.messages.forEach((item, index) => renderMessage(item.role, item.text, false, index));
-  welcome.hidden = true;
-  messages.hidden = false;
-  moveComposerToBottom();
-  conversation.scrollTop = conversation.scrollHeight;
-}
-async function copyText(text) {
-  try {
-    await navigator.clipboard.writeText(text);
-    showToast("Copied.");
-  } catch {
-    showToast("Clipboard access was blocked by the browser.");
-  }
-}
-function renderMessage(role, text, save = true, historyIndex = -1) {
-  const index = save ? saveMessage(role, text) : historyIndex;
-  const wrapper = document.createElement("article");
-  wrapper.className = "message " + (role === "user" ? "user" : "assistant");
+      $("nameLabel").hidden = !isSignup;
+      $("authName").hidden = !isSignup;
+      $("authName").required = isSignup;
+      $("authPassword").autocomplete = isSignup
+        ? "new-password"
+        : "current-password";
 
-  if (role === "user") {
-    const bubble = document.createElement("div");
-    bubble.className = "user-bubble";
-    bubble.textContent = text;
-    wrapper.appendChild(bubble);
-  } else {
-    const label = document.createElement("div");
-    label.className = "message-role";
-    const mark = document.createElement("span");
-    mark.className = "role-mark";
-    mark.textContent = "✳";
-    const name = document.createElement("span");
-    name.textContent = "Dew";
-    label.append(mark, name);
-    const body = document.createElement("div");
-    body.className = "message-body";
-    body.innerHTML = renderMarkdown(text);
-    wrapper.append(label, body);
-  }
+      $("forgotButton").hidden = isSignup;
+      $("authSubmit").textContent = isSignup
+        ? "Create account"
+        : "Log in";
 
-  const actions = document.createElement("div");
-  actions.className = "message-actions";
-  const copy = document.createElement("button");
-  copy.type = "button";
-  copy.className = "small-action";
-  copy.textContent = "Copy";
-  copy.addEventListener("click", () => copyText(text));
-  actions.appendChild(copy);
-
-  if (role === "user") {
-    const edit = document.createElement("button");
-    edit.type = "button";
-    edit.className = "small-action";
-    edit.textContent = "Edit";
-    edit.addEventListener("click", () => editMessage(index));
-    actions.appendChild(edit);
-  }
-
-  wrapper.appendChild(actions);
-  messages.appendChild(wrapper);
-  conversation.scrollTop = conversation.scrollHeight;
-  return wrapper;
-}
-function editMessage(index) {
-  if (isSending) return showToast("Wait for Dew to finish first.");
-  const chat = getCurrentChat();
-  if (!chat || !chat.messages[index] || chat.messages[index].role !== "user") return;
-  input.value = chat.messages[index].text;
-  chat.messages.splice(index);
-  persistChats();
-  renderHistory(chat);
-  resizeInput();
-  input.focus();
-}
-function addTyping() {
-  const node = document.createElement("article");
-  node.className = "message assistant";
-  node.id = "typingIndicator";
-  node.innerHTML = '<div class="message-role"><span class="role-mark glowing">✳</span><span>Dew is thinking</span></div><div class="typing"><span></span><span></span><span></span></div>';
-  messages.appendChild(node);
-  conversation.scrollTop = conversation.scrollHeight;
-}
-
-async function getDewReply(message) {
-  const user = window.asterCurrentUser;
-  if (!user || typeof user.getIdToken !== "function") {
-    throw new Error("Please sign in again to continue.");
-  }
-
-  let token;
-  try {
-    token = await user.getIdToken();
-  } catch (error) {
-    console.error("Firebase token error:", error);
-    throw new Error("Your sign-in session could not be verified. Please sign in again.");
-  }
-
-  let response;
-  try {
-    // Exactly matches the backend that worked before
-    response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + token
-      },
-      body: JSON.stringify({
-        message,
-        mode: "Dew " + selectedMode,
-        thinking: selectedReasoning,
-        tab: selectedTab
-      })
-    });
-  } catch (error) {
-    console.error("Dew network error:", error);
-    throw new Error("Aster could not reach its API. Check your connection and deployment.");
-  }
-
-  const raw = await response.text();
-  let data;
-  try {
-    data = JSON.parse(raw);
-  } catch {
-    console.error("Non-JSON API response:", response.status, raw.slice(0, 300));
-    if (response.status === 404) {
-      throw new Error("The /api/chat endpoint was not found. Check your Vercel deployment.");
+      setAuthStatus("");
     }
-    throw new Error("The API returned an invalid response (HTTP " + response.status + ").");
-  }
 
-  if (!response.ok) {
-    const detail = data.error || data.detail || data.message;
-    console.error("Dew API error:", response.status, data);
-    throw new Error(typeof detail === "string" ? detail : "API request failed (HTTP " + response.status + ").");
-  }
+    function friendlyAuthError(error) {
+      const code = error?.code || "";
 
-  if (typeof data.answer !== "string" || !data.answer.trim()) {
-    throw new Error("The API responded without an answer. Check api/chat.js.");
-  }
-  return {
-    answer: data.answer,
-    sources: Array.isArray(data.sources) ? data.sources : []
-  };
-}
+      const messages = {
+        "auth/invalid-email": "Enter a valid email address.",
+        "auth/user-not-found": "No account was found for that email.",
+        "auth/wrong-password": "The email or password is incorrect.",
+        "auth/invalid-credential": "The email or password is incorrect.",
+        "auth/email-already-in-use": "An account already exists for this email.",
+        "auth/weak-password": "Use a stronger password with at least 6 characters.",
+        "auth/popup-closed-by-user": "The Google sign-in window was closed.",
+        "auth/popup-blocked": "Your browser blocked the Google sign-in window.",
+        "auth/operation-not-allowed": "This sign-in method is disabled in Firebase Authentication.",
+        "auth/network-request-failed": "Network error. Check your internet connection.",
+        "auth/too-many-requests": "Too many attempts. Wait a while and try again."
+      };
 
-function appendSources(answer, sources) {
-  const valid = sources.filter(source =>
-    source && typeof source.title === "string" &&
-    typeof source.url === "string" && /^https?:\/\//i.test(source.url)
-  );
-  if (!valid.length) return answer;
-  const unique = [...new Map(valid.map(source => [source.url, source])).values()];
-  return answer + "\n\n**Sources**\n" + unique.map(source =>
-    "- [" + source.title.replace(/[\[\]]/g, "") + "](" + source.url + ")"
-  ).join("\n");
-}
-
-async function processQueue() {
-  if (isSending || messageQueue.length === 0) return;
-  const nextMessage = messageQueue.shift();
-
-  isSending = true;
-  addTyping();
-  setStatus("busy", "Dew is responding");
-
-  try {
-    const result = await getDewReply(nextMessage);
-    $("typingIndicator")?.remove();
-    renderMessage("assistant", appendSources(result.answer, result.sources));
-    setStatus("online", "API reachable");
-  } catch (error) {
-    $("typingIndicator")?.remove();
-    console.error("Dew request failed:", error);
-    const errorNode = renderMessage(
-      "assistant",
-      "I couldn't complete that request.\n\n" +
-      (error instanceof Error ? error.message : "An unexpected error occurred."),
-      false
-    );
-    errorNode.querySelector(".message-body")?.classList.add("message-error");
-    setStatus("error", "Request failed");
-  } finally {
-    isSending = false;
-    if (messageQueue.length > 0) {
-      processQueue();
-    } else {
-      setStatus("online", "API reachable");
+      return messages[code] ||
+        error?.message ||
+        "Authentication failed. Please try again.";
     }
-  }
-}
 
-async function sendMessage(rawMessage) {
-  const message = rawMessage.trim();
-  if (!message) return showToast("Enter a message first.");
-  if (message.length > 1200) return showToast("Messages must be 1,200 characters or fewer.");
+    $("loginTab").addEventListener("click", () => setAuthMode("login"));
+    $("signupTab").addEventListener("click", () => setAuthMode("signup"));
 
-  closeDropdowns();
-  welcome.hidden = true;
-  messages.hidden = false;
-  moveComposerToBottom();
-  
-  // Render user message on screen immediately and clear input so chat bar stays free
-  renderMessage("user", message);
-  input.value = "";
-  resizeInput();
-  input.focus();
+    $("authForm").addEventListener("submit", async event => {
+      event.preventDefault();
 
-  messageQueue.push(message);
-  processQueue();
-}
-
-composer.addEventListener("submit", event => {
-  event.preventDefault();
-  sendMessage(input.value);
-});
-input.addEventListener("keydown", event => {
-  if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
-    event.preventDefault();
-    composer.requestSubmit();
-  }
-});
-function resizeInput() {
-  input.style.height = "auto";
-  input.style.height = Math.min(input.scrollHeight, 160) + "px";
-}
-input.addEventListener("input", resizeInput);
-
-document.querySelectorAll("[data-prompt]").forEach(button => {
-  button.addEventListener("click", () => {
-    input.value = button.dataset.prompt;
-    resizeInput();
-    composer.requestSubmit();
-  });
-});
-$("newChat").addEventListener("click", () => {
-  if (isSending || messageQueue.length > 0) return showToast("Wait for Dew to finish before starting a new chat.");
-  currentChatId = null;
-  messages.replaceChildren();
-  messages.hidden = true;
-  welcome.hidden = false;
-  moveComposerToWelcome();
-  input.value = "";
-  resizeInput();
-  setGreeting();
-  closeDropdowns();
-  closeMobileSidebar();
-  refreshRecentList();
-  conversation.scrollTop = 0;
-  input.focus();
-});
-
-async function checkConnection(showResult = false) {
-  setStatus("", "Checking connection");
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 8000);
-
-  try {
-    const response = await fetch(HEALTH_URL, {
-      signal: controller.signal,
-      cache: "no-store"
-    });
-    if (!response.ok) throw new Error("Health endpoint returned HTTP " + response.status);
-    const data = await response.json();
-    if (data.status !== "ok") throw new Error("Unexpected health-check response");
-    setStatus("online", "API reachable");
-    if (showResult) showToast("Aster API is reachable.");
-  } catch (error) {
-    console.warn("Aster health check failed:", error);
-    setStatus("error", "API unavailable");
-    if (showResult) showToast("Health check failed. Check /api/health on your deployment.");
-  } finally {
-    clearTimeout(timer);
-  }
-}
-$("connectionButton").addEventListener("click", () => checkConnection(true));
-
-function setAuthStatus(message, success = false) {
-  $("authStatus").textContent = message;
-  $("authStatus").classList.toggle("success", success);
-}
-function setAuthMode(mode) {
-  const signup = mode === "signup";
-  $("authTitle").textContent = signup ? "Create your account" : "Welcome back";
-  $("authSubtitle").textContent = signup
-    ? "Create an account to start using your Aster workspace."
-    : "Sign in to continue to your personal workspace.";
-  $("authNameWrap").hidden = !signup;
-  $("authName").required = signup;
-  $("authPassword").autocomplete = signup ? "new-password" : "current-password";
-  $("authSubmitButton").textContent = signup ? "Create account" : "Sign in with email";
-  $("googleButtonText").textContent = signup ? "Sign up with Google" : "Continue with Google";
-  $("switchAuthButton").textContent = signup ? "Already have an account? Sign in" : "Create an account";
-  $("forgotPasswordButton").hidden = signup;
-  $("authForm").dataset.mode = mode;
-  setAuthStatus("");
-}
-function setAuthBusy(busy) {
-  ["authSubmitButton", "googleAuthButton", "switchAuthButton", "forgotPasswordButton"].forEach(id => {
-    $(id).disabled = busy;
-  });
-}
-function friendlyAuthError(error) {
-  const messages = {
-    "auth/invalid-email": "That email address doesn't look valid.",
-    "auth/missing-password": "Enter your password to continue.",
-    "auth/weak-password": "Choose a password with at least 6 characters.",
-    "auth/email-already-in-use": "An account already uses that email. Try signing in.",
-    "auth/invalid-credential": "The email or password is incorrect.",
-    "auth/user-not-found": "No account was found. Create an account first.",
-    "auth/wrong-password": "The email or password is incorrect.",
-    "auth/popup-closed-by-user": "The Google sign-in window was closed.",
-    "auth/popup-blocked": "Your browser blocked the Google sign-in window. Allow pop-ups and try again.",
-    "auth/unauthorized-domain": "This domain is not authorized in Firebase Authentication.",
-    "auth/network-request-failed": "Network error. Check your connection and try again.",
-    "auth/too-many-requests": "Too many attempts. Wait a little before trying again.",
-    "auth/operation-not-allowed": "This sign-in method is not enabled in Firebase."
-  };
-  return messages[error?.code] || "Authentication failed. Check your details and try again.";
-}
-function showAuthenticated(user) {
-  window.asterCurrentUser = user || null;
-  const signedIn = Boolean(user);
-  app.hidden = !signedIn;
-  authScreen.hidden = signedIn;
-  document.body.classList.toggle("authenticated", signedIn);
-
-  if (user) {
-    $("accountEmail").textContent = user.displayName || user.email || "Signed in";
-    setStatus("", "Checking connection");
-    checkConnection();
-
-    // Load persisted chats for this account
-    loadPersistedChats();
-    refreshRecentList();
-    if (chats.length > 0) {
-      currentChatId = chats[0].id;
-      renderHistory(chats[0]);
-    } else {
-      currentChatId = null;
-      messages.replaceChildren();
-      messages.hidden = true;
-      welcome.hidden = false;
-      moveComposerToWelcome();
-    }
-  } else {
-    setAuthMode("login");
-    chats = [];
-    currentChatId = null;
-    refreshRecentList();
-  }
-}
-
-$("switchAuthButton").addEventListener("click", () => {
-  const current = $("authForm").dataset.mode || "login";
-  setAuthMode(current === "signup" ? "login" : "signup");
-});
-
-$("authForm").addEventListener("submit", async event => {
-  event.preventDefault();
-  if (!authInstance || !authInitialized) {
-    setAuthStatus("Authentication is still starting. Try again in a moment.");
-    return;
-  }
-
-  const email = $("authEmail").value.trim();
-  const password = $("authPassword").value;
-  const signup = $("authForm").dataset.mode === "signup";
-
-  if (!email || !password) return setAuthStatus("Enter your email and password.");
-  if (signup && password.length < 6) return setAuthStatus("Choose a password with at least 6 characters.");
-
-  setAuthBusy(true);
-  setAuthStatus("");
-  try {
-    if (signup) {
-      const credential = await createUserWithEmailAndPassword(authInstance, email, password);
+      const email = $("authEmail").value.trim();
+      const password = $("authPassword").value;
       const name = $("authName").value.trim();
-      if (name) await updateProfile(credential.user, { displayName: name });
-    } else {
-      await signInWithEmailAndPassword(authInstance, email, password);
+
+      setAuthBusy(true);
+      setAuthStatus("");
+
+      try {
+        if (authMode === "signup") {
+          if (!name) {
+            throw new Error("Enter your name to create an account.");
+          }
+
+          const result = await createUserWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+
+          await updateProfile(result.user, {
+            displayName: name
+          });
+        } else {
+          await signInWithEmailAndPassword(auth, email, password);
+        }
+      } catch (error) {
+        console.error("Aster email authentication error:", error);
+        setAuthStatus(friendlyAuthError(error));
+      } finally {
+        setAuthBusy(false);
+      }
+    });
+
+    $("googleButton").addEventListener("click", async () => {
+      setAuthBusy(true);
+      setAuthStatus("");
+
+      try {
+        await signInWithPopup(auth, googleProvider);
+      } catch (error) {
+        console.error("Aster Google authentication error:", error);
+        setAuthStatus(friendlyAuthError(error));
+      } finally {
+        setAuthBusy(false);
+      }
+    });
+
+    $("forgotButton").addEventListener("click", async () => {
+      const email = $("authEmail").value.trim();
+
+      if (!email) {
+        setAuthStatus("Enter your email address first.");
+        $("authEmail").focus();
+        return;
+      }
+
+      try {
+        await sendPasswordResetEmail(auth, email);
+        setAuthStatus(
+          "If an account exists for that email, a reset email has been sent.",
+          true
+        );
+      } catch (error) {
+        console.error("Aster password reset error:", error);
+        setAuthStatus(friendlyAuthError(error));
+      }
+    });
+
+    function toast(message) {
+      const node = $("toast");
+      node.textContent = message;
+      node.classList.add("visible");
+
+      clearTimeout(toastTimeout);
+
+      toastTimeout = setTimeout(() => {
+        node.classList.remove("visible");
+      }, 3500);
     }
-  } catch (error) {
-    console.error("Email sign-in error:", error);
-    setAuthStatus(friendlyAuthError(error));
-  } finally {
-    setAuthBusy(false);
-  }
-});
 
-$("googleAuthButton").addEventListener("click", async () => {
-  if (!authInstance || !authInitialized) {
-    return setAuthStatus("Authentication is still starting. Try again in a moment.");
-  }
-  setAuthBusy(true);
-  setAuthStatus("");
-  try {
-    await signInWithPopup(authInstance, googleProviderInstance);
-  } catch (error) {
-    console.error("Google sign-in error:", error);
-    setAuthStatus(friendlyAuthError(error));
-  } finally {
-    setAuthBusy(false);
-  }
-});
+    function setStatus(state, message) {
+      $("statusDot").className = "status-dot" +
+        (state ? " " + state : "");
+      $("statusText").textContent = message;
+    }
 
-$("forgotPasswordButton").addEventListener("click", async () => {
-  const email = $("authEmail").value.trim();
-  if (!email) {
-    setAuthStatus("Enter your email address first.");
-    $("authEmail").focus();
-    return;
-  }
-  if (!authInstance) return setAuthStatus("Firebase is not ready yet.");
+    function randomGreeting() {
+      const hour = new Date().getHours();
 
-  setAuthBusy(true);
-  try {
-    await sendPasswordResetEmail(authInstance, email);
-    setAuthStatus("If an account exists for that email, a reset message has been sent.", true);
-  } catch (error) {
-    console.error("Password reset error:", error);
-    setAuthStatus(friendlyAuthError(error));
-  } finally {
-    setAuthBusy(false);
-  }
-});
+      const greetings = hour < 12
+        ? [
+            "Good morning.",
+            "A fresh morning, a fresh start.",
+            "Morning. Ready when you are."
+          ]
+        : hour < 17
+          ? [
+              "Good afternoon.",
+              "Midday momentum.",
+              "Let's make the afternoon count."
+            ]
+          : hour < 21
+            ? [
+                "Good evening.",
+                "Evening. Time to build.",
+                "A quiet evening for big ideas."
+              ]
+            : [
+                "Night mode: on.",
+                "The stars are out. So are you.",
+                "Up with the moon?"
+              ];
 
-$("signOutButton").addEventListener("click", async () => {
-  if (!authInstance) return;
-  try {
-    await signOut(authInstance);
-  } catch (error) {
-    console.error("Sign-out error:", error);
-    showToast("Couldn't sign out. Please try again.");
-  }
-});
+      $("greeting").textContent =
+        greetings[Math.floor(Math.random() * greetings.length)];
 
-function initApp() {
-  loadPersistedChats();
-  moveComposerToWelcome();
-  setGreeting();
-  syncSearchButton();
-  refreshRecentList();
-  updateSidebarBrandState();
-  input.placeholder = "Ask Dew anything";
-}
+      const subtitles = [
+        "Your next breakthrough can start with one question.",
+        "Start simple. Refine as you go.",
+        "Bring the rough idea. We can work on the details.",
+        "Clear thinking starts with a good question."
+      ];
 
-initApp();
-</script>
+      $("subtitle").textContent =
+        subtitles[Math.floor(Math.random() * subtitles.length)];
+    }
 
-<script type="module">
-import { auth, googleProvider } from "/firebase.js";
-import {
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  updateProfile,
-  sendPasswordResetEmail,
-  signInWithPopup,
-  signOut
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+    function updateModeUI() {
+      $("modeButton").textContent = "Dew " + selectedMode + " ▾";
+      $("reasoningButton").textContent = selectedReasoning + " ▾";
+      $("composerHint").textContent =
+        "Dew " + selectedMode + " · " + selectedReasoning;
 
-try {
-  window.asterFirebaseReady = true;
-  window.asterCurrentUser = null;
+      document.querySelectorAll("[data-mode]").forEach(button => {
+        button.classList.toggle(
+          "selected",
+          button.dataset.mode === selectedMode
+        );
+      });
 
-  window.asterAuthActions = {
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-    updateProfile,
-    sendPasswordResetEmail,
-    signInWithPopup,
-    signOut
-  };
+      document.querySelectorAll("[data-reasoning]").forEach(button => {
+        button.classList.toggle(
+          "selected",
+          button.dataset.reasoning === selectedReasoning
+        );
+      });
 
-  window.asterFirebaseAuth = auth;
-  window.asterGoogleProvider = googleProvider;
+      $("searchToggle").classList.toggle(
+        "active",
+        selectedMode === "Search"
+      );
 
-  onAuthStateChanged(auth, user => {
-    window.asterCurrentUser = user || null;
-    window.asterAuthInitialized = true;
+      $("searchToggle").setAttribute(
+        "aria-pressed",
+        String(selectedMode === "Search")
+      );
+    }
 
-    showAuthenticated(user);
-  }, error => {
-    console.error("Firebase auth state error:", error);
-    document.getElementById("authStatus").textContent =
-      "Could not verify your session. Refresh the page and try again.";
-  });
-} catch (error) {
-  console.error("Firebase initialization error:", error);
-  document.getElementById("authStatus").textContent =
-    "Firebase could not start. Check your /firebase.js configuration.";
-}
-</script>
+    function toggleDropdown(which) {
+      const mode = $("modeDropdown");
+      const reasoning = $("reasoningDropdown");
 
-<script>
-const authBridgeTimer = setInterval(() => {
-  if (!window.asterFirebaseReady || !window.asterFirebaseAuth || !window.asterAuthActions) return;
-  clearInterval(authBridgeTimer);
+      if (which === "mode") {
+        mode.hidden = !mode.hidden;
+        reasoning.hidden = true;
+        $("modeButton").setAttribute(
+          "aria-expanded",
+          String(!mode.hidden)
+        );
+        $("reasoningButton").setAttribute("aria-expanded", "false");
+      } else {
+        reasoning.hidden = !reasoning.hidden;
+        mode.hidden = true;
+        $("reasoningButton").setAttribute(
+          "aria-expanded",
+          String(!reasoning.hidden)
+        );
+        $("modeButton").setAttribute("aria-expanded", "false");
+      }
+    }
 
-  const actions = window.asterAuthActions;
-  window.authInstance = window.asterFirebaseAuth;
+    $("modeButton").addEventListener("click", () => {
+      toggleDropdown("mode");
+    });
 
-  authInstance = window.asterFirebaseAuth;
-  googleProviderInstance = window.asterGoogleProvider;
+    $("reasoningButton").addEventListener("click", () => {
+      toggleDropdown("reasoning");
+    });
 
-  window.signInWithEmailAndPassword = actions.signInWithEmailAndPassword;
-  window.createUserWithEmailAndPassword = actions.createUserWithEmailAndPassword;
-  window.updateProfile = actions.updateProfile;
-  window.sendPasswordResetEmail = actions.sendPasswordResetEmail;
-  window.signInWithPopup = actions.signInWithPopup;
-  window.signOut = actions.signOut;
+    document.querySelectorAll("[data-mode]").forEach(button => {
+      button.addEventListener("click", () => {
+        selectedMode = button.dataset.mode;
+        $("modeDropdown").hidden = true;
+        updateModeUI();
+      });
+    });
 
-  signInWithEmailAndPassword = actions.signInWithEmailAndPassword;
-  createUserWithEmailAndPassword = actions.createUserWithEmailAndPassword;
-  updateProfile = actions.updateProfile;
-  sendPasswordResetEmail = actions.sendPasswordResetEmail;
-  signInWithPopup = actions.signInWithPopup;
-  signOut = actions.signOut;
+    document.querySelectorAll("[data-reasoning]").forEach(button => {
+      button.addEventListener("click", () => {
+        selectedReasoning = button.dataset.reasoning;
+        $("reasoningDropdown").hidden = true;
+        updateModeUI();
+      });
+    });
 
-  authInitialized = true;
-}, 50);
-setTimeout(() => {
-  if (!authInitialized) {
-    $("authStatus").textContent =
-      "Firebase is taking too long to start. Check /firebase.js and refresh.";
-  }
-}, 8000);
-</script>
+    $("searchToggle").addEventListener("click", () => {
+      selectedMode = selectedMode === "Search" ? "Standard" : "Search";
+      updateModeUI();
+
+      if (selectedMode === "Search") {
+        toast("Dew Search is active.");
+      } else {
+        toast("Dew Standard is active.");
+      }
+    });
+
+    $("chatTabButton").addEventListener("click", () => {
+      selectedTab = "Chat";
+      $("messageInput").placeholder = "Ask Dew anything";
+      toast("Chat mode selected.");
+    });
+
+    $("codeTabButton").addEventListener("click", () => {
+      selectedTab = "Code";
+      $("messageInput").placeholder = "Describe the code you want to build";
+      toast("Code mode selected.");
+      $("messageInput").focus();
+    });
+
+    function scrollToBottom() {
+      $("conversation").scrollTop =
+        $("conversation").scrollHeight;
+    }
+
+    function addMessage(role, text, sources = []) {
+      const container = $("messages");
+      container.hidden = false;
+
+      const node = document.createElement("article");
+      node.className = "message " + role;
+
+      if (role === "assistant") {
+        const header = document.createElement("div");
+        header.className = "message-role";
+
+        const logo = document.createElement("span");
+        logo.className = "sparkle";
+        logo.textContent = "✳";
+
+        const label = document.createElement("span");
+        label.textContent = "Dew";
+
+        header.append(logo, label);
+
+        const content = document.createElement("div");
+        content.className = "message-content";
+        content.textContent = text;
+
+        node.append(header, content);
+
+        const validSources = Array.isArray(sources)
+          ? sources.filter(source =>
+              source &&
+              typeof source.title === "string" &&
+              typeof source.url === "string" &&
+              /^https?:\/\//i.test(source.url)
+            )
+          : [];
+
+        if (validSources.length) {
+          const sourceHeading = document.createElement("p");
+          sourceHeading.textContent = "Sources";
+          sourceHeading.style.fontWeight = "600";
+          sourceHeading.style.fontSize = "12px";
+          node.append(sourceHeading);
+
+          const list = document.createElement("ul");
+
+          for (const source of validSources) {
+            const item = document.createElement("li");
+            const link = document.createElement("a");
+
+            link.href = source.url;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.textContent = source.title;
+
+            item.append(link);
+            list.append(item);
+          }
+
+          node.append(list);
+        }
+      } else {
+        node.textContent = text;
+      }
+
+      container.append(node);
+      $("welcome").hidden = true;
+      scrollToBottom();
+
+      return node;
+    }
+
+    function showTyping() {
+      const node = document.createElement("article");
+      node.className = "message assistant";
+      node.id = "typingIndicator";
+
+      const header = document.createElement("div");
+      header.className = "message-role";
+      header.textContent = "✳ Dew is thinking…";
+
+      node.append(header);
+      $("messages").append(node);
+      $("messages").hidden = false;
+      $("welcome").hidden = true;
+      scrollToBottom();
+    }
+
+    function removeTyping() {
+      $("typingIndicator")?.remove();
+    }
+
+    async function getDewReply(message) {
+      const user = auth.currentUser;
+
+      if (!user) {
+        throw new Error("Your session has expired. Please log in again.");
+      }
+
+      const token = await user.getIdToken();
+
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({
+          message,
+          mode: "Dew " + selectedMode,
+          thinking: selectedReasoning,
+          tab: selectedTab,
+          conversationId: String(currentChatId || "main")
+        })
+      });
+
+      const raw = await response.text();
+      let data;
+
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        console.error(
+          "Aster API returned a non-JSON response:",
+          response.status,
+          raw.slice(0, 500)
+        );
+
+        if (response.status === 404) {
+          throw new Error(
+            "The /api/chat endpoint was not found. Check the file location in your GitHub repository."
+          );
+        }
+
+        throw new Error(
+          "The API returned an invalid response (HTTP " +
+          response.status +
+          ")."
+        );
+      }
+
+      if (!response.ok) {
+        console.error("Aster API error:", response.status, data);
+
+        const detail = [
+          data.error || "REQUEST_FAILED",
+          data.detail
+        ].filter(Boolean).join(": ");
+
+        throw new Error(detail);
+      }
+
+      if (
+        typeof data.answer !== "string" ||
+        !data.answer.trim()
+      ) {
+        throw new Error("Dew returned an empty response.");
+      }
+
+      return {
+        answer: data.answer,
+        sources: Array.isArray(data.sources) ? data.sources : []
+      };
+    }
+
+    async function sendMessage(text) {
+      const message = text.trim();
+
+      if (!message || sending) return;
+
+      if (!auth.currentUser) {
+        toast("Log in before sending a message.");
+        return;
+      }
+
+      sending = true;
+      $("sendButton").disabled = true;
+      setStatus("busy", "Dew is thinking");
+
+      addMessage("user", message);
+      $("messageInput").value = "";
+      resizeInput();
+      showTyping();
+
+      try {
+        const result = await getDewReply(message);
+
+        removeTyping();
+        addMessage("assistant", result.answer, result.sources);
+        setStatus("online", "Connected");
+      } catch (error) {
+        removeTyping();
+
+        console.error("Aster chat error:", error);
+
+        addMessage(
+          "assistant",
+          "I couldn't complete that request.\n\n" +
+          (error?.message || "An unexpected error occurred.") +
+          "\n\nCheck the Vercel Function logs if this keeps happening."
+        );
+
+        setStatus("error", "Request failed");
+      } finally {
+        sending = false;
+        $("sendButton").disabled = false;
+        $("messageInput").focus();
+      }
+    }
+
+    $("chatForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      await sendMessage($("messageInput").value);
+    });
+
+    $("messageInput").addEventListener("keydown", event => {
+      if (
+        event.key === "Enter" &&
+        !event.shiftKey &&
+        !event.isComposing
+      ) {
+        event.preventDefault();
+        $("chatForm").requestSubmit();
+      }
+    });
+
+    function resizeInput() {
+      const input = $("messageInput");
+      input.style.height = "auto";
+      input.style.height = Math.min(input.scrollHeight, 180) + "px";
+    }
+
+    $("messageInput").addEventListener("input", resizeInput);
+
+    document.querySelectorAll("[data-prompt]").forEach(button => {
+      button.addEventListener("click", () => {
+        $("messageInput").value = button.dataset.prompt;
+        resizeInput();
+        $("messageInput").focus();
+      });
+    });
+
+    $("newChatButton").addEventListener("click", () => {
+      currentChatId = createChatId();
+      $("messages").replaceChildren();
+      $("messages").hidden = true;
+      $("welcome").hidden = false;
+      randomGreeting();
+      $("messageInput").value = "";
+      resizeInput();
+      $("messageInput").focus();
+    });
+
+    $("signOutButton").addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+      } catch (error) {
+        console.error("Aster sign-out error:", error);
+        toast("Couldn't sign out. Please try again.");
+      }
+    });
+
+    $("accountButton").addEventListener("click", () => {
+      const user = auth.currentUser;
+      if (user) {
+        toast(user.displayName || user.email || "Signed in");
+      }
+    });
+
+    document.addEventListener("click", event => {
+      if (!event.target.closest(".mode-wrap")) {
+        $("modeDropdown").hidden = true;
+        $("reasoningDropdown").hidden = true;
+        $("modeButton").setAttribute("aria-expanded", "false");
+        $("reasoningButton").setAttribute("aria-expanded", "false");
+      }
+    });
+
+    onAuthStateChanged(auth, user => {
+      $("app").hidden = !user;
+      $("authScreen").hidden = Boolean(user);
+
+      if (user) {
+        $("accountButton").textContent =
+          user.displayName || user.email || "Account";
+
+        setStatus("online", "Connected");
+        randomGreeting();
+      } else {
+        $("accountButton").textContent = "Signed out";
+        $("messages").replaceChildren();
+        $("messages").hidden = true;
+        $("welcome").hidden = false;
+        setStatus("", "Signed out");
+      }
+    }, error => {
+      console.error("Aster auth-state error:", error);
+      setAuthStatus(
+        "Could not verify your session. Refresh the page and try again."
+      );
+    });
+
+    // Lightweight connectivity check for the UI.
+    fetch("/api/health")
+      .then(response => {
+        if (response.ok && !auth.currentUser) {
+          setStatus("online", "API available");
+        }
+      })
+      .catch(() => {
+        // The chat endpoint will show a useful error if unavailable.
+      });
+
+    updateModeUI();
+    randomGreeting();
+  </script>
 </body>
 </html>
