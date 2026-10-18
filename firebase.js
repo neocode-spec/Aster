@@ -1,8 +1,17 @@
-
-import { initializeApp } from "firebase/app";
-import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
-import { getAI, GoogleAIBackend, getGenerativeModel } from "firebase/ai";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import {
+  initializeAppCheck,
+  ReCaptchaEnterpriseProvider
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app-check.js";
+import {
+  getAI,
+  GoogleAIBackend,
+  getGenerativeModel
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-ai.js";
+import {
+  getAuth,
+  GoogleAuthProvider
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAhhJeujb2QvPsKnWheaDUpw0mtrdj6hkU",
