@@ -1087,21 +1087,23 @@ async function getDewReply(message) {
     throw new Error("Your sign-in session could not be verified. Please sign in again.");
   }
 
+  const payload = {
+    message,
+    mode: "Dew " + selectedMode,
+    reasoning: selectedReasoning,
+    searchEnabled: selectedMode === "Search",
+    conversationId: currentChatId
+  };
+
   let response;
   try {
-    // Exactly matches the backend that worked before
     response = await fetch(API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + token
       },
-      body: JSON.stringify({
-        message,
-        mode: "Dew " + selectedMode,
-        thinking: selectedReasoning,
-        tab: selectedTab
-      })
+      body: JSON.stringify(payload)
     });
   } catch (error) {
     console.error("Dew network error:", error);
@@ -1190,7 +1192,7 @@ async function sendMessage(rawMessage) {
   welcome.hidden = true;
   messages.hidden = false;
   moveComposerToBottom();
-  
+
   // Render user message on screen immediately and clear input so chat bar stays free
   renderMessage("user", message);
   input.value = "";
