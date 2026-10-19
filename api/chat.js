@@ -1,4 +1,3 @@
-
 import { GoogleGenAI } from "@google/genai";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
@@ -508,10 +507,16 @@ export default async function handler(req, res) {
       error?.status === 429 ||
       error?.status === 503
     ) {
+      console.error("Gemini temporary error:", {
+        status: error.status,
+        message: error.message
+      });
+
       return errorResponse(
         res,
-        503,
-        "TEMPORARILY_UNAVAILABLE"
+        error.status,
+        "TEMPORARILY_UNAVAILABLE",
+        error.message || "Gemini is temporarily unavailable"
       );
     }
 
