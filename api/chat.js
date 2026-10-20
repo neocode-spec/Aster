@@ -55,7 +55,8 @@ You handle everyday conversation, writing, coding, research,
 explanations, and problem-solving.
 
 WEB SEARCH:
-- You have access to Google Search when the request enables it.
+- Search is a built-in ability of Dew Standard, switched on by the
+  user with the Search button in the chat bar.
 - When search is enabled, use Google Search to research the
   user's question and provide a useful, evidence-based answer.
 - When search is not enabled, answer using your existing knowledge
@@ -94,14 +95,16 @@ answers. Be honest about uncertainty.
 `
 };
 
+// Search is NOT a mode. "Dew Search" no longer exists in the UI.
+// The legacy keys below only exist so an old cached frontend that still
+// sends "Dew Search" / "search" lands on Dew Standard instead of failing.
 const MODES = {
   standard: "Dew Standard",
   extended: "Dew Extended",
   "Dew Standard": "Dew Standard",
   "Dew Extended": "Dew Extended",
 
-  // Legacy frontend compatibility.
-  // Search is a capability, not a separate backend mode.
+  // Legacy compatibility only.
   search: "Dew Standard",
   "Dew Search": "Dew Standard"
 };
@@ -171,7 +174,8 @@ export default async function handler(req, res) {
     }
 
     // Mode and search are independent.
-    // Toggling search never changes Dew Extended into Standard.
+    // The Search button just attaches Google Search to whichever mode
+    // is selected (Standard by default). It never changes the mode.
     const mode = MODES[body.mode] || "Dew Standard";
 
     const searchEnabled =
@@ -180,6 +184,7 @@ export default async function handler(req, res) {
       body.useSearch === true ||
       body.search === true ||
       body.searchMode === true ||
+      // Legacy frontend compatibility
       body.mode === "search" ||
       body.mode === "Dew Search";
 
