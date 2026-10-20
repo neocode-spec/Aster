@@ -194,6 +194,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #555; }
 .status-dot.online { background: #81c995; box-shadow: 0 0 8px #81c99588; }
 .status-dot.busy { background: #e6c27a; }
+.status-dot.warn { background: #e6c27a; box-shadow: 0 0 8px #e6c27a66; }
 .status-dot.error { background: #ff8a80; }
 .conversation { flex: 1; min-height: 0; overflow-y: auto; scroll-behavior: smooth; }
 .welcome {
@@ -280,6 +281,26 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 }
 .small-action:hover { background: var(--hover); }
 .message-error { color: #ffb4ab; }
+
+/* Calm notice: used for overload / quota / gentle problems instead of a red error */
+.message-notice {
+  padding: 13px 16px; border-radius: 14px;
+  border: 1px solid #3a3556; background: #17142a;
+  color: #d9d3f0; font-size: 14px; line-height: 1.7;
+}
+.message-notice .notice-title {
+  display: block; margin-bottom: 4px;
+  color: #e6dcff; font-weight: 600; font-size: 14px;
+}
+.message-notice.quota { border-color: #4d4330; background: #1a1710; color: #eadfc2; }
+.message-notice.quota .notice-title { color: #f1dca5; }
+
+/* Small gentle line shown under an answer when search was on but unused */
+.search-note {
+  margin-top: 2px; color: var(--muted);
+  font-size: 12px; line-height: 1.6; font-style: italic;
+}
+
 .typing { display: flex; gap: 5px; padding: 8px 0; }
 .typing span {
   width: 6px; height: 6px; border-radius: 50%;
@@ -1056,6 +1077,37 @@ function renderMessage(role, text, save = true, historyIndex = -1) {
   conversation.scrollTop = conversation.scrollHeight;
   return wrapper;
 }
+
+// Calm, non-saved notice from Dew (overload, quota, sign-in, etc.).
+// Not stored in chat history, so it disappears on reload instead of cluttering the conversation.
+function renderNotice(title, body, kind = "") {
+  const wrapper = document.createElement("article");
+  wrapper.className = "message assistant";
+
+  const label = document.createElement("div");
+  label.className = "message-role";
+  const mark = document.createElement("span");
+  mark.className = "role-mark";
+  mark.textContent = "✳";
+  const name = document.createElement("span");
+  name.textContent = "Dew";
+  label.append(mark, name);
+
+  const box = document.createElement("div");
+  box.className = "message-notice" + (kind ? " " + kind : "");
+  const heading = document.createElement("span");
+  heading.className = "notice-title";
+  heading.textContent = title;
+  const text = document.createElement("span");
+  text.textContent = body;
+  box.append(heading, text);
+
+  wrapper.append(label, box);
+  messages.appendChild(wrapper);
+  conversation.scrollTop = conversation.scrollHeight;
+  return wrapper;
+}
+
 function editMessage(index) {
   if (isSending) return showToast("Wait for Dew to finish first.");
   const chat = getCurrentChat();
@@ -1076,10 +1128,71 @@ function addTyping() {
   conversation.scrollTop = conversation.scrollHeight;
 }
 
+// An error that already knows how to explain itself gently.
+class DewError extends Error {
+  constructor(kind, title, message) {
+    super(message);
+    this.kind = kind;       // "overload" | "quota" | "auth" | "network" | "generic"
+    this.title = title;
+  }
+}
+
+// Turn an API failure into a calm, specific message.
+function friendlyApiError(status, code, detail) {
+  const text = (String(code || "") + " " + String(detail || "")).toLowerCase();
+
+  const looksQuota =
+    status === 429 ||
+    /quota|rate.?limit|resource_exhausted|exhausted|too many requests/.test(text);
+  const looksOverload =
+    status === 503 || status === 502 || status === 504 ||
+    /overload|unavailable|high demand|try again later/.test(text);
+
+  if (looksQuota) {
+    return new DewError(
+      "quota",
+      "Usage limit reached for now",
+      "Dew has used up its allowance for the moment, so it can't answer right now. " +
+      "This usually clears after a little while. Please try again later, and your message won't be lost from this chat."
+    );
+  }
+  if (looksOverload) {
+    return new DewError(
+      "overload",
+      "Dew is a bit busy right now",
+      "The AI service is overloaded at the moment, which is temporary. " +
+      "Give it 20 to 30 seconds and send your message again."
+    );
+  }
+  if (status === 401 || /auth_required|invalid_auth_token/.test(text)) {
+    return new DewError(
+      "auth",
+      "Please sign in again",
+      "Your session has expired. Sign out and sign back in, then try again."
+    );
+  }
+  if (code === "MESSAGE_TOO_LONG") {
+    return new DewError("generic", "That message is too long", "Try shortening it and sending it again.");
+  }
+  if (code === "EMPTY_MODEL_RESPONSE") {
+    return new DewError(
+      "generic",
+      "Dew had nothing to say that time",
+      "The model came back empty. Try rephrasing or sending it once more."
+    );
+  }
+  return new DewError(
+    "generic",
+    "Something didn't go through",
+    "Dew couldn't finish that request. Please try again in a moment." +
+    (detail ? " (" + String(detail).slice(0, 140) + ")" : "")
+  );
+}
+
 async function getDewReply(message, searchEnabled) {
   const user = window.asterCurrentUser;
   if (!user || typeof user.getIdToken !== "function") {
-    throw new Error("Please sign in again to continue.");
+    throw new DewError("auth", "Please sign in again", "Sign in again to continue.");
   }
 
   let token;
@@ -1087,7 +1200,11 @@ async function getDewReply(message, searchEnabled) {
     token = await user.getIdToken();
   } catch (error) {
     console.error("Firebase token error:", error);
-    throw new Error("Your sign-in session could not be verified. Please sign in again.");
+    throw new DewError(
+      "auth",
+      "Please sign in again",
+      "Your sign-in session could not be verified. Sign out and sign back in."
+    );
   }
 
   // mode is always "Dew Standard" or "Dew Extended".
@@ -1112,7 +1229,11 @@ async function getDewReply(message, searchEnabled) {
     });
   } catch (error) {
     console.error("Dew network error:", error);
-    throw new Error("Aster could not reach its API. Check your connection and deployment.");
+    throw new DewError(
+      "network",
+      "Can't reach Dew",
+      "The connection to Aster dropped. Check your internet and try again."
+    );
   }
 
   const raw = await response.text();
@@ -1122,23 +1243,37 @@ async function getDewReply(message, searchEnabled) {
   } catch {
     console.error("Non-JSON API response:", response.status, raw.slice(0, 300));
     if (response.status === 404) {
-      throw new Error("The /api/chat endpoint was not found. Check your Vercel deployment.");
+      throw new DewError(
+        "generic",
+        "Dew's server isn't reachable",
+        "The /api/chat endpoint was not found. Check your Vercel deployment."
+      );
     }
-    throw new Error("The API returned an invalid response (HTTP " + response.status + ").");
+    // Gateway pages (502/503/504) often come back as HTML, not JSON.
+    throw friendlyApiError(response.status, "", "");
   }
 
   if (!response.ok) {
-    const detail = data.error || data.detail || data.message;
     console.error("Dew API error:", response.status, data);
-    throw new Error(typeof detail === "string" ? detail : "API request failed (HTTP " + response.status + ").");
+    throw friendlyApiError(
+      response.status,
+      data.error || "",
+      data.detail || data.message || ""
+    );
   }
 
   if (typeof data.answer !== "string" || !data.answer.trim()) {
-    throw new Error("The API responded without an answer. Check api/chat.js.");
+    throw new DewError(
+      "generic",
+      "Dew had nothing to say that time",
+      "The API responded without an answer. Try again, or check api/chat.js."
+    );
   }
   return {
     answer: data.answer,
-    sources: Array.isArray(data.sources) ? data.sources : []
+    sources: Array.isArray(data.sources) ? data.sources : [],
+    searchEnabled: data.searchEnabled === true,
+    searchUsed: data.searchUsed === true
   };
 }
 
@@ -1162,28 +1297,46 @@ async function processQueue() {
   isSending = true;
   addTyping();
   setStatus("busy", "Dew is responding");
+  let finalStatus = ["online", "API reachable"];
 
   try {
     const result = await getDewReply(next.message, next.searchEnabled);
     $("typingIndicator")?.remove();
-    renderMessage("assistant", appendSources(result.answer, result.sources));
-    setStatus("online", "API reachable");
+
+    const wrapper = renderMessage("assistant", appendSources(result.answer, result.sources));
+
+    // Search was on, but the model answered from its own knowledge.
+    // Shown as a small note under the answer (not saved into the history text).
+    if (result.searchEnabled && !result.searchUsed) {
+      const note = document.createElement("div");
+      note.className = "search-note";
+      note.textContent =
+        "Search was on, but Dew answered this from its built-in knowledge instead of searching the web. " +
+        "Ask it to look something up directly if you need live information.";
+      wrapper.insertBefore(note, wrapper.querySelector(".message-actions"));
+    }
   } catch (error) {
     $("typingIndicator")?.remove();
     console.error("Dew request failed:", error);
-    const errorNode = renderMessage(
-      "assistant",
-      "I couldn't complete that request.\n\n" +
-      (error instanceof Error ? error.message : "An unexpected error occurred."),
-      false
-    );
-    errorNode.querySelector(".message-body")?.classList.add("message-error");
-    setStatus("error", "Request failed");
+
+    if (error instanceof DewError) {
+      renderNotice(error.title, error.message, error.kind === "quota" ? "quota" : "");
+      finalStatus = error.kind === "quota" || error.kind === "overload"
+        ? ["warn", error.kind === "quota" ? "Limit reached" : "Dew is busy"]
+        : ["error", "Request failed"];
+    } else {
+      renderNotice(
+        "Something didn't go through",
+        "Dew couldn't finish that request. Please try again in a moment."
+      );
+      finalStatus = ["error", "Request failed"];
+    }
+    setStatus(finalStatus[0], finalStatus[1]);
   } finally {
     isSending = false;
     if (messageQueue.length > 0) {
       processQueue();
-    } else {
+    } else if (finalStatus[0] === "online") {
       setStatus("online", "API reachable");
     }
   }
