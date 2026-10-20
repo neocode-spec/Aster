@@ -528,9 +528,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
             <button class="menu-option" data-mode="Extended" role="menuitemradio" aria-checked="false" type="button">
               <span><strong>Dew Extended</strong><span class="option-description">More involved tasks</span></span><span class="option-check"></span>
             </button>
-            <button class="menu-option" data-mode="Search" role="menuitemradio" aria-checked="false" type="button">
-              <span><strong>Dew Search</strong><span class="option-description">Search-oriented answers from the web</span></span><span class="option-check"></span>
-            </button>
           </div>
         </div>
       </div>
@@ -573,7 +570,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 <form class="composer" id="chatForm">
   <button class="plus-button" id="plusButton" type="button" aria-label="Focus message input">＋</button>
   <textarea id="messageInput" rows="1" maxlength="1200" aria-label="Message Dew" placeholder="Ask Dew anything"></textarea>
-  <button class="search-pill" id="searchPill" type="button" aria-pressed="false" title="Toggle Dew Search">
+  <button class="search-pill" id="searchPill" type="button" aria-pressed="false" title="Search the web">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.8"/><path d="m15.5 15.5 5 5"/></svg>
     <span class="search-pill-text">Search</span>
   </button>
@@ -619,7 +616,11 @@ const searchPill = $("searchPill");
 const sheetBackdrop = $("sheetBackdrop");
 const topbarBrand = $("topbarBrand");
 
+// Mode is only ever "Standard" or "Extended".
+// Search is a separate on/off switch (the Search pill in the chat bar).
+// Turning Search on keeps you in the mode you are already in.
 let selectedMode = "Standard";
+let searchOn = false;
 let selectedReasoning = "Medium";
 let selectedTab = "Chat";
 let isSending = false;
@@ -762,7 +763,6 @@ function updateMode(mode) {
     button.setAttribute("aria-checked", String(active));
     button.querySelector(".option-check").textContent = active ? "✓" : "";
   });
-  syncSearchButton();
 }
 
 document.querySelectorAll("[data-mode]").forEach(button => {
@@ -786,13 +786,16 @@ document.querySelectorAll("[data-thinking]").forEach(button => {
   });
 });
 
+// Search pill: independent on/off switch. Never touches the selected mode.
 function syncSearchButton() {
-  const active = selectedMode === "Search";
-  searchPill.classList.toggle("active", active);
-  searchPill.setAttribute("aria-pressed", String(active));
+  searchPill.classList.toggle("active", searchOn);
+  searchPill.setAttribute("aria-pressed", String(searchOn));
+  searchPill.title = searchOn ? "Web search is on" : "Search the web";
 }
 searchPill.addEventListener("click", () => {
-  updateMode(selectedMode === "Search" ? "Standard" : "Search");
+  searchOn = !searchOn;
+  syncSearchButton();
+  showToast(searchOn ? "Web search is on." : "Web search is off.");
   input.focus();
 });
 
@@ -1073,7 +1076,7 @@ function addTyping() {
   conversation.scrollTop = conversation.scrollHeight;
 }
 
-async function getDewReply(message) {
+async function getDewReply(message, searchEnabled) {
   const user = window.asterCurrentUser;
   if (!user || typeof user.getIdToken !== "function") {
     throw new Error("Please sign in again to continue.");
@@ -1087,11 +1090,13 @@ async function getDewReply(message) {
     throw new Error("Your sign-in session could not be verified. Please sign in again.");
   }
 
+  // mode is always "Dew Standard" or "Dew Extended".
+  // Search rides along as its own flag.
   const payload = {
     message,
     mode: "Dew " + selectedMode,
     reasoning: selectedReasoning,
-    searchEnabled: selectedMode === "Search",
+    searchEnabled,
     conversationId: currentChatId
   };
 
@@ -1151,14 +1156,15 @@ function appendSources(answer, sources) {
 
 async function processQueue() {
   if (isSending || messageQueue.length === 0) return;
-  const nextMessage = messageQueue.shift();
+  // Each queued item remembers whether search was on when it was sent.
+  const next = messageQueue.shift();
 
   isSending = true;
   addTyping();
   setStatus("busy", "Dew is responding");
 
   try {
-    const result = await getDewReply(nextMessage);
+    const result = await getDewReply(next.message, next.searchEnabled);
     $("typingIndicator")?.remove();
     renderMessage("assistant", appendSources(result.answer, result.sources));
     setStatus("online", "API reachable");
@@ -1199,7 +1205,7 @@ async function sendMessage(rawMessage) {
   resizeInput();
   input.focus();
 
-  messageQueue.push(message);
+  messageQueue.push({ message, searchEnabled: searchOn });
   processQueue();
 }
 
